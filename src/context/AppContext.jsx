@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
-import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, verifyCloudPin } from '../lib/supabase';
 
 const AppContext = createContext();
 
@@ -262,8 +262,12 @@ export function AppProvider({ children }) {
       try {
         const cloudUser = await getCloudFreelancer(cleanNick);
         if (cloudUser) {
-          if (String(cloudUser.pin).trim() === cleanPin) {
-            matchedUser = cloudUser;
+          const isValid = await verifyCloudPin(cleanPin, cloudUser);
+          if (isValid) {
+            matchedUser = {
+              ...cloudUser,
+              pin: cleanPin,
+            };
           } else {
             throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
           }

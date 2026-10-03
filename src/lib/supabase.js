@@ -58,7 +58,32 @@ export async function getCloudFreelancer(nick) {
 }
 
 /**
- * Uloženie nového účtu freelancera do cloudu (DB + Storage)
+ * Bezpečné hashovanie PIN kódu pomocou SHA-256 so soľou
+ */
+export async function hashPin(pin) {
+  if (!pin) return '';
+  const encoder = new TextEncoder();
+  const data = encoder.encode(String(pin).trim() + '_dropbrief_salt_2026');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Overenie PIN kódu voči uloženému profilu
+ */
+export async function verifyCloudPin(inputPin, storedUser) {
+  if (!inputPin || !storedUser) return false;
+  const cleanInput = String(inputPin).trim();
+  const inputHash = await hashPin(cleanInput);
+
+  if (storedUser.pinHash && storedUser.pinHash === inputHash) return true;
+  if (storedUser.pin && String(storedUser.pin).trim() === cleanInput) return true;
+  return false;
+}
+
+/**
+ * Uloženie nového účtu freelancera do cloudu (DB + šifrovaný Storage profil)
  */
 export async function saveCloudFreelancer(freelancer) {
   if (!supabase || !freelancer) return freelancer;
@@ -66,7 +91,9 @@ export async function saveCloudFreelancer(freelancer) {
   const safeNick = cleanNick.replace(/[^a-z0-9]/g, '_');
   const filePath = `_profiles/fl_${safeNick}.json`;
 
-  // 1. Skúsiť vložiť do SQL tabuľky
+  const pinHash = await hashPin(freelancer.pin);
+
+  // 1. Skúsiť vložiť do SQL tabuľky v Supabase (ak existuje)
   try {
     await supabase.from('freelancers').insert({
       nick: freelancer.nick.trim(),
@@ -75,12 +102,19 @@ export async function saveCloudFreelancer(freelancer) {
     });
   } catch (e) {}
 
-  // 2. Uložiť do Storage bucketu (bezpečný JSON súbor účtu)
+  // 2. Uložiť do Storage bucketu (s kryptografickým hashovaným PINom, nie v čistom texte)
   try {
-    const payload = JSON.stringify(freelancer, null, 2);
-    const blob = new Blob([payload], { type: 'application/json' });
+    const safePayload = {
+      id: freelancer.id,
+      nick: freelancer.nick,
+      pinHash: pinHash, // Uložený len kryptografický hash
+      email: freelancer.email || '',
+      createdAt: freelancer.createdAt || new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(safePayload, null, 2)], { type: 'application/json' });
     
-    // Ak už súbor existoval, najprv zmažeme a nahráme nový
+    // Zmazať predchádzajúci ak existoval
     await supabase.storage.from('client-uploads').remove([filePath]);
     const { error: upErr } = await supabase.storage
       .from('client-uploads')
