@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer } from '../lib/supabase';
 
 const AppContext = createContext();
 
@@ -184,6 +184,21 @@ export function AppProvider({ children }) {
     }
     const cleanNick = nick.trim();
     const cleanEmail = email ? email.trim() : '';
+
+    // 1. Skontrolujeme, či nick už neexistuje v cloude
+    if (isSupabaseConfigured) {
+      try {
+        const existing = await getCloudFreelancer(cleanNick);
+        if (existing) {
+          throw new Error('Tento nick už existuje. Zvoľte si iné meno alebo sa prihláste.');
+        }
+      } catch (err) {
+        if (err.message && err.message.includes('Tento nick už existuje')) {
+          throw err;
+        }
+      }
+    }
+
     // Vygenerovanie 6-miestneho číselného PIN kódu
     const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -195,53 +210,21 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString(),
     };
 
-    // Zápis do Supabase (ak je nakonfigurovaný)
-    if (isSupabaseConfigured && supabase) {
+    // 2. Uložíme do Supabase cloudu (DB tabuľka + Storage profil)
+    if (isSupabaseConfigured) {
       try {
-        const { data: existing } = await supabase
-          .from('freelancers')
-          .select('id')
-          .ilike('nick', cleanNick)
-          .maybeSingle();
-
-        if (existing) {
-          throw new Error('Tento nick už existuje. Zvoľte si iné meno alebo sa prihláste.');
-        }
-
-        const { data: inserted, error: insErr } = await supabase
-          .from('freelancers')
-          .insert({
-            nick: cleanNick,
-            pin_code: generatedPin,
-            email: cleanEmail,
-          })
-          .select()
-          .single();
-
-        if (insErr) {
-          console.error('Supabase freelancer insert error:', insErr);
-        } else if (inserted) {
-          freelancerRecord = {
-            id: inserted.id,
-            nick: inserted.nick,
-            pin: inserted.pin_code,
-            email: inserted.email || '',
-            createdAt: inserted.created_at,
-          };
-        }
+        freelancerRecord = await saveCloudFreelancer(freelancerRecord);
       } catch (err) {
-        if (err.message && err.message.includes('Tento nick už existuje')) {
-          throw err;
-        }
         console.warn('Freelancer cloud registration fallback:', err);
       }
     }
 
-    // Uloženie do lokálnej pamäte prehliadača
+    // 3. Uložíme do lokálnej pamäte prehliadača
     try {
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-      localAccs.push(freelancerRecord);
-      localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(localAccs));
+      const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase());
+      filtered.push(freelancerRecord);
+      localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
     } catch (e) {
       console.error('Failed to save to local accounts:', e);
     }
@@ -264,52 +247,56 @@ export function AppProvider({ children }) {
 
     let matchedUser = null;
 
-    // Kontrola v Supabase
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data: user, error } = await supabase
-          .from('freelancers')
-          .select('*')
-          .ilike('nick', cleanNick)
-          .eq('pin_code', cleanPin)
-          .maybeSingle();
+    // 1. Rýchly demo prístup
+    if (cleanNick === 'marko' && cleanPin === '123456') {
+      matchedUser = {
+        id: 'demo-marko-1',
+        nick: 'Marko',
+        pin: '123456',
+        email: 'marko@dropbrief.sk',
+      };
+    }
 
-        if (user) {
-          matchedUser = {
-            id: user.id,
-            nick: user.nick,
-            pin: user.pin_code,
-            email: user.email || '',
-            createdAt: user.created_at,
-          };
+    // 2. Hľadáme v Supabase cloude (DB alebo Storage profil)
+    if (!matchedUser && isSupabaseConfigured) {
+      try {
+        const cloudUser = await getCloudFreelancer(cleanNick);
+        if (cloudUser) {
+          if (String(cloudUser.pin).trim() === cleanPin) {
+            matchedUser = cloudUser;
+          } else {
+            throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
+          }
         }
       } catch (err) {
-        console.error('Supabase login check error:', err);
+        if (err.message && err.message.includes('Nesprávny 6-miestny PIN kód')) {
+          throw err;
+        }
+        console.warn('Cloud login check warning:', err);
       }
     }
 
-    // Demo účet alebo lokálna záloha
+    // 3. Fallback na lokálnu pamäť prehliadača
     if (!matchedUser) {
-      if (cleanNick === 'marko' && cleanPin === '123456') {
-        matchedUser = {
-          id: 'demo-marko-1',
-          nick: 'Marko',
-          pin: '123456',
-          email: 'marko@dropbrief.sk',
-        };
-      } else {
-        try {
-          const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-          const found = localAccs.find(
-            (a) => a.nick.toLowerCase() === cleanNick && a.pin === cleanPin
-          );
-          if (found) matchedUser = found;
-        } catch (e) {}
+      try {
+        const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+        const found = localAccs.find(
+          (a) => a.nick.toLowerCase() === cleanNick
+        );
+        if (found) {
+          if (String(found.pin).trim() === cleanPin) {
+            matchedUser = found;
+          } else {
+            throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
+          }
+        }
+      } catch (e) {
+        if (e.message && e.message.includes('Nesprávny 6-miestny PIN kód')) throw e;
       }
     }
 
     if (!matchedUser) {
-      throw new Error('Nesprávny nick alebo 6-miestny PIN kód.');
+      throw new Error(`Účet s nickom „${nick.trim()}“ nebol nájdený. Skontrolujte zadané meno alebo si vytvorte nový účet.`);
     }
 
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
@@ -391,20 +378,21 @@ export function AppProvider({ children }) {
     // Uloženie do Supabase (ak je k dispozícii)
     if (isSupabaseConfigured && supabase) {
       try {
+        const insertPayload = {
+          slug: randomSlug,
+          title: newProjData.title,
+          client_name: newProjData.clientName,
+          client_email: newProjData.clientEmail,
+          freelancer_name: flName,
+          freelancer_email: flEmail,
+          deadline: newProjData.deadline || '',
+          reminder_frequency: Number(newProjData.reminderFrequency) || 3,
+          status: 'pending',
+        };
+
         const { data: insertedProj, error: pErr } = await supabase
           .from('projects')
-          .insert({
-            freelancer_id: flId,
-            slug: randomSlug,
-            title: newProjData.title,
-            client_name: newProjData.clientName,
-            client_email: newProjData.clientEmail,
-            freelancer_name: flName,
-            freelancer_email: flEmail,
-            deadline: newProjData.deadline || '',
-            reminder_frequency: Number(newProjData.reminderFrequency) || 3,
-            status: 'pending',
-          })
+          .insert(insertPayload)
           .select()
           .single();
 
