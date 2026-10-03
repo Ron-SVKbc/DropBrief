@@ -120,11 +120,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             <span className="badge badge-accent">
               <Sparkles size={12} /> Freelancer: <strong>{currentFreelancer?.nick || 'Freelancer'}</strong>
             </span>
-            {currentFreelancer?.pin && (
-              <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                Prístupový PIN: {currentFreelancer.pin}
-              </span>
-            )}
+            {/* PIN sa nikdy nezobrazuje v UI z bezpečnostných dôvodov */}
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '6px' }}>
             Moje projekty a podklady

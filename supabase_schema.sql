@@ -5,7 +5,7 @@
 create table if not exists public.freelancers (
   id uuid primary key default gen_random_uuid(),
   nick text unique not null,
-  pin_code text not null,
+  pin_code text not null, -- POZOR: ukladame len SHA-256 hash PINu, nikdy plain-text!
   email text default '',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -54,21 +54,28 @@ alter table public.projects enable row level security;
 alter table public.project_items enable row level security;
 
 -- Politiky pre freelancerov
-create policy "Verejný prístup k freelancerom" 
-  on public.freelancers for all 
-  using (true) 
+-- Anonymný číteľ môže hľadať účet podľa nicku (kvoli login flow), ale NESMIE modifikovať
+create policy "Anonymné vyhlačávanie freelancera podľa nicku"
+  on public.freelancers for select
+  using (true); -- select je nevyhnutný pre login; obsahuje len hash, nie plain-text PIN
+
+create policy "Freelancer si môže vytvoriť účet"
+  on public.freelancers for insert
   with check (true);
 
+-- ZAKAZÁNÉ: Anonymný update/delete freelancerích účtov
+-- (chybá RLS pre update/delete = implicitne zakázané bez explicitnej politiky)
+
 -- Politiky pre projekty
-create policy "Anonymný prístup k projektom" 
-  on public.projects for all 
-  using (true) 
+create policy "Anonymný prístup k projektom"
+  on public.projects for all
+  using (true)
   with check (true);
 
 -- Politiky pre položky projektov
-create policy "Anonymný prístup k položkám projektov" 
-  on public.project_items for all 
-  using (true) 
+create policy "Anonymný prístup k položkám projektov"
+  on public.project_items for all
+  using (true)
   with check (true);
 
 -- 5. Storage Bucket pre klientske súbory

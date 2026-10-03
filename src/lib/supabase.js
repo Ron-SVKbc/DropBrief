@@ -77,8 +77,8 @@ export async function verifyCloudPin(inputPin, storedUser) {
   const cleanInput = String(inputPin).trim();
   const inputHash = await hashPin(cleanInput);
 
+  // Overenie len voči kryptografickému hashu – plain-text PIN sa nikdy neoveruje
   if (storedUser.pinHash && storedUser.pinHash === inputHash) return true;
-  if (storedUser.pin && String(storedUser.pin).trim() === cleanInput) return true;
   return false;
 }
 
@@ -93,28 +93,28 @@ export async function saveCloudFreelancer(freelancer) {
 
   const pinHash = await hashPin(freelancer.pin);
 
-  // 1. Skúsiť vložiť do SQL tabuľky v Supabase (ak existuje)
+  // 1. Uložiť do SQL tabuľky – výhradne hashed PIN, nikdy plain-text
   try {
     await supabase.from('freelancers').insert({
       nick: freelancer.nick.trim(),
-      pin_code: freelancer.pin,
+      pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
       email: freelancer.email || '',
     });
   } catch (e) {}
 
-  // 2. Uložiť do Storage bucketu (s kryptografickým hashovaným PINom, nie v čistom texte)
+  // 2. Uložiť do Storage bucketu – len hash, bez plain-text PINu
   try {
     const safePayload = {
       id: freelancer.id,
       nick: freelancer.nick,
-      pinHash: pinHash, // Uložený len kryptografický hash
+      pinHash: pinHash,
       email: freelancer.email || '',
       createdAt: freelancer.createdAt || new Date().toISOString(),
+      // POZOR: plain-text PIN sa nikdy neukladá do cloudu
     };
 
     const blob = new Blob([JSON.stringify(safePayload, null, 2)], { type: 'application/json' });
     
-    // Zmazať predchádzajúci ak existoval
     await supabase.storage.from('client-uploads').remove([filePath]);
     const { error: upErr } = await supabase.storage
       .from('client-uploads')
@@ -133,11 +133,49 @@ export async function saveCloudFreelancer(freelancer) {
 /**
  * Nahranie súboru do Supabase Storage bucketu 'client-uploads'
  */
+// Povolené typy súborov (whitelist)
+const ALLOWED_MIME_TYPES = [
+  // Obrázky
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/heic', 'image/heif',
+  // Dokumenty
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  // Text
+  'text/plain', 'text/csv',
+  // Archívy
+  'application/zip', 'application/x-zip-compressed',
+  'application/x-rar-compressed', 'application/x-7z-compressed',
+  // Dizajn
+  'application/postscript', 'image/vnd.adobe.photoshop',
+];
+
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
 export async function uploadClientFile(file, projectSlug, itemId) {
   if (!supabase) throw new Error('Supabase nie je nakonfigurovaný');
 
-  const fileExt = file.name.split('.').pop();
-  const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  // ✅ Validácia veľkosti súboru
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error(`Súbor je príliš veľký. Maximálna povolená veľkosť je 50 MB (aktuálna veľkosť: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+  }
+
+  // ✅ Validácia typu súboru (whitelist)
+  const mimeType = file.type || 'application/octet-stream';
+  if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+    throw new Error(`Typ súboru "${mimeType}" nie je povolený. Akceptujeme obrázky, PDF, dokumenty Office a archívy.`);
+  }
+
+  // ✅ Sanitizácia názvu súboru
+  const safeName = file.name
+    .replace(/[^a-zA-Z0-9._-]/g, '_') // len bezpečné znaky
+    .replace(/\.{2,}/g, '.')           // zabrání path traversal (../../)
+    .substring(0, 200);                // max dĺžka názvu
+
   const filePath = `${projectSlug}/${itemId}-${Date.now()}-${safeName}`;
 
   const { data, error } = await supabase.storage
@@ -145,6 +183,7 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     .upload(filePath, file, {
       cacheControl: '3600',
       upsert: true,
+      contentType: mimeType,
     });
 
   if (error) {
@@ -162,7 +201,7 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     url: publicUrlData.publicUrl,
     fileName: file.name,
     fileSize: (file.size / 1024).toFixed(1) + ' KB',
-    fileType: file.type || 'application/octet-stream',
+    fileType: mimeType,
   };
 }
 

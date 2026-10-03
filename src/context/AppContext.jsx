@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
-import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, verifyCloudPin } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, verifyCloudPin, hashPin } from '../lib/supabase';
 
 const AppContext = createContext();
 
@@ -219,19 +219,23 @@ export function AppProvider({ children }) {
       }
     }
 
-    // 3. Uložíme do lokálnej pamäte prehliadača
+    // 3. Uložíme do lokálnej pamäte prehliadača – PIN hashovaný, nikdy plain-text
     try {
+      const pinHash = await hashPin(generatedPin);
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
       const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase());
-      filtered.push(freelancerRecord);
+      // Ukladáme len hash, nie pôvodný PIN
+      filtered.push({ id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt, pinHash });
       localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
     } catch (e) {
       console.error('Failed to save to local accounts:', e);
     }
 
-    localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(freelancerRecord));
-    setCurrentFreelancer(freelancerRecord);
-    setAuthRegisteredData(freelancerRecord);
+    // Session nikdy neobsahuje plain-text PIN
+    const sessionRecord = { id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt };
+    localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(sessionRecord));
+    setCurrentFreelancer(sessionRecord);
+    setAuthRegisteredData(freelancerRecord); // authRegisteredData drží PIN len pre pin_reveal obrazovku
     setAuthModalMode('pin_reveal');
 
     addToast(`Účet ${cleanNick} pripravený! Váš PIN kód je ${generatedPin}`, 'success', 'Registrácia úspešná');
@@ -245,51 +249,67 @@ export function AppProvider({ children }) {
     const cleanNick = nick.trim().toLowerCase();
     const cleanPin = pin.trim();
 
-    let matchedUser = null;
-
-    // 1. Rýchly demo prístup
-    if (cleanNick === 'marko' && cleanPin === '123456') {
-      matchedUser = {
-        id: 'demo-marko-1',
-        nick: 'Marko',
-        pin: '123456',
-        email: 'marko@dropbrief.sk',
-      };
+    // 🛡️ Ochrana pred brute-force – max 5 pokusov za 60 sekúnd
+    const RATE_KEY = 'dropbrief_login_attempts';
+    try {
+      const rateData = JSON.parse(localStorage.getItem(RATE_KEY) || '{"count":0,"since":0}');
+      const now = Date.now();
+      if (now - rateData.since < 60_000) {
+        if (rateData.count >= 5) {
+          const waitSec = Math.ceil((60_000 - (now - rateData.since)) / 1000);
+          throw new Error(`Príliš veľa neúspešných pokusov. Skúste znova o ${waitSec} sekúnd.`);
+        }
+        rateData.count += 1;
+      } else {
+        rateData.count = 1;
+        rateData.since = now;
+      }
+      localStorage.setItem(RATE_KEY, JSON.stringify(rateData));
+    } catch (rateErr) {
+      if (rateErr.message && rateErr.message.includes('Príliš veľa')) throw rateErr;
     }
 
-    // 2. Hľadáme v Supabase cloude (DB alebo Storage profil)
+    let matchedUser = null;
+
+    // 1. Hľadáme v Supabase cloude (DB alebo Storage profil)
     if (!matchedUser && isSupabaseConfigured) {
       try {
         const cloudUser = await getCloudFreelancer(cleanNick);
         if (cloudUser) {
           const isValid = await verifyCloudPin(cleanPin, cloudUser);
           if (isValid) {
+            // ✅ Session bez PINu
             matchedUser = {
-              ...cloudUser,
-              pin: cleanPin,
+              id: cloudUser.id,
+              nick: cloudUser.nick,
+              email: cloudUser.email || '',
+              createdAt: cloudUser.createdAt,
             };
           } else {
             throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
           }
         }
       } catch (err) {
-        if (err.message && err.message.includes('Nesprávny 6-miestny PIN kód')) {
-          throw err;
-        }
+        if (err.message && err.message.includes('Nesprávny 6-miestny PIN kód')) throw err;
         console.warn('Cloud login check warning:', err);
       }
     }
 
-    // 3. Fallback na lokálnu pamäť prehliadača
+    // 2. Fallback na lokálnu pamäť prehliadača
     if (!matchedUser) {
       try {
         const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-        const found = localAccs.find(
-          (a) => a.nick.toLowerCase() === cleanNick
-        );
+        const found = localAccs.find((a) => a.nick.toLowerCase() === cleanNick);
         if (found) {
-          if (String(found.pin).trim() === cleanPin) {
-            matchedUser = found;
+          let isValid = false;
+          if (found.pinHash) {
+            isValid = (await hashPin(cleanPin)) === found.pinHash;
+          } else if (found.pin) {
+            // Starší fallback pre existujúce lokálne účty (pred migráciou)
+            isValid = String(found.pin).trim() === cleanPin;
+          }
+          if (isValid) {
+            matchedUser = { id: found.id, nick: found.nick, email: found.email || '', createdAt: found.createdAt };
           } else {
             throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
           }
@@ -300,9 +320,13 @@ export function AppProvider({ children }) {
     }
 
     if (!matchedUser) {
-      throw new Error(`Účet s nickom „${nick.trim()}“ nebol nájdený. Skontrolujte zadané meno alebo si vytvorte nový účet.`);
+      throw new Error(`Účet s nickom „${nick.trim()}" nebol nájdený. Skontrolujte zadané meno alebo si vytvorte nový účet.`);
     }
 
+    // ✅ Reset rate-limitu po úspechu
+    try { localStorage.removeItem(RATE_KEY); } catch(e) {}
+
+    // ✅ Session nikdy neobsahuje plain-text PIN
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
     setCurrentFreelancer(matchedUser);
     closeAuthModal();
@@ -311,6 +335,7 @@ export function AppProvider({ children }) {
   };
 
   const loginAsDemo = async () => {
+    // Demo účet je len pre lokálnu demó verziu – prihlási cez štandardný flow
     return loginFreelancer('Marko', '123456');
   };
 
