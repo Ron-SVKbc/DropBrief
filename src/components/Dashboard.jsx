@@ -26,13 +26,24 @@ export default function Dashboard({ onOpenCreateModal }) {
     deleteProject, 
     sendSimulatedReminder, 
     openClientPortal, 
-    addToast 
+    addToast,
+    currentFreelancer,
+    seedDemoProjectForFreelancer
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'completed'
 
-  const filteredProjects = projects.filter((p) => {
+  // Filter projects belonging to this freelancer
+  const myProjects = projects.filter((p) => {
+    if (!currentFreelancer) return false;
+    if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
+    if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
+    if (currentFreelancer.nick.toLowerCase() === 'marko') return true;
+    return false;
+  });
+
+  const filteredProjects = myProjects.filter((p) => {
     const matchesSearch = 
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,12 +54,12 @@ export default function Dashboard({ onOpenCreateModal }) {
     return matchesSearch;
   });
 
-  const totalProjects = projects.length;
-  const completedProjects = projects.filter((p) => p.status === 'completed').length;
+  const totalProjects = myProjects.length;
+  const completedProjects = myProjects.filter((p) => p.status === 'completed').length;
   const pendingProjects = totalProjects - completedProjects;
   
   // Calculate total missing items across projects
-  const totalMissingItems = projects.reduce((acc, p) => {
+  const totalMissingItems = myProjects.reduce((acc, p) => {
     return acc + p.items.filter((i) => !i.isCompleted).length;
   }, 0);
 
@@ -105,10 +116,15 @@ export default function Dashboard({ onOpenCreateModal }) {
         marginBottom: '32px'
       }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span className="badge badge-accent">
-              <Sparkles size={12} /> Automatický zber podkladov
+              <Sparkles size={12} /> Freelancer: <strong>{currentFreelancer?.nick || 'Freelancer'}</strong>
             </span>
+            {currentFreelancer?.pin && (
+              <span className="badge badge-secondary" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                Prístupový PIN: {currentFreelancer.pin}
+              </span>
+            )}
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '6px' }}>
             Moje projekty a podklady
@@ -267,15 +283,29 @@ export default function Dashboard({ onOpenCreateModal }) {
       {filteredProjects.length === 0 ? (
         <div className="glass-card" style={{ padding: '60px 20px', textAlign: 'center' }}>
           <FolderSync size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 16px', opacity: 0.6 }} />
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>
-            Nenašli sa žiadne projekty
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>
+            {searchTerm ? 'Nenašli sa žiadne výsledky' : `Zatiaľ nemáte žiadne projekty, ${currentFreelancer?.nick || ''}`}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
-            {searchTerm ? 'Skúste upraviť výraz vo vyhľadávaní.' : 'Vytvorte si svoj prvý projekt a pošlite odkaz klientovi.'}
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '22px', maxWidth: '480px', margin: '0 auto 22px' }}>
+            {searchTerm 
+              ? 'Skúste upraviť hľadaný výraz alebo zrušiť filtre.' 
+              : 'Vytvorte si svoj prvý projekt pre klienta a pošlite mu unikátny odkaz na nahrávanie, alebo si vyskúšajte ukážkovú zákazku.'}
           </p>
-          <button onClick={onOpenCreateModal} className="btn btn-primary btn-sm">
-            <Plus size={16} /> Vytvoriť projekt
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <button id="btn-empty-create" onClick={onOpenCreateModal} className="btn btn-primary btn-sm">
+              <Plus size={16} /> Vytvoriť projekt
+            </button>
+            {!searchTerm && (
+              <button 
+                id="btn-empty-seed-demo"
+                onClick={seedDemoProjectForFreelancer} 
+                className="btn btn-secondary btn-sm"
+                title="Vložiť testovaciu zákazku pre vyskúšanie"
+              >
+                <Sparkles size={15} color="var(--accent-primary)" /> Vložiť ukážkovú zákazku
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>

@@ -3,13 +3,22 @@ import { useApp } from './context/AppContext';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import ClientPortal from './components/ClientPortal';
+import WelcomeView from './components/WelcomeView';
 import CreateProjectModal from './components/CreateProjectModal';
 import EmailPreviewModal from './components/EmailPreviewModal';
 import LegalModal from './components/LegalModal';
+import AuthModal from './components/AuthModal';
 import ToastContainer from './components/ToastContainer';
 
 export default function App() {
-  const { currentView, setCurrentView, setActiveProjectSlug, openClientPortal } = useApp();
+  const { 
+    currentView, 
+    setCurrentView, 
+    setActiveProjectSlug, 
+    openClientPortal,
+    currentFreelancer 
+  } = useApp();
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Check URL Hash for direct client portal simulation links
@@ -38,10 +47,15 @@ export default function App() {
 
       {/* Main View Display */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {currentView === 'dashboard' ? (
+        {currentView === 'client-portal' ? (
+          /* Client portal is 100% accessible to anyone with the link - Zero friction */
+          <ClientPortal />
+        ) : currentFreelancer ? (
+          /* Logged in freelancer sees their private Dashboard */
           <Dashboard onOpenCreateModal={() => setIsCreateModalOpen(true)} />
         ) : (
-          <ClientPortal />
+          /* Unauthenticated visitor sees Welcome Landing page */
+          <WelcomeView onOpenCreateModal={() => setIsCreateModalOpen(true)} />
         )}
       </main>
 
@@ -79,6 +93,7 @@ export default function App() {
       />
       <EmailPreviewModal />
       <LegalModal />
+      <AuthModal />
       <ToastContainer />
 
     </div>

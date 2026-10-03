@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PROJECT_TEMPLATES } from '../data/templates';
 import { 
@@ -25,15 +25,22 @@ const ICONS_MAP = {
 };
 
 export default function CreateProjectModal({ isOpen, onClose }) {
-  const { createProject, openClientPortal } = useApp();
+  const { createProject, openClientPortal, currentFreelancer } = useApp();
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
   const [title, setTitle] = useState('Tvorba webstránky pre klienta');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
-  const [freelancerName, setFreelancerName] = useState('Marko (SplitAI Studio)');
+  const [freelancerName, setFreelancerName] = useState(() => currentFreelancer?.nick || 'Freelancer');
   const [deadline, setDeadline] = useState('2026-10-25');
   const [reminderFrequency, setReminderFrequency] = useState(3);
+
+  // Sync freelancer name if currentFreelancer changes
+  useEffect(() => {
+    if (currentFreelancer?.nick) {
+      setFreelancerName(currentFreelancer.nick);
+    }
+  }, [currentFreelancer]);
 
   const [items, setItems] = useState(() => {
     return PROJECT_TEMPLATES[0].items.map((i) => ({ ...i }));

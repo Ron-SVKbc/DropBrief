@@ -11,6 +11,7 @@ function mapDbToProject(proj) {
     title: proj.title,
     clientName: proj.client_name,
     clientEmail: proj.client_email,
+    freelancerId: proj.freelancer_id,
     freelancerName: proj.freelancer_name,
     freelancerEmail: proj.freelancer_email,
     deadline: proj.deadline || '',
@@ -34,6 +35,21 @@ function mapDbToProject(proj) {
 }
 
 export function AppProvider({ children }) {
+  // Freelancer session state
+  const [currentFreelancer, setCurrentFreelancer] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dropbrief_freelancer_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error('Failed to parse freelancer session:', e);
+      return null;
+    }
+  });
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'register' | 'pin_reveal'
+  const [authRegisteredData, setAuthRegisteredData] = useState(null); // { nick, pin, email }
+
   const [projects, setProjects] = useState(() => {
     try {
       const saved = localStorage.getItem('dropbrief_projects_v1');
@@ -153,6 +169,183 @@ export function AppProvider({ children }) {
     };
   }, [fetchSupabaseProjects]);
 
+  const openAuthModal = (mode = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
+
+  const registerFreelancer = async (nick, email = '') => {
+    if (!nick || nick.trim().length < 2) {
+      throw new Error('Meno / Nick musí mať aspoň 2 znaky.');
+    }
+    const cleanNick = nick.trim();
+    const cleanEmail = email ? email.trim() : '';
+    // Vygenerovanie 6-miestneho číselného PIN kódu
+    const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
+
+    let freelancerRecord = {
+      id: 'fl-' + Date.now(),
+      nick: cleanNick,
+      pin: generatedPin,
+      email: cleanEmail,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Zápis do Supabase (ak je nakonfigurovaný)
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: existing } = await supabase
+          .from('freelancers')
+          .select('id')
+          .ilike('nick', cleanNick)
+          .maybeSingle();
+
+        if (existing) {
+          throw new Error('Tento nick už existuje. Zvoľte si iné meno alebo sa prihláste.');
+        }
+
+        const { data: inserted, error: insErr } = await supabase
+          .from('freelancers')
+          .insert({
+            nick: cleanNick,
+            pin_code: generatedPin,
+            email: cleanEmail,
+          })
+          .select()
+          .single();
+
+        if (insErr) {
+          console.error('Supabase freelancer insert error:', insErr);
+        } else if (inserted) {
+          freelancerRecord = {
+            id: inserted.id,
+            nick: inserted.nick,
+            pin: inserted.pin_code,
+            email: inserted.email || '',
+            createdAt: inserted.created_at,
+          };
+        }
+      } catch (err) {
+        if (err.message && err.message.includes('Tento nick už existuje')) {
+          throw err;
+        }
+        console.warn('Freelancer cloud registration fallback:', err);
+      }
+    }
+
+    // Uloženie do lokálnej pamäte prehliadača
+    try {
+      const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+      localAccs.push(freelancerRecord);
+      localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(localAccs));
+    } catch (e) {
+      console.error('Failed to save to local accounts:', e);
+    }
+
+    localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(freelancerRecord));
+    setCurrentFreelancer(freelancerRecord);
+    setAuthRegisteredData(freelancerRecord);
+    setAuthModalMode('pin_reveal');
+
+    addToast(`Účet ${cleanNick} pripravený! Váš PIN kód je ${generatedPin}`, 'success', 'Registrácia úspešná');
+    return freelancerRecord;
+  };
+
+  const loginFreelancer = async (nick, pin) => {
+    if (!nick || !pin) {
+      throw new Error('Zadajte prosím nick aj 6-miestny PIN kód.');
+    }
+    const cleanNick = nick.trim().toLowerCase();
+    const cleanPin = pin.trim();
+
+    let matchedUser = null;
+
+    // Kontrola v Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: user, error } = await supabase
+          .from('freelancers')
+          .select('*')
+          .ilike('nick', cleanNick)
+          .eq('pin_code', cleanPin)
+          .maybeSingle();
+
+        if (user) {
+          matchedUser = {
+            id: user.id,
+            nick: user.nick,
+            pin: user.pin_code,
+            email: user.email || '',
+            createdAt: user.created_at,
+          };
+        }
+      } catch (err) {
+        console.error('Supabase login check error:', err);
+      }
+    }
+
+    // Demo účet alebo lokálna záloha
+    if (!matchedUser) {
+      if (cleanNick === 'marko' && cleanPin === '123456') {
+        matchedUser = {
+          id: 'demo-marko-1',
+          nick: 'Marko',
+          pin: '123456',
+          email: 'marko@dropbrief.sk',
+        };
+      } else {
+        try {
+          const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+          const found = localAccs.find(
+            (a) => a.nick.toLowerCase() === cleanNick && a.pin === cleanPin
+          );
+          if (found) matchedUser = found;
+        } catch (e) {}
+      }
+    }
+
+    if (!matchedUser) {
+      throw new Error('Nesprávny nick alebo 6-miestny PIN kód.');
+    }
+
+    localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
+    setCurrentFreelancer(matchedUser);
+    closeAuthModal();
+    addToast(`Vitajte späť, ${matchedUser.nick}!`, 'success', 'Prihlásený');
+    return matchedUser;
+  };
+
+  const loginAsDemo = async () => {
+    return loginFreelancer('Marko', '123456');
+  };
+
+  const logoutFreelancer = () => {
+    localStorage.removeItem('dropbrief_freelancer_session');
+    setCurrentFreelancer(null);
+    setCurrentView('dashboard');
+    addToast('Boli ste úspešne odhlásený z dashboardu.', 'info', 'Odhlásený');
+  };
+
+  const seedDemoProjectForFreelancer = async () => {
+    if (!currentFreelancer) return;
+    return createProject({
+      title: 'Tvorba webu a podklady - Kaviareň Modrá',
+      clientName: 'Martin Ševčík',
+      clientEmail: 'martin@kaviaren-modra.sk',
+      deadline: '2026-10-30',
+      reminderFrequency: 3,
+      items: [
+        { title: 'Vektorové logo (SVG alebo AI)', description: 'Potrebujeme logo na priehľadnom pozadí', type: 'file', required: true },
+        { title: 'Texty o kaviarni a ponuke', description: 'Krátky príbeh kaviarne a zoznam špecialít', type: 'text', required: true },
+        { title: 'Fotografie interiéru a kávy (5-10 ks)', description: 'Vysoké rozlíšenie pre hlavičku webu', type: 'file', required: true },
+      ]
+    });
+  };
+
   const createProject = async (newProjData) => {
     const randomSlug =
       (newProjData.clientName || 'klient')
@@ -163,14 +356,19 @@ export function AppProvider({ children }) {
       Math.random().toString(36).substring(2, 6);
 
     const tempId = 'proj-' + Date.now();
+    const flId = currentFreelancer ? currentFreelancer.id : null;
+    const flName = currentFreelancer ? currentFreelancer.nick : (newProjData.freelancerName || 'Freelancer');
+    const flEmail = currentFreelancer?.email || newProjData.freelancerEmail || '';
+
     const newProject = {
       id: tempId,
+      freelancerId: flId,
       slug: randomSlug,
       title: newProjData.title,
       clientName: newProjData.clientName,
       clientEmail: newProjData.clientEmail,
-      freelancerName: newProjData.freelancerName || 'Môj Ateliér / Freelancer',
-      freelancerEmail: newProjData.freelancerEmail || 'studio@dropbrief.sk',
+      freelancerName: flName,
+      freelancerEmail: flEmail,
       deadline: newProjData.deadline || '2026-10-20',
       reminderFrequency: Number(newProjData.reminderFrequency) || 3,
       lastReminderSent: null,
@@ -196,12 +394,13 @@ export function AppProvider({ children }) {
         const { data: insertedProj, error: pErr } = await supabase
           .from('projects')
           .insert({
+            freelancer_id: flId,
             slug: randomSlug,
             title: newProjData.title,
             client_name: newProjData.clientName,
             client_email: newProjData.clientEmail,
-            freelancer_name: newProjData.freelancerName || 'Freelancer',
-            freelancer_email: newProjData.freelancerEmail || '',
+            freelancer_name: flName,
+            freelancer_email: flEmail,
             deadline: newProjData.deadline || '',
             reminder_frequency: Number(newProjData.reminderFrequency) || 3,
             status: 'pending',
@@ -376,6 +575,20 @@ export function AppProvider({ children }) {
         setIsLegalModalOpen,
         isLiveDb: isSupabaseConfigured,
         isLoadingDb,
+        // Freelancer Auth
+        currentFreelancer,
+        setCurrentFreelancer,
+        isAuthModalOpen,
+        authModalMode,
+        setAuthModalMode,
+        authRegisteredData,
+        openAuthModal,
+        closeAuthModal,
+        registerFreelancer,
+        loginFreelancer,
+        loginAsDemo,
+        logoutFreelancer,
+        seedDemoProjectForFreelancer,
       }}
     >
       {children}
