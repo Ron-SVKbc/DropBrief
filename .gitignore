@@ -29,4 +29,5 @@ dist-ssr
 .env.local
 
 # Agent/IDE scratch
-.agents
+.agents/*
+!.agents/rules/
