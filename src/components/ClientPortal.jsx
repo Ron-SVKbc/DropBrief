@@ -37,6 +37,7 @@ export default function ClientPortal() {
   const [uploadingItemId, setUploadingItemId] = useState(null);
   const [textInputs, setTextInputs] = useState({});
   const [dragActiveId, setDragActiveId] = useState(null);
+  const [stagedFiles, setStagedFiles] = useState({}); // { [itemId]: [File, File, ...] }
 
   const project = projects.find((p) => p.slug === activeProjectSlug) || projects[0];
 
@@ -102,12 +103,47 @@ export default function ClientPortal() {
     }
   };
 
-  const handleFileUpload = async (itemId, filesInput) => {
+  // 1. Lokálny výber súborov (Staging) – ešte sa neposiela na server
+  const handleStageFiles = (itemId, filesInput) => {
     if (!filesInput) return;
     const fileArray = Array.from(
       filesInput instanceof FileList ? filesInput : (Array.isArray(filesInput) ? filesInput : [filesInput])
     );
     if (fileArray.length === 0) return;
+
+    setStagedFiles((prev) => ({
+      ...prev,
+      [itemId]: [...(prev[itemId] || []), ...fileArray]
+    }));
+  };
+
+  // 2. Odstránenie jedného súboru z výberu čakajúceho na nahranie
+  const handleRemoveStagedFile = (itemId, indexToRemove) => {
+    setStagedFiles((prev) => {
+      const current = prev[itemId] || [];
+      const updated = current.filter((_, idx) => idx !== indexToRemove);
+      if (updated.length === 0) {
+        const copy = { ...prev };
+        delete copy[itemId];
+        return copy;
+      }
+      return { ...prev, [itemId]: updated };
+    });
+  };
+
+  // 3. Zrušenie celého lokálneho výberu
+  const handleClearStagedFiles = (itemId) => {
+    setStagedFiles((prev) => {
+      const copy = { ...prev };
+      delete copy[itemId];
+      return copy;
+    });
+  };
+
+  // 4. Potvrdenie a skutočný upload na server
+  const handleConfirmUpload = async (itemId) => {
+    const filesToUpload = stagedFiles[itemId];
+    if (!filesToUpload || filesToUpload.length === 0) return;
 
     try {
       setUploadingItemId(itemId);
@@ -124,15 +160,15 @@ export default function ClientPortal() {
       }
 
       addToast(
-        fileArray.length === 1 
-          ? `Nahrávam ${fileArray[0].name} do cloudu...` 
-          : `Nahrávam ${fileArray.length} súborov do cloudu...`, 
+        filesToUpload.length === 1 
+          ? `Nahrávam ${filesToUpload[0].name} do cloudu...` 
+          : `Nahrávam ${filesToUpload.length} súborov do cloudu...`, 
         'info', 
         'Odosielanie'
       );
 
       const uploadedFiles = [];
-      for (const file of fileArray) {
+      for (const file of filesToUpload) {
         let uploadedPayload;
         if (isSupabaseConfigured) {
           uploadedPayload = await uploadClientFile(file, project.slug, itemId);
@@ -157,10 +193,12 @@ export default function ClientPortal() {
       };
 
       await updateItemValue(project.slug, itemId, payload, true);
+      handleClearStagedFiles(itemId);
+
       addToast(
-        fileArray.length === 1 
-          ? `Súbor "${fileArray[0].name}" bol bezpečne uložený!`
-          : `Bolo úspešne nahraných ${fileArray.length} súborov!`,
+        filesToUpload.length === 1 
+          ? `Súbor "${filesToUpload[0].name}" bol úspešne uložený!`
+          : `Bolo úspešne nahraných ${filesToUpload.length} súborov!`,
         'success',
         'Podklady uložené'
       );
@@ -411,10 +449,14 @@ export default function ClientPortal() {
                       ? item.value.files
                       : (item.value?.fileName ? [item.value] : []);
                     const hasFiles = fileList.length > 0;
+                    const stagedList = stagedFiles[item.id] || [];
+                    const hasStaged = stagedList.length > 0;
 
                     return (
-                      <div>
-                        {isUploadingThis ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        
+                        {/* 1. Loading State */}
+                        {isUploadingThis && (
                           <div style={{
                             padding: '24px',
                             textAlign: 'center',
@@ -424,13 +466,143 @@ export default function ClientPortal() {
                           }}>
                             <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 8px' }} />
                             <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                              Nahrávam súbory do šifrovaného cloudového úložiska...
+                              Nahrávam súbory do zabezpečeného cloudového úložiska...
                             </div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                               Prosím počkajte chvíľku, kým sa všetky súbory uložia
                             </div>
                           </div>
-                        ) : !hasFiles ? (
+                        )}
+
+                        {/* 2. Staging Area (Vybrané súbory pred uploadom na kontrolu) */}
+                        {!isUploadingThis && hasStaged && (
+                          <div style={{
+                            background: 'rgba(99, 102, 241, 0.08)',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '16px'
+                          }}>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              flexWrap: 'wrap',
+                              gap: '10px',
+                              marginBottom: '12px',
+                              paddingBottom: '10px',
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                            }}>
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span className="badge badge-accent" style={{ fontSize: '0.75rem' }}>
+                                    Pripravené na odoslanie
+                                  </span>
+                                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                    {stagedList.length} {stagedList.length === 1 ? 'súbor' : (stagedList.length < 5 ? 'súbory' : 'súborov')}
+                                  </strong>
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                  Skontrolujte si vybrané súbory. Na server sa odošlú až po kliknutí na <strong>Nahrať súbory</strong>.
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input 
+                                  id={`file-input-stage-add-${item.id}`}
+                                  type="file" 
+                                  multiple
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                      handleStageFiles(item.id, e.target.files);
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const input = document.getElementById(`file-input-stage-add-${item.id}`);
+                                    if (input) input.click();
+                                  }}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                                  title="Pridať ďalšie súbory do tohto výberu"
+                                >
+                                  <Plus size={14} /> Pridať ďalšie
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleClearStagedFiles(item.id)}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
+                                  title="Zrušiť celý tento výber"
+                                >
+                                  <Trash2 size={14} /> Zrušiť výber
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Staged Files List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                              {stagedList.map((f, idx) => (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    background: 'rgba(0, 0, 0, 0.3)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    padding: '8px 12px',
+                                    gap: '12px'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                    <FileText size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600,
+                                        color: 'var(--text-primary)',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                      }}>
+                                        {f.name}
+                                      </div>
+                                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                        {f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveStagedFile(item.id, idx)}
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
+                                    title="Odstrániť z výberu"
+                                  >
+                                    <X size={13} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Confirm Upload Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleConfirmUpload(item.id)}
+                              className="btn btn-primary"
+                              style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontWeight: 700 }}
+                            >
+                              <Upload size={16} /> Nahrať a odoslať do zákazky ({stagedList.length} {stagedList.length === 1 ? 'súbor' : (stagedList.length < 5 ? 'súbory' : 'súborov')})
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 3. Empty Dropzone (keď ešte nie je nič nahrané ani vybrané) */}
+                        {!isUploadingThis && !hasFiles && !hasStaged && (
                           <div 
                             className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
                             onDragOver={(e) => { e.preventDefault(); setDragActiveId(item.id); }}
@@ -439,7 +611,7 @@ export default function ClientPortal() {
                               e.preventDefault();
                               setDragActiveId(null);
                               if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                handleFileUpload(item.id, e.dataTransfer.files);
+                                handleStageFiles(item.id, e.dataTransfer.files);
                               }
                             }}
                             onClick={() => {
@@ -454,7 +626,7 @@ export default function ClientPortal() {
                               style={{ display: 'none' }}
                               onChange={(e) => {
                                 if (e.target.files && e.target.files.length > 0) {
-                                  handleFileUpload(item.id, e.target.files);
+                                  handleStageFiles(item.id, e.target.files);
                                 }
                               }}
                             />
@@ -463,10 +635,13 @@ export default function ClientPortal() {
                               Pretiahnite súbory sem alebo <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</span>
                             </div>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              Môžete označiť aj viacero fotiek či súborov naraz (max. 50 MB na súbor)
+                              Môžete vybrať viacero fotiek naraz • Pred odoslaním na server si ich skontrolujete
                             </span>
                           </div>
-                        ) : (
+                        )}
+
+                        {/* 4. Already Uploaded Files in Cloud */}
+                        {!isUploadingThis && hasFiles && (
                           <div 
                             style={{
                               background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.12)' : 'rgba(16, 185, 129, 0.05)',
@@ -482,7 +657,7 @@ export default function ClientPortal() {
                               e.preventDefault();
                               setDragActiveId(null);
                               if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                handleFileUpload(item.id, e.dataTransfer.files);
+                                handleStageFiles(item.id, e.dataTransfer.files);
                               }
                             }}
                           >
@@ -500,7 +675,7 @@ export default function ClientPortal() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <FileCheck2 size={18} color="var(--success)" />
                                 <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                  Nahraných: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
+                                  Uložené v cloude: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
                                 </strong>
                               </div>
 
@@ -512,7 +687,7 @@ export default function ClientPortal() {
                                   style={{ display: 'none' }}
                                   onChange={(e) => {
                                     if (e.target.files && e.target.files.length > 0) {
-                                      handleFileUpload(item.id, e.target.files);
+                                      handleStageFiles(item.id, e.target.files);
                                     }
                                   }}
                                 />
@@ -524,18 +699,18 @@ export default function ClientPortal() {
                                   }}
                                   className="btn btn-secondary btn-sm"
                                   style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                                  title="Pridať ďalšie fotky alebo súbory do tejto položky"
+                                  title="Pridať ďalšie fotky do výberu"
                                 >
-                                  <Plus size={14} /> Pridať ďalšie súbory
+                                  <Plus size={14} /> Pridať ďalšie
                                 </button>
                                 <button 
                                   type="button"
                                   onClick={() => handleRemoveItemValue(item.id)}
                                   className="btn btn-secondary btn-sm"
                                   style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
-                                  title="Zmazať všetky nahrané súbory"
+                                  title="Zmazať všetky nahrané súbory z cloudu"
                                 >
-                                  <Trash2 size={14} /> Zmazať všetko
+                                  <Trash2 size={14} /> Zmazať z cloudu
                                 </button>
                               </div>
                             </div>
@@ -601,34 +776,37 @@ export default function ClientPortal() {
                               ))}
                             </div>
 
-                            {/* Mini Dropzone to add more files via Drag & Drop or Click */}
-                            <div
-                              onClick={() => {
-                                const input = document.getElementById(`file-input-add-${item.id}`);
-                                if (input) input.click();
-                              }}
-                              style={{
-                                marginTop: '12px',
-                                border: dragActiveId === `add-${item.id}` ? '1px dashed var(--accent-primary)' : '1px dashed rgba(255, 255, 255, 0.2)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '10px 14px',
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                                background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.02)',
-                                transition: 'all 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px'
-                              }}
-                            >
-                              <Upload size={15} color="var(--accent-primary)" />
-                              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                                Pretiahnite sem ďalšie fotky (Drag & Drop) alebo <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</strong>
-                              </span>
-                            </div>
+                            {/* Mini Dropzone */}
+                            {!hasStaged && (
+                              <div
+                                onClick={() => {
+                                  const input = document.getElementById(`file-input-add-${item.id}`);
+                                  if (input) input.click();
+                                }}
+                                style={{
+                                  marginTop: '12px',
+                                  border: dragActiveId === `add-${item.id}` ? '1px dashed var(--accent-primary)' : '1px dashed rgba(255, 255, 255, 0.2)',
+                                  borderRadius: 'var(--radius-sm)',
+                                  padding: '10px 14px',
+                                  textAlign: 'center',
+                                  cursor: 'pointer',
+                                  background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.02)',
+                                  transition: 'all 0.2s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px'
+                                }}
+                              >
+                                <Upload size={15} color="var(--accent-primary)" />
+                                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                  Pretiahnite sem ďalšie fotky (Drag & Drop) alebo <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</strong>
+                                </span>
+                              </div>
+                            )}
                           </div>
                         )}
+
                       </div>
                     );
                   })()}
