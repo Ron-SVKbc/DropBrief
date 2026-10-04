@@ -22,6 +22,11 @@ import {
   X
 } from 'lucide-react';
 
+const isImageFile = (fileName, mimeType) => {
+  if (mimeType && mimeType.startsWith('image/')) return true;
+  return /\.(jpe?g|png|webp|gif|svg|heic|heif|bmp|avif)$/i.test(fileName || '');
+};
+
 export default function ClientPortal() {
   const { 
     projects, 
@@ -38,6 +43,41 @@ export default function ClientPortal() {
   const [textInputs, setTextInputs] = useState({});
   const [dragActiveId, setDragActiveId] = useState(null);
   const [stagedFiles, setStagedFiles] = useState({}); // { [itemId]: [File, File, ...] }
+  const [stagedPreviews, setStagedPreviews] = useState({}); // { [itemId]: [url1, url2, ...] }
+
+  // Zabraňuje prehliadaču otvoriť súbor v novom tabe pri netrafení dropzóny
+  useEffect(() => {
+    const preventDefaultDrop = (e) => {
+      e.preventDefault();
+    };
+    window.addEventListener('dragover', preventDefaultDrop);
+    window.addEventListener('drop', preventDefaultDrop);
+    return () => {
+      window.removeEventListener('dragover', preventDefaultDrop);
+      window.removeEventListener('drop', preventDefaultDrop);
+    };
+  }, []);
+
+  // Generovanie a čistenie lokálnych náhľadov pre vybrané fotky
+  useEffect(() => {
+    const urls = {};
+    Object.entries(stagedFiles).forEach(([itemId, files]) => {
+      urls[itemId] = files.map((f) => (isImageFile(f.name, f.type) ? URL.createObjectURL(f) : null));
+    });
+    setStagedPreviews(urls);
+
+    return () => {
+      Object.values(urls).forEach((list) => {
+        list.forEach((u) => {
+          if (u) {
+            try {
+              URL.revokeObjectURL(u);
+            } catch (e) {}
+          }
+        });
+      });
+    };
+  }, [stagedFiles]);
 
   const project = projects.find((p) => p.slug === activeProjectSlug) || projects[0];
 
@@ -178,6 +218,7 @@ export default function ClientPortal() {
             fileName: file.name,
             fileSize: (file.size / 1024).toFixed(1) + ' KB',
             fileType: file.type || 'application/octet-stream',
+            url: isImageFile(file.name, file.type) ? URL.createObjectURL(file) : null,
             uploadedAt: new Date().toLocaleTimeString()
           };
         }
@@ -393,6 +434,21 @@ export default function ClientPortal() {
                   borderLeft: isDone ? '4px solid var(--success)' : '4px solid var(--border-subtle)',
                   transition: 'var(--transition)'
                 }}
+                onDragOver={(e) => {
+                  if (item.type === 'file') {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                  }
+                }}
+                onDrop={(e) => {
+                  if (item.type === 'file') {
+                    e.preventDefault();
+                    setDragActiveId(null);
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleStageFiles(item.id, e.dataTransfer.files);
+                    }
+                  }
+                }}
               >
                 
                 {/* Item Top Info */}
@@ -476,12 +532,69 @@ export default function ClientPortal() {
 
                         {/* 2. Staging Area (Vybrané súbory pred uploadom na kontrolu) */}
                         {!isUploadingThis && hasStaged && (
-                          <div style={{
-                            background: 'rgba(99, 102, 241, 0.08)',
-                            border: '1px solid rgba(99, 102, 241, 0.3)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '16px'
-                          }}>
+                          <div 
+                            style={{
+                              background: dragActiveId === `stage-${item.id}` ? 'rgba(99, 102, 241, 0.18)' : 'rgba(99, 102, 241, 0.08)',
+                              border: dragActiveId === `stage-${item.id}` ? '2px dashed var(--accent-primary)' : '1px solid rgba(99, 102, 241, 0.3)',
+                              borderRadius: 'var(--radius-md)',
+                              padding: '16px',
+                              position: 'relative',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDragActiveId(`stage-${item.id}`);
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.dataTransfer.dropEffect = 'copy';
+                              if (dragActiveId !== `stage-${item.id}`) {
+                                setDragActiveId(`stage-${item.id}`);
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!e.currentTarget.contains(e.relatedTarget)) {
+                                setDragActiveId(null);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDragActiveId(null);
+                              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                handleStageFiles(item.id, e.dataTransfer.files);
+                              }
+                            }}
+                          >
+                            {/* Drag Overlay pri preťahovaní ďalších súborov */}
+                            {dragActiveId === `stage-${item.id}` && (
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(15, 23, 42, 0.88)',
+                                border: '2px dashed var(--accent-primary)',
+                                borderRadius: 'var(--radius-md)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                color: '#fff',
+                                fontWeight: 700,
+                                fontSize: '0.95rem',
+                                backdropFilter: 'blur(4px)',
+                                zIndex: 20,
+                                pointerEvents: 'none'
+                              }}>
+                                <Upload size={28} style={{ color: 'var(--accent-primary)' }} />
+                                <div>Pustite súbory sem pre pridanie do výberu</div>
+                              </div>
+                            )}
+
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -502,7 +615,7 @@ export default function ClientPortal() {
                                   </strong>
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                  Skontrolujte si vybrané súbory. Na server sa odošlú až po kliknutí na <strong>Nahrať súbory</strong>.
+                                  Skontrolujte si vybrané fotky a súbory. Do cloudu sa uložia po kliknutí na tlačidlo nižšie.
                                 </div>
                               </div>
 
@@ -526,7 +639,7 @@ export default function ClientPortal() {
                                   }}
                                   className="btn btn-secondary btn-sm"
                                   style={{ fontSize: '0.8rem', padding: '6px 10px' }}
-                                  title="Pridať ďalšie súbory do tohto výberu"
+                                  title="Pridať ďalšie fotky do tohto výberu"
                                 >
                                   <Plus size={14} /> Pridať ďalšie
                                 </button>
@@ -542,51 +655,89 @@ export default function ClientPortal() {
                               </div>
                             </div>
 
-                            {/* Staged Files List */}
+                            {/* Staged Files List s miniatúrnymi náhľadmi fotiek */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                              {stagedList.map((f, idx) => (
-                                <div
-                                  key={idx}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    background: 'rgba(0, 0, 0, 0.3)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    padding: '8px 12px',
-                                    gap: '12px'
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                                    <FileText size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
-                                    <div style={{ minWidth: 0 }}>
-                                      <div style={{
-                                        fontSize: '0.85rem',
-                                        fontWeight: 600,
-                                        color: 'var(--text-primary)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
-                                      }}>
-                                        {f.name}
-                                      </div>
-                                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                        {f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}
+                              {stagedList.map((f, idx) => {
+                                const isImg = isImageFile(f.name, f.type);
+                                const previewUrl = stagedPreviews[item.id]?.[idx] || (isImg ? URL.createObjectURL(f) : null);
+
+                                return (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      background: 'rgba(0, 0, 0, 0.3)',
+                                      borderRadius: 'var(--radius-sm)',
+                                      padding: '8px 12px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                      {/* Thumbnail náhľad obrázka */}
+                                      {isImg && previewUrl ? (
+                                        <img 
+                                          src={previewUrl} 
+                                          alt={f.name}
+                                          style={{
+                                            width: '46px',
+                                            height: '46px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            objectFit: 'cover',
+                                            border: '1px solid rgba(255, 255, 255, 0.25)',
+                                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.35)',
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                      ) : (
+                                        <div style={{
+                                          width: '46px',
+                                          height: '46px',
+                                          borderRadius: 'var(--radius-sm)',
+                                          background: 'rgba(99, 102, 241, 0.15)',
+                                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          flexShrink: 0
+                                        }}>
+                                          <FileText size={20} color="var(--accent-primary)" />
+                                        </div>
+                                      )}
+
+                                      <div style={{ minWidth: 0 }}>
+                                        <div style={{
+                                          fontSize: '0.85rem',
+                                          fontWeight: 600,
+                                          color: 'var(--text-primary)',
+                                          whiteSpace: 'nowrap',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
+                                        }}>
+                                          {f.name}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                          <span>{f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}</span>
+                                          <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
+                                            Čaká na odoslanie
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveStagedFile(item.id, idx)}
-                                    className="btn btn-secondary btn-sm"
-                                    style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
-                                    title="Odstrániť z výberu"
-                                  >
-                                    <X size={13} />
-                                  </button>
-                                </div>
-                              ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveStagedFile(item.id, idx)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
+                                      title="Odstrániť z výberu"
+                                    >
+                                      <X size={13} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
                             </div>
 
                             {/* Confirm Upload Button */}
@@ -605,10 +756,30 @@ export default function ClientPortal() {
                         {!isUploadingThis && !hasFiles && !hasStaged && (
                           <div 
                             className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
-                            onDragOver={(e) => { e.preventDefault(); setDragActiveId(item.id); }}
-                            onDragLeave={() => setDragActiveId(null)}
+                            style={{ position: 'relative' }}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDragActiveId(item.id);
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.dataTransfer.dropEffect = 'copy';
+                              if (dragActiveId !== item.id) {
+                                setDragActiveId(item.id);
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!e.currentTarget.contains(e.relatedTarget)) {
+                                setDragActiveId(null);
+                              }
+                            }}
                             onDrop={(e) => {
                               e.preventDefault();
+                              e.stopPropagation();
                               setDragActiveId(null);
                               if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                                 handleStageFiles(item.id, e.dataTransfer.files);
@@ -644,23 +815,70 @@ export default function ClientPortal() {
                         {!isUploadingThis && hasFiles && (
                           <div 
                             style={{
-                              background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.12)' : 'rgba(16, 185, 129, 0.05)',
+                              background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.05)',
                               border: dragActiveId === `add-${item.id}` ? '2px dashed var(--accent-primary)' : '1px solid var(--success-border)',
                               borderRadius: 'var(--radius-md)',
                               padding: '16px',
                               transition: 'all 0.2s ease',
                               position: 'relative'
                             }}
-                            onDragOver={(e) => { e.preventDefault(); setDragActiveId(`add-${item.id}`); }}
-                            onDragLeave={() => setDragActiveId(null)}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDragActiveId(`add-${item.id}`);
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.dataTransfer.dropEffect = 'copy';
+                              if (dragActiveId !== `add-${item.id}`) {
+                                setDragActiveId(`add-${item.id}`);
+                              }
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!e.currentTarget.contains(e.relatedTarget)) {
+                                setDragActiveId(null);
+                              }
+                            }}
                             onDrop={(e) => {
                               e.preventDefault();
+                              e.stopPropagation();
                               setDragActiveId(null);
                               if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                                 handleStageFiles(item.id, e.dataTransfer.files);
                               }
                             }}
                           >
+                            {/* Drag Overlay pri preťahovaní ďalších fotiek */}
+                            {dragActiveId === `add-${item.id}` && (
+                              <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(15, 23, 42, 0.88)',
+                                border: '2px dashed var(--accent-primary)',
+                                borderRadius: 'var(--radius-md)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                color: '#fff',
+                                fontWeight: 700,
+                                fontSize: '0.95rem',
+                                backdropFilter: 'blur(4px)',
+                                zIndex: 20,
+                                pointerEvents: 'none'
+                              }}>
+                                <Upload size={30} style={{ color: 'var(--accent-primary)' }} />
+                                <div>Pustite ďalšie fotky sem pre pridanie</div>
+                                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                                  Nové fotky sa pridajú do zoznamu pred odoslaním
+                                </span>
+                              </div>
+                            )}
+
                             {/* Header */}
                             <div style={{
                               display: 'flex',
@@ -715,73 +933,147 @@ export default function ClientPortal() {
                               </div>
                             </div>
 
-                            {/* Files List */}
+                            {/* Files List s miniatúrnymi náhľadmi fotiek */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {fileList.map((f, idx) => (
-                                <div
-                                  key={f.id || idx}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    background: 'rgba(0, 0, 0, 0.25)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    padding: '8px 12px',
-                                    gap: '12px'
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                                    <FileText size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
-                                    <div style={{ minWidth: 0 }}>
-                                      <div style={{
-                                        fontSize: '0.85rem',
-                                        fontWeight: 600,
-                                        color: 'var(--text-primary)',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
-                                      }}>
-                                        {f.fileName || 'Súbor'}
-                                      </div>
-                                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                        {f.fileSize || ''}
+                              {fileList.map((f, idx) => {
+                                const isImg = isImageFile(f.fileName, f.fileType);
+
+                                return (
+                                  <div
+                                    key={f.id || idx}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      background: 'rgba(0, 0, 0, 0.25)',
+                                      borderRadius: 'var(--radius-sm)',
+                                      padding: '8px 12px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                      {/* Malý náhľad fotky (Thumbnail) */}
+                                      {isImg && f.url ? (
+                                        <a
+                                          href={f.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          title="Kliknutím otvoríte fotku v plnej veľkosti"
+                                          style={{ display: 'block', flexShrink: 0 }}
+                                        >
+                                          <img 
+                                            src={f.url} 
+                                            alt={f.fileName || 'Náhľad fotky'}
+                                            style={{
+                                              width: '46px',
+                                              height: '46px',
+                                              borderRadius: 'var(--radius-sm)',
+                                              objectFit: 'cover',
+                                              border: '1px solid rgba(255, 255, 255, 0.25)',
+                                              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.35)',
+                                              display: 'block',
+                                              cursor: 'zoom-in',
+                                              transition: 'transform 0.15s ease, border-color 0.15s ease'
+                                            }}
+                                            onMouseOver={(e) => {
+                                              e.currentTarget.style.transform = 'scale(1.1)';
+                                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                            }}
+                                            onMouseOut={(e) => {
+                                              e.currentTarget.style.transform = 'scale(1)';
+                                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                                            }}
+                                          />
+                                        </a>
+                                      ) : (
+                                        <div style={{
+                                          width: '46px',
+                                          height: '46px',
+                                          borderRadius: 'var(--radius-sm)',
+                                          background: 'rgba(16, 185, 129, 0.12)',
+                                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          flexShrink: 0
+                                        }}>
+                                          <FileText size={20} color="var(--success)" />
+                                        </div>
+                                      )}
+
+                                      <div style={{ minWidth: 0 }}>
+                                        <div style={{
+                                          fontSize: '0.85rem',
+                                          fontWeight: 600,
+                                          color: 'var(--text-primary)',
+                                          whiteSpace: 'nowrap',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
+                                        }}>
+                                          {f.fileName || 'Súbor'}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                          <span>{f.fileSize || ''}</span>
+                                          <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
+                                            V cloude
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
 
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                    {f.url && (
-                                      <a
-                                        href={f.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                      {f.url && (
+                                        <a
+                                          href={f.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-secondary btn-sm"
+                                          style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                                          title="Stiahnuť / Zobraziť súbor v plnej veľkosti"
+                                        >
+                                          <Download size={13} /> Náhľad
+                                        </a>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
                                         className="btn btn-secondary btn-sm"
-                                        style={{ padding: '4px 8px', fontSize: '0.75rem' }}
-                                        title="Stiahnuť / Zobraziť súbor"
+                                        style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
+                                        title="Odstrániť tento súbor"
                                       >
-                                        <Download size={13} /> Náhľad
-                                      </a>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
-                                      className="btn btn-secondary btn-sm"
-                                      style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
-                                      title="Odstrániť tento súbor"
-                                    >
-                                      <X size={13} />
-                                    </button>
+                                        <X size={13} />
+                                      </button>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
 
-                            {/* Mini Dropzone */}
+                            {/* Mini Dropzone pre pridanie ďalších */}
                             {!hasStaged && (
                               <div
                                 onClick={() => {
                                   const input = document.getElementById(`file-input-add-${item.id}`);
                                   if (input) input.click();
+                                }}
+                                onDragEnter={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setDragActiveId(`add-${item.id}`);
+                                }}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.dataTransfer.dropEffect = 'copy';
+                                  setDragActiveId(`add-${item.id}`);
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setDragActiveId(null);
+                                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                    handleStageFiles(item.id, e.dataTransfer.files);
+                                  }
                                 }}
                                 style={{
                                   marginTop: '12px',
