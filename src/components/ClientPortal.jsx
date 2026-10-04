@@ -467,12 +467,25 @@ export default function ClientPortal() {
                             </span>
                           </div>
                         ) : (
-                          <div style={{
-                            background: 'rgba(16, 185, 129, 0.05)',
-                            border: '1px solid var(--success-border)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '16px'
-                          }}>
+                          <div 
+                            style={{
+                              background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.12)' : 'rgba(16, 185, 129, 0.05)',
+                              border: dragActiveId === `add-${item.id}` ? '2px dashed var(--accent-primary)' : '1px solid var(--success-border)',
+                              borderRadius: 'var(--radius-md)',
+                              padding: '16px',
+                              transition: 'all 0.2s ease',
+                              position: 'relative'
+                            }}
+                            onDragOver={(e) => { e.preventDefault(); setDragActiveId(`add-${item.id}`); }}
+                            onDragLeave={() => setDragActiveId(null)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setDragActiveId(null);
+                              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                handleFileUpload(item.id, e.dataTransfer.files);
+                              }
+                            }}
+                          >
                             {/* Header */}
                             <div style={{
                               display: 'flex',
@@ -586,6 +599,33 @@ export default function ClientPortal() {
                                   </div>
                                 </div>
                               ))}
+                            </div>
+
+                            {/* Mini Dropzone to add more files via Drag & Drop or Click */}
+                            <div
+                              onClick={() => {
+                                const input = document.getElementById(`file-input-add-${item.id}`);
+                                if (input) input.click();
+                              }}
+                              style={{
+                                marginTop: '12px',
+                                border: dragActiveId === `add-${item.id}` ? '1px dashed var(--accent-primary)' : '1px dashed rgba(255, 255, 255, 0.2)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '10px 14px',
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.02)',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                              }}
+                            >
+                              <Upload size={15} color="var(--accent-primary)" />
+                              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                Pretiahnite sem ďalšie fotky (Drag & Drop) alebo <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</strong>
+                              </span>
                             </div>
                           </div>
                         )}
