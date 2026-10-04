@@ -507,6 +507,8 @@ export default function ClientPortal() {
                     const hasFiles = fileList.length > 0;
                     const stagedList = stagedFiles[item.id] || [];
                     const hasStaged = stagedList.length > 0;
+                    const hasAny = hasFiles || hasStaged;
+                    const hasBoth = hasFiles && hasStaged;
 
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -530,230 +532,8 @@ export default function ClientPortal() {
                           </div>
                         )}
 
-                        {/* 2. Staging Area (Vybrané súbory pred uploadom na kontrolu) */}
-                        {!isUploadingThis && hasStaged && (
-                          <div 
-                            style={{
-                              background: dragActiveId === `stage-${item.id}` ? 'rgba(99, 102, 241, 0.18)' : 'rgba(99, 102, 241, 0.08)',
-                              border: dragActiveId === `stage-${item.id}` ? '2px dashed var(--accent-primary)' : '1px solid rgba(99, 102, 241, 0.3)',
-                              borderRadius: 'var(--radius-md)',
-                              padding: '16px',
-                              position: 'relative',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onDragEnter={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDragActiveId(`stage-${item.id}`);
-                            }}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              e.dataTransfer.dropEffect = 'copy';
-                              if (dragActiveId !== `stage-${item.id}`) {
-                                setDragActiveId(`stage-${item.id}`);
-                              }
-                            }}
-                            onDragLeave={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (!e.currentTarget.contains(e.relatedTarget)) {
-                                setDragActiveId(null);
-                              }
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDragActiveId(null);
-                              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                handleStageFiles(item.id, e.dataTransfer.files);
-                              }
-                            }}
-                          >
-                            {/* Drag Overlay pri preťahovaní ďalších súborov */}
-                            {dragActiveId === `stage-${item.id}` && (
-                              <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'rgba(15, 23, 42, 0.88)',
-                                border: '2px dashed var(--accent-primary)',
-                                borderRadius: 'var(--radius-md)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                color: '#fff',
-                                fontWeight: 700,
-                                fontSize: '0.95rem',
-                                backdropFilter: 'blur(4px)',
-                                zIndex: 20,
-                                pointerEvents: 'none'
-                              }}>
-                                <Upload size={28} style={{ color: 'var(--accent-primary)' }} />
-                                <div>Pustite súbory sem pre pridanie do výberu</div>
-                              </div>
-                            )}
-
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              flexWrap: 'wrap',
-                              gap: '10px',
-                              marginBottom: '12px',
-                              paddingBottom: '10px',
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-                            }}>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span className="badge badge-accent" style={{ fontSize: '0.75rem' }}>
-                                    Pripravené na odoslanie
-                                  </span>
-                                  <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                    {stagedList.length} {stagedList.length === 1 ? 'súbor' : (stagedList.length < 5 ? 'súbory' : 'súborov')}
-                                  </strong>
-                                </div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                  Skontrolujte si vybrané fotky a súbory. Do cloudu sa uložia po kliknutí na tlačidlo nižšie.
-                                </div>
-                              </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input 
-                                  id={`file-input-stage-add-${item.id}`}
-                                  type="file" 
-                                  multiple
-                                  style={{ display: 'none' }}
-                                  onChange={(e) => {
-                                    if (e.target.files && e.target.files.length > 0) {
-                                      handleStageFiles(item.id, e.target.files);
-                                    }
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const input = document.getElementById(`file-input-stage-add-${item.id}`);
-                                    if (input) input.click();
-                                  }}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ fontSize: '0.8rem', padding: '6px 10px' }}
-                                  title="Pridať ďalšie fotky do tohto výberu"
-                                >
-                                  <Plus size={14} /> Pridať ďalšie
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => handleClearStagedFiles(item.id)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
-                                  title="Zrušiť celý tento výber"
-                                >
-                                  <Trash2 size={14} /> Zrušiť výber
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Staged Files List s miniatúrnymi náhľadmi fotiek */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                              {stagedList.map((f, idx) => {
-                                const isImg = isImageFile(f.name, f.type);
-                                const previewUrl = stagedPreviews[item.id]?.[idx] || (isImg ? URL.createObjectURL(f) : null);
-
-                                return (
-                                  <div
-                                    key={idx}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      background: 'rgba(0, 0, 0, 0.3)',
-                                      borderRadius: 'var(--radius-sm)',
-                                      padding: '8px 12px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                                      {/* Thumbnail náhľad obrázka */}
-                                      {isImg && previewUrl ? (
-                                        <img 
-                                          src={previewUrl} 
-                                          alt={f.name}
-                                          style={{
-                                            width: '46px',
-                                            height: '46px',
-                                            borderRadius: 'var(--radius-sm)',
-                                            objectFit: 'cover',
-                                            border: '1px solid rgba(255, 255, 255, 0.25)',
-                                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.35)',
-                                            flexShrink: 0
-                                          }}
-                                        />
-                                      ) : (
-                                        <div style={{
-                                          width: '46px',
-                                          height: '46px',
-                                          borderRadius: 'var(--radius-sm)',
-                                          background: 'rgba(99, 102, 241, 0.15)',
-                                          border: '1px solid rgba(99, 102, 241, 0.3)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          flexShrink: 0
-                                        }}>
-                                          <FileText size={20} color="var(--accent-primary)" />
-                                        </div>
-                                      )}
-
-                                      <div style={{ minWidth: 0 }}>
-                                        <div style={{
-                                          fontSize: '0.85rem',
-                                          fontWeight: 600,
-                                          color: 'var(--text-primary)',
-                                          whiteSpace: 'nowrap',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
-                                        }}>
-                                          {f.name}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                          <span>{f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}</span>
-                                          <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                                            Čaká na odoslanie
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveStagedFile(item.id, idx)}
-                                      className="btn btn-secondary btn-sm"
-                                      style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
-                                      title="Odstrániť z výberu"
-                                    >
-                                      <X size={13} />
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-
-                            {/* Confirm Upload Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleConfirmUpload(item.id)}
-                              className="btn btn-primary"
-                              style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontWeight: 700 }}
-                            >
-                              <Upload size={16} /> Nahrať a odoslať do zákazky ({stagedList.length} {stagedList.length === 1 ? 'súbor' : (stagedList.length < 5 ? 'súbory' : 'súborov')})
-                            </button>
-                          </div>
-                        )}
-
-                        {/* 3. Empty Dropzone (keď ešte nie je nič nahrané ani vybrané) */}
-                        {!isUploadingThis && !hasFiles && !hasStaged && (
+                        {/* 2. Empty Dropzone (keď ešte vôbec nič nie je nahrané ani vybrané) */}
+                        {!isUploadingThis && !hasAny && (
                           <div 
                             className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
                             style={{ position: 'relative' }}
@@ -811,28 +591,32 @@ export default function ClientPortal() {
                           </div>
                         )}
 
-                        {/* 4. Already Uploaded Files in Cloud */}
-                        {!isUploadingThis && hasFiles && (
+                        {/* 3. Unified Container pre všetky fotky (uložené aj novovybrané spolu!) */}
+                        {!isUploadingThis && hasAny && (
                           <div 
                             style={{
-                              background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.05)',
-                              border: dragActiveId === `add-${item.id}` ? '2px dashed var(--accent-primary)' : '1px solid var(--success-border)',
+                              background: dragActiveId === `zone-${item.id}` 
+                                ? 'rgba(99, 102, 241, 0.16)' 
+                                : (hasStaged ? 'rgba(99, 102, 241, 0.05)' : 'rgba(16, 185, 129, 0.04)'),
+                              border: dragActiveId === `zone-${item.id}`
+                                ? '2px dashed var(--accent-primary)'
+                                : (hasStaged ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid var(--success-border)'),
                               borderRadius: 'var(--radius-md)',
                               padding: '16px',
-                              transition: 'all 0.2s ease',
-                              position: 'relative'
+                              position: 'relative',
+                              transition: 'all 0.2s ease'
                             }}
                             onDragEnter={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setDragActiveId(`add-${item.id}`);
+                              setDragActiveId(`zone-${item.id}`);
                             }}
                             onDragOver={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               e.dataTransfer.dropEffect = 'copy';
-                              if (dragActiveId !== `add-${item.id}`) {
-                                setDragActiveId(`add-${item.id}`);
+                              if (dragActiveId !== `zone-${item.id}`) {
+                                setDragActiveId(`zone-${item.id}`);
                               }
                             }}
                             onDragLeave={(e) => {
@@ -852,7 +636,7 @@ export default function ClientPortal() {
                             }}
                           >
                             {/* Drag Overlay pri preťahovaní ďalších fotiek */}
-                            {dragActiveId === `add-${item.id}` && (
+                            {dragActiveId === `zone-${item.id}` && (
                               <div style={{
                                 position: 'absolute',
                                 inset: 0,
@@ -872,34 +656,56 @@ export default function ClientPortal() {
                                 pointerEvents: 'none'
                               }}>
                                 <Upload size={30} style={{ color: 'var(--accent-primary)' }} />
-                                <div>Pustite ďalšie fotky sem pre pridanie</div>
+                                <div>Pustite fotky sem pre pridanie</div>
                                 <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
-                                  Nové fotky sa pridajú do zoznamu pred odoslaním
+                                  Nové fotky sa pridajú k existujúcim bez prepísania
                                 </span>
                               </div>
                             )}
 
-                            {/* Header */}
+                            {/* Spoločný Header */}
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               flexWrap: 'wrap',
                               gap: '10px',
-                              marginBottom: '12px',
+                              marginBottom: '14px',
                               paddingBottom: '10px',
                               borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
                             }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <FileCheck2 size={18} color="var(--success)" />
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {hasFiles ? (
+                                  <FileCheck2 size={18} color="var(--success)" style={{ flexShrink: 0 }} />
+                                ) : (
+                                  <span className="badge badge-accent" style={{ fontSize: '0.75rem' }}>
+                                    Pripravené na odoslanie
+                                  </span>
+                                )}
+                                
                                 <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                  Uložené v cloude: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
+                                  {hasBoth ? (
+                                    <>
+                                      Fotografie: {fileList.length + stagedList.length} celkovo
+                                      <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.8rem', marginLeft: '6px' }}>
+                                        ({fileList.length} v cloude + {stagedList.length} nových čaká na uloženie)
+                                      </span>
+                                    </>
+                                  ) : hasFiles ? (
+                                    <>
+                                      Uložené v cloude: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      Vybrané fotky: {stagedList.length} {stagedList.length === 1 ? 'súbor' : (stagedList.length < 5 ? 'súbory' : 'súborov')}
+                                    </>
+                                  )}
                                 </strong>
                               </div>
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <input 
-                                  id={`file-input-add-${item.id}`}
+                                  id={`file-input-unified-${item.id}`}
                                   type="file" 
                                   multiple
                                   style={{ display: 'none' }}
@@ -912,30 +718,47 @@ export default function ClientPortal() {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const input = document.getElementById(`file-input-add-${item.id}`);
+                                    const input = document.getElementById(`file-input-unified-${item.id}`);
                                     if (input) input.click();
                                   }}
                                   className="btn btn-secondary btn-sm"
                                   style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                                  title="Pridať ďalšie fotky do výberu"
+                                  title="Pridať ďalšie fotky"
                                 >
-                                  <Plus size={14} /> Pridať ďalšie
+                                  <Plus size={14} /> Pridať fotky
                                 </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => handleRemoveItemValue(item.id)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
-                                  title="Zmazať všetky nahrané súbory z cloudu"
-                                >
-                                  <Trash2 size={14} /> Zmazať z cloudu
-                                </button>
+
+                                {hasStaged && (
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleClearStagedFiles(item.id)}
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: '6px 10px', color: 'var(--text-muted)', fontSize: '0.8rem' }}
+                                    title="Zrušiť novovybrané fotky"
+                                  >
+                                    <X size={14} /> Zrušiť nové
+                                  </button>
+                                )}
+
+                                {hasFiles && !hasStaged && (
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleRemoveItemValue(item.id)}
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
+                                    title="Zmazať všetky nahrané súbory z cloudu"
+                                  >
+                                    <Trash2 size={14} /> Zmazať z cloudu
+                                  </button>
+                                )}
                               </div>
                             </div>
 
-                            {/* Files List s miniatúrnymi náhľadmi fotiek */}
+                            {/* Spoločný zoznam fotiek pekne pod sebou */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {fileList.map((f, idx) => {
+                              
+                              {/* 1. Už uložené fotky v cloude */}
+                              {hasFiles && fileList.map((f, idx) => {
                                 const isImg = isImageFile(f.fileName, f.fileType);
 
                                 return (
@@ -946,6 +769,7 @@ export default function ClientPortal() {
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
                                       background: 'rgba(0, 0, 0, 0.25)',
+                                      border: '1px solid rgba(255, 255, 255, 0.06)',
                                       borderRadius: 'var(--radius-sm)',
                                       padding: '8px 12px',
                                       gap: '12px'
@@ -1015,7 +839,7 @@ export default function ClientPortal() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                                           <span>{f.fileSize || ''}</span>
                                           <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                                            V cloude
+                                            ✓ Uložené v cloude
                                           </span>
                                         </div>
                                       </div>
@@ -1039,7 +863,7 @@ export default function ClientPortal() {
                                         onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
                                         className="btn btn-secondary btn-sm"
                                         style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
-                                        title="Odstrániť tento súbor"
+                                        title="Odstrániť tento súbor z cloudu"
                                       >
                                         <X size={13} />
                                       </button>
@@ -1047,55 +871,223 @@ export default function ClientPortal() {
                                   </div>
                                 );
                               })}
-                            </div>
 
-                            {/* Mini Dropzone pre pridanie ďalších */}
-                            {!hasStaged && (
-                              <div
-                                onClick={() => {
-                                  const input = document.getElementById(`file-input-add-${item.id}`);
-                                  if (input) input.click();
-                                }}
-                                onDragEnter={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setDragActiveId(`add-${item.id}`);
-                                }}
-                                onDragOver={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  e.dataTransfer.dropEffect = 'copy';
-                                  setDragActiveId(`add-${item.id}`);
-                                }}
-                                onDrop={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setDragActiveId(null);
-                                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                    handleStageFiles(item.id, e.dataTransfer.files);
-                                  }
-                                }}
-                                style={{
-                                  marginTop: '12px',
-                                  border: dragActiveId === `add-${item.id}` ? '1px dashed var(--accent-primary)' : '1px dashed rgba(255, 255, 255, 0.2)',
-                                  borderRadius: 'var(--radius-sm)',
-                                  padding: '10px 14px',
-                                  textAlign: 'center',
-                                  cursor: 'pointer',
-                                  background: dragActiveId === `add-${item.id}` ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.02)',
-                                  transition: 'all 0.2s ease',
+                              {/* Štýlová oddeľovacia čiara, ak sú prítomné existujúce aj nové fotky */}
+                              {hasBoth && (
+                                <div style={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '8px'
-                                }}
-                              >
-                                <Upload size={15} color="var(--accent-primary)" />
-                                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                                  Pretiahnite sem ďalšie fotky (Drag & Drop) alebo <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</strong>
-                                </span>
+                                  gap: '12px',
+                                  margin: '8px 0 4px 0',
+                                  padding: '0 4px'
+                                }}>
+                                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.45))' }} />
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '3px 12px',
+                                    borderRadius: 'var(--radius-full)',
+                                    background: 'rgba(99, 102, 241, 0.16)',
+                                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                                    fontSize: '0.74rem',
+                                    color: '#c7d2fe',
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap'
+                                  }}>
+                                    <Sparkles size={13} color="var(--accent-primary)" />
+                                    <span>Novo pridané fotky (čakajú na uloženie do cloudu)</span>
+                                    <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '0 6px' }}>+{stagedList.length}</span>
+                                  </div>
+                                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.45), transparent)' }} />
+                                </div>
+                              )}
+
+                              {/* 2. Novovybrané fotky čakajúce na uloženie (jemne odlíšené) */}
+                              {hasStaged && stagedList.map((f, idx) => {
+                                const isImg = isImageFile(f.name, f.type);
+                                const previewUrl = stagedPreviews[item.id]?.[idx] || (isImg ? URL.createObjectURL(f) : null);
+
+                                return (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      background: 'rgba(99, 102, 241, 0.12)',
+                                      border: '1px solid rgba(99, 102, 241, 0.35)',
+                                      borderRadius: 'var(--radius-sm)',
+                                      padding: '8px 12px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                      {/* Thumbnail náhľad novo pridanej fotky */}
+                                      {isImg && previewUrl ? (
+                                        <img 
+                                          src={previewUrl} 
+                                          alt={f.name}
+                                          style={{
+                                            width: '46px',
+                                            height: '46px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            objectFit: 'cover',
+                                            border: '1px solid rgba(99, 102, 241, 0.45)',
+                                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.35)',
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                      ) : (
+                                        <div style={{
+                                          width: '46px',
+                                          height: '46px',
+                                          borderRadius: 'var(--radius-sm)',
+                                          background: 'rgba(99, 102, 241, 0.2)',
+                                          border: '1px solid rgba(99, 102, 241, 0.35)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          flexShrink: 0
+                                        }}>
+                                          <FileText size={20} color="var(--accent-primary)" />
+                                        </div>
+                                      )}
+
+                                      <div style={{ minWidth: 0 }}>
+                                        <div style={{
+                                          fontSize: '0.85rem',
+                                          fontWeight: 600,
+                                          color: 'var(--text-primary)',
+                                          whiteSpace: 'nowrap',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
+                                        }}>
+                                          {f.name}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                          <span>{f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}</span>
+                                          <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
+                                            ★ Nová fotka (čaká na uloženie)
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveStagedFile(item.id, idx)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
+                                      title="Odstrániť z tohto výberu"
+                                    >
+                                      <X size={13} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Mini Dropzone pre pridanie ďalších priamo pod zoznamom */}
+                            <div
+                              onClick={() => {
+                                const input = document.getElementById(`file-input-unified-${item.id}`);
+                                if (input) input.click();
+                              }}
+                              onDragEnter={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDragActiveId(`zone-${item.id}`);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'copy';
+                                setDragActiveId(`zone-${item.id}`);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDragActiveId(null);
+                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                  handleStageFiles(item.id, e.dataTransfer.files);
+                                }
+                              }}
+                              style={{
+                                marginTop: '12px',
+                                border: '1px dashed rgba(255, 255, 255, 0.2)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '10px 14px',
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                              }}
+                            >
+                              <Upload size={15} color="var(--accent-primary)" />
+                              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                Pretiahnite sem ďalšie fotky (Drag & Drop) alebo <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</strong>
+                              </span>
+                            </div>
+
+                            {/* Ukladacia lišta ak sú prítomné nové fotky */}
+                            {hasStaged && (
+                              <div style={{
+                                marginTop: '14px',
+                                paddingTop: '12px',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px'
+                              }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmUpload(item.id)}
+                                  className="btn btn-primary"
+                                  style={{
+                                    width: '100%',
+                                    justifyContent: 'center',
+                                    padding: '11px 20px',
+                                    fontWeight: 700,
+                                    fontSize: '0.92rem',
+                                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+                                  }}
+                                >
+                                  <Upload size={16} /> {hasFiles 
+                                    ? `Uložiť a pridať nové fotky do zákazky (+${stagedList.length} ${stagedList.length === 1 ? 'nová fotka' : (stagedList.length < 5 ? 'nové fotky' : 'nových fotiek')})` 
+                                    : `Nahrať a odoslať do zákazky (${stagedList.length} ${stagedList.length === 1 ? 'fotka' : (stagedList.length < 5 ? 'fotky' : 'fotiek')})`
+                                  }
+                                </button>
+
+                                {hasFiles && (
+                                  <div style={{
+                                    textAlign: 'center',
+                                    fontSize: '0.76rem',
+                                    color: 'var(--text-muted)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px'
+                                  }}>
+                                    <ShieldCheck size={14} color="var(--success)" />
+                                    <span>Vašich <strong>{fileList.length} doteraz uložených fotiek</strong> zostane zachovaných v cloude — nové fotky sa k nim pridajú.</span>
+                                  </div>
+                                )}
                               </div>
                             )}
+
                           </div>
                         )}
 
