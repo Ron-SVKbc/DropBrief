@@ -35,6 +35,7 @@ export async function getCloudFreelancer(nick) {
         id: dbUser.id,
         nick: dbUser.nick,
         pin: dbUser.pin_code,
+        pinHash: dbUser.pin_code,
         email: dbUser.email || '',
         createdAt: dbUser.created_at,
       };
@@ -60,10 +61,13 @@ export async function getCloudFreelancer(nick) {
 /**
  * Bezpečné hashovanie PIN kódu pomocou SHA-256 so soľou
  */
-export async function hashPin(pin) {
+export async function hashPin(pin, useSalt = true) {
   if (!pin) return '';
   const encoder = new TextEncoder();
-  const data = encoder.encode(String(pin).trim() + '_dropbrief_salt_2026');
+  const rawString = useSalt 
+    ? String(pin).trim() + '_dropbrief_salt_2026'
+    : String(pin).trim();
+  const data = encoder.encode(rawString);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -75,10 +79,17 @@ export async function hashPin(pin) {
 export async function verifyCloudPin(inputPin, storedUser) {
   if (!inputPin || !storedUser) return false;
   const cleanInput = String(inputPin).trim();
-  const inputHash = await hashPin(cleanInput);
+  const targetHash = storedUser.pinHash || storedUser.pin || storedUser.pin_code;
+  if (!targetHash) return false;
 
-  // Overenie len voči kryptografickému hashu – plain-text PIN sa nikdy neoveruje
-  if (storedUser.pinHash && storedUser.pinHash === inputHash) return true;
+  // 1. Primárne overenie: SHA-256 so soľou
+  const saltedHash = await hashPin(cleanInput, true);
+  if (targetHash === saltedHash) return true;
+
+  // 2. Spätná kompatibilita: SHA-256 bez soli (napr. manuálny záznam v DB)
+  const unsaltedHash = await hashPin(cleanInput, false);
+  if (targetHash === unsaltedHash) return true;
+
   return false;
 }
 

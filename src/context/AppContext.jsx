@@ -303,7 +303,7 @@ export function AppProvider({ children }) {
         if (found) {
           let isValid = false;
           if (found.pinHash) {
-            isValid = (await hashPin(cleanPin)) === found.pinHash;
+            isValid = (await hashPin(cleanPin, true)) === found.pinHash || (await hashPin(cleanPin, false)) === found.pinHash;
           } else if (found.pin) {
             // Starší fallback pre existujúce lokálne účty (pred migráciou)
             isValid = String(found.pin).trim() === cleanPin;
