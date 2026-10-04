@@ -17,7 +17,9 @@ import {
   File,
   Eye,
   Download,
-  Loader2
+  Loader2,
+  Plus,
+  X
 } from 'lucide-react';
 
 export default function ClientPortal() {
@@ -100,36 +102,105 @@ export default function ClientPortal() {
     }
   };
 
-  const handleFileUpload = async (itemId, file) => {
-    if (!file) return;
+  const handleFileUpload = async (itemId, filesInput) => {
+    if (!filesInput) return;
+    const fileArray = Array.from(
+      filesInput instanceof FileList ? filesInput : (Array.isArray(filesInput) ? filesInput : [filesInput])
+    );
+    if (fileArray.length === 0) return;
 
     try {
       setUploadingItemId(itemId);
 
-      let uploadedPayload;
-      if (isSupabaseConfigured) {
-        addToast(`Nahrávam ${file.name} do šifrovaného cloud úložiska...`, 'info', 'Odosielanie');
-        uploadedPayload = await uploadClientFile(file, project.slug, itemId);
-      } else {
-        uploadedPayload = {
-          fileName: file.name,
-          fileSize: (file.size / 1024).toFixed(1) + ' KB',
-          fileType: file.type || 'application/octet-stream',
-          uploadedAt: new Date().toLocaleTimeString()
-        };
+      // Zistíme existujúce súbory v tejto položke
+      const currentItem = project.items.find((i) => i.id === itemId);
+      let existingFiles = [];
+      if (currentItem && currentItem.value) {
+        if (Array.isArray(currentItem.value.files)) {
+          existingFiles = [...currentItem.value.files];
+        } else if (currentItem.value.fileName) {
+          existingFiles = [currentItem.value];
+        }
       }
 
-      await updateItemValue(project.slug, itemId, uploadedPayload, true);
-      addToast(`Súbor "${file.name}" bol bezpečne uložený!`, 'success', 'Súbor nahraný');
+      addToast(
+        fileArray.length === 1 
+          ? `Nahrávam ${fileArray[0].name} do cloudu...` 
+          : `Nahrávam ${fileArray.length} súborov do cloudu...`, 
+        'info', 
+        'Odosielanie'
+      );
+
+      const uploadedFiles = [];
+      for (const file of fileArray) {
+        let uploadedPayload;
+        if (isSupabaseConfigured) {
+          uploadedPayload = await uploadClientFile(file, project.slug, itemId);
+        } else {
+          uploadedPayload = {
+            id: 'f-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+            fileName: file.name,
+            fileSize: (file.size / 1024).toFixed(1) + ' KB',
+            fileType: file.type || 'application/octet-stream',
+            uploadedAt: new Date().toLocaleTimeString()
+          };
+        }
+        uploadedFiles.push(uploadedPayload);
+      }
+
+      const allFiles = [...existingFiles, ...uploadedFiles];
+      const payload = {
+        files: allFiles,
+        fileName: allFiles.length === 1 ? allFiles[0].fileName : `${allFiles.length} súborov`,
+        fileSize: allFiles.length === 1 ? allFiles[0].fileSize : `${allFiles.length} súborov`,
+        url: allFiles[0]?.url,
+      };
+
+      await updateItemValue(project.slug, itemId, payload, true);
+      addToast(
+        fileArray.length === 1 
+          ? `Súbor "${fileArray[0].name}" bol bezpečne uložený!`
+          : `Bolo úspešne nahraných ${fileArray.length} súborov!`,
+        'success',
+        'Podklady uložené'
+      );
 
       const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
       const newPercent = Math.round((newCompleted / totalCount) * 100);
       handleCheckCompletion(newPercent);
     } catch (err) {
       console.error('File upload error:', err);
-      addToast('Nahrávanie súboru zlyhalo. Skontrolujte internetové pripojenie.', 'warning', 'Chyba pri nahrávaní');
+      addToast(err.message || 'Nahrávanie súboru zlyhalo.', 'warning', 'Chyba pri nahrávaní');
     } finally {
       setUploadingItemId(null);
+    }
+  };
+
+  const handleRemoveSingleFile = async (itemId, fileIdentifier) => {
+    const currentItem = project.items.find((i) => i.id === itemId);
+    if (!currentItem || !currentItem.value) return;
+
+    let existingFiles = [];
+    if (Array.isArray(currentItem.value.files)) {
+      existingFiles = [...currentItem.value.files];
+    } else if (currentItem.value.fileName) {
+      existingFiles = [currentItem.value];
+    }
+
+    const filtered = existingFiles.filter((f, idx) => (f.id ? f.id !== fileIdentifier : idx !== fileIdentifier));
+
+    if (filtered.length === 0) {
+      await updateItemValue(project.slug, itemId, null, false);
+      addToast('Všetky súbory boli odstránené.', 'info', 'Položka resetovaná');
+    } else {
+      const payload = {
+        files: filtered,
+        fileName: filtered.length === 1 ? filtered[0].fileName : `${filtered.length} súborov`,
+        fileSize: filtered.length === 1 ? filtered[0].fileSize : `${filtered.length} súborov`,
+        url: filtered[0]?.url,
+      };
+      await updateItemValue(project.slug, itemId, payload, true);
+      addToast('Súbor bol odstránený.', 'info', 'Súbor zmazaný');
     }
   };
 
@@ -151,7 +222,7 @@ export default function ClientPortal() {
   const handleRemoveItemValue = async (itemId) => {
     await updateItemValue(project.slug, itemId, null, false);
     setTextInputs((prev) => ({ ...prev, [itemId]: '' }));
-    addToast('Položka bola vymazaná, môžete nahrať nový podklad.', 'info', 'Položka resetovaná');
+    addToast('Položka bola vymazaná, môžete nahrať nové podklady.', 'info', 'Položka resetovaná');
   };
 
   return (
@@ -335,106 +406,192 @@ export default function ClientPortal() {
                 <div style={{ marginTop: '16px', paddingLeft: '40px' }}>
                   
                   {/* File Upload Type */}
-                  {item.type === 'file' && (
-                    <div>
-                      {isUploadingThis ? (
-                        <div style={{
-                          padding: '24px',
-                          textAlign: 'center',
-                          borderRadius: 'var(--radius-md)',
-                          background: 'rgba(99, 102, 241, 0.08)',
-                          border: '1px dashed var(--accent-primary)'
-                        }}>
-                          <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 8px' }} />
-                          <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                            Nahrávam súbor do šifrovaného cloudového úložiska...
-                          </div>
-                        </div>
-                      ) : !isDone ? (
-                        <div 
-                          className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
-                          onDragOver={(e) => { e.preventDefault(); setDragActiveId(item.id); }}
-                          onDragLeave={() => setDragActiveId(null)}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            setDragActiveId(null);
-                            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                              handleFileUpload(item.id, e.dataTransfer.files[0]);
-                            }
-                          }}
-                          onClick={() => {
-                            const input = document.getElementById(`file-input-${item.id}`);
-                            if (input) input.click();
-                          }}
-                        >
-                          <input 
-                            id={`file-input-${item.id}`}
-                            type="file" 
-                            style={{ display: 'none' }}
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                handleFileUpload(item.id, e.target.files[0]);
-                              }
-                            }}
-                          />
-                          <Upload size={24} style={{ color: 'var(--accent-primary)', margin: '0 auto 8px', opacity: 0.8 }} />
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            Pretiahnite súbor sem alebo <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</span>
-                          </div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            Obrázky, PDF, dokumenty, archívy (max. 50 MB)
-                          </span>
-                        </div>
-                      ) : (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap',
-                          gap: '12px',
-                          background: 'rgba(16, 185, 129, 0.08)',
-                          border: '1px solid var(--success-border)',
-                          borderRadius: 'var(--radius-md)',
-                          padding: '12px 16px'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <FileCheck2 size={20} color="var(--success)" />
-                            <div>
-                              <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block' }}>
-                                {item.value?.fileName || 'Nahraný súbor'}
-                              </strong>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                Veľkosť: {item.value?.fileSize || 'Neznáma'} • Zabezpečené a uložené
-                              </span>
+                  {item.type === 'file' && (() => {
+                    const fileList = Array.isArray(item.value?.files)
+                      ? item.value.files
+                      : (item.value?.fileName ? [item.value] : []);
+                    const hasFiles = fileList.length > 0;
+
+                    return (
+                      <div>
+                        {isUploadingThis ? (
+                          <div style={{
+                            padding: '24px',
+                            textAlign: 'center',
+                            borderRadius: 'var(--radius-md)',
+                            background: 'rgba(99, 102, 241, 0.08)',
+                            border: '1px dashed var(--accent-primary)'
+                          }}>
+                            <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 8px' }} />
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+                              Nahrávam súbory do šifrovaného cloudového úložiska...
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                              Prosím počkajte chvíľku, kým sa všetky súbory uložia
                             </div>
                           </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {item.value?.url && (
-                              <a
-                                href={item.value.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-secondary btn-sm"
-                                style={{ padding: '6px 10px', fontSize: '0.8rem' }}
-                                title="Stiahnuť / Zobraziť súbor"
-                              >
-                                <Download size={14} /> Náhľad
-                              </a>
-                            )}
-                            <button 
-                              onClick={() => handleRemoveItemValue(item.id)}
-                              className="btn btn-secondary btn-sm"
-                              style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
-                              title="Nahradiť súbor"
-                            >
-                              <Trash2 size={14} /> Nahradiť
-                            </button>
+                        ) : !hasFiles ? (
+                          <div 
+                            className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
+                            onDragOver={(e) => { e.preventDefault(); setDragActiveId(item.id); }}
+                            onDragLeave={() => setDragActiveId(null)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setDragActiveId(null);
+                              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                handleFileUpload(item.id, e.dataTransfer.files);
+                              }
+                            }}
+                            onClick={() => {
+                              const input = document.getElementById(`file-input-${item.id}`);
+                              if (input) input.click();
+                            }}
+                          >
+                            <input 
+                              id={`file-input-${item.id}`}
+                              type="file" 
+                              multiple
+                              style={{ display: 'none' }}
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files.length > 0) {
+                                  handleFileUpload(item.id, e.target.files);
+                                }
+                              }}
+                            />
+                            <Upload size={24} style={{ color: 'var(--accent-primary)', margin: '0 auto 8px', opacity: 0.8 }} />
+                            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              Pretiahnite súbory sem alebo <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>kliknite pre výber</span>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              Môžete označiť aj viacero fotiek či súborov naraz (max. 50 MB na súbor)
+                            </span>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        ) : (
+                          <div style={{
+                            background: 'rgba(16, 185, 129, 0.05)',
+                            border: '1px solid var(--success-border)',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '16px'
+                          }}>
+                            {/* Header */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              flexWrap: 'wrap',
+                              gap: '10px',
+                              marginBottom: '12px',
+                              paddingBottom: '10px',
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FileCheck2 size={18} color="var(--success)" />
+                                <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                  Nahraných: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
+                                </strong>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <input 
+                                  id={`file-input-add-${item.id}`}
+                                  type="file" 
+                                  multiple
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                      handleFileUpload(item.id, e.target.files);
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const input = document.getElementById(`file-input-add-${item.id}`);
+                                    if (input) input.click();
+                                  }}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                                  title="Pridať ďalšie fotky alebo súbory do tejto položky"
+                                >
+                                  <Plus size={14} /> Pridať ďalšie súbory
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleRemoveItemValue(item.id)}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ padding: '6px 10px', color: 'var(--danger)', fontSize: '0.8rem' }}
+                                  title="Zmazať všetky nahrané súbory"
+                                >
+                                  <Trash2 size={14} /> Zmazať všetko
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Files List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {fileList.map((f, idx) => (
+                                <div
+                                  key={f.id || idx}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    background: 'rgba(0, 0, 0, 0.25)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    padding: '8px 12px',
+                                    gap: '12px'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                    <FileText size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                                    <div style={{ minWidth: 0 }}>
+                                      <div style={{
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600,
+                                        color: 'var(--text-primary)',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                      }}>
+                                        {f.fileName || 'Súbor'}
+                                      </div>
+                                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                        {f.fileSize || ''}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                    {f.url && (
+                                      <a
+                                        href={f.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary btn-sm"
+                                        style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                                        title="Stiahnuť / Zobraziť súbor"
+                                      >
+                                        <Download size={13} /> Náhľad
+                                      </a>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '4px 8px', color: 'var(--danger)', fontSize: '0.75rem' }}
+                                      title="Odstrániť tento súbor"
+                                    >
+                                      <X size={13} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Text Input Type */}
                   {item.type === 'text' && (

@@ -82,12 +82,19 @@ export default function Dashboard({ onOpenCreateModal }) {
       client: proj.clientName,
       clientEmail: proj.clientEmail,
       exportedAt: new Date().toISOString(),
-      items: completedItems.map((item) => ({
-        nazov: item.title,
-        typ: item.type,
-        data: item.value,
-        dokonceneDna: item.completedAt
-      }))
+      items: completedItems.map((item) => {
+        const fileList = Array.isArray(item.value?.files)
+          ? item.value.files
+          : (item.value?.fileName ? [item.value] : null);
+
+        return {
+          nazov: item.title,
+          typ: item.type,
+          pocetSuborov: fileList ? fileList.length : undefined,
+          subory: fileList || item.value,
+          dokonceneDna: item.completedAt
+        };
+      })
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -424,32 +431,42 @@ export default function Dashboard({ onOpenCreateModal }) {
                   gap: '10px',
                   marginBottom: '16px'
                 }}>
-                  {proj.items.map((item) => (
-                    <div 
-                      key={item.id} 
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px', 
-                        fontSize: '0.85rem',
-                        color: item.isCompleted ? 'var(--text-primary)' : 'var(--text-muted)'
-                      }}
-                    >
-                      {item.isCompleted ? (
-                        <FileCheck size={16} color="var(--success)" style={{ flexShrink: 0 }} />
-                      ) : (
-                        <FileX size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
-                      )}
-                      <span style={{ 
-                        textDecoration: item.isCompleted ? 'none' : 'none',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {item.title}
-                      </span>
-                    </div>
-                  ))}
+                  {proj.items.map((item) => {
+                    const fileCount = Array.isArray(item.value?.files) 
+                      ? item.value.files.length 
+                      : (item.value?.fileName ? 1 : 0);
+
+                    return (
+                      <div 
+                        key={item.id} 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '8px', 
+                          fontSize: '0.85rem',
+                          color: item.isCompleted ? 'var(--text-primary)' : 'var(--text-muted)'
+                        }}
+                      >
+                        {item.isCompleted ? (
+                          <FileCheck size={16} color="var(--success)" style={{ flexShrink: 0 }} />
+                        ) : (
+                          <FileX size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
+                        )}
+                        <span style={{ 
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {item.title}
+                          {fileCount > 1 && (
+                            <span style={{ marginLeft: '6px', fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                              ({fileCount} súborov)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Bottom Bar Actions */}

@@ -163,6 +163,10 @@ const ALLOWED_MIME_TYPES = [
   'application/x-rar-compressed', 'application/x-7z-compressed',
   // Dizajn
   'application/postscript', 'image/vnd.adobe.photoshop',
+  // Videá
+  'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo',
+  // Audio
+  'audio/mpeg', 'audio/wav', 'audio/x-m4a', 'audio/mp4',
 ];
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
@@ -178,7 +182,7 @@ export async function uploadClientFile(file, projectSlug, itemId) {
   // ✅ Validácia typu súboru (whitelist)
   const mimeType = file.type || 'application/octet-stream';
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-    throw new Error(`Typ súboru "${mimeType}" nie je povolený. Akceptujeme obrázky, PDF, dokumenty Office a archívy.`);
+    throw new Error(`Typ súboru "${mimeType}" nie je povolený. Akceptujeme obrázky, videá, PDF, dokumenty Office a archívy.`);
   }
 
   // ✅ Sanitizácia názvu súboru
@@ -187,7 +191,8 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     .replace(/\.{2,}/g, '.')           // zabrání path traversal (../../)
     .substring(0, 200);                // max dĺžka názvu
 
-  const filePath = `${projectSlug}/${itemId}-${Date.now()}-${safeName}`;
+  const uniqueId = Math.random().toString(36).substring(2, 7);
+  const filePath = `${projectSlug}/${itemId}-${Date.now()}-${uniqueId}-${safeName}`;
 
   const { data, error } = await supabase.storage
     .from('client-uploads')
@@ -208,11 +213,13 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     .getPublicUrl(filePath);
 
   return {
+    id: 'f-' + Date.now() + '-' + uniqueId,
     path: filePath,
     url: publicUrlData.publicUrl,
     fileName: file.name,
     fileSize: (file.size / 1024).toFixed(1) + ' KB',
     fileType: mimeType,
+    uploadedAt: new Date().toISOString()
   };
 }
 
