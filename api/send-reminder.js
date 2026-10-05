@@ -29,28 +29,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Chýba názov projektu.' });
     }
 
+    const resendApiKey = process.env.RESEND_API_KEY;
     const gmailUser = process.env.GMAIL_USER;
     const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
-    if (!gmailUser || !gmailPassword) {
+    if (!resendApiKey && (!gmailUser || !gmailPassword)) {
       return res.status(500).json({ 
         success: false, 
-        error: 'Chýbajú Gmail SMTP údaje (GMAIL_USER alebo GMAIL_APP_PASSWORD v .env).' 
+        error: 'Chýbajú e-mailové konfiguračné údaje (RESEND_API_KEY alebo GMAIL_USER v .env).' 
       });
     }
-
-    const cleanPassword = gmailPassword.replace(/\s+/g, '');
-
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: gmailUser,
-        pass: cleanPassword,
-      },
-      connectionTimeout: 10000,
-    });
 
     // Sanitizácia mien (odstránenie úvodzoviek a nebezpečných znakov pre RFC hlavičky)
     const cleanFreelancerName = String(freelancerName || 'Freelancer')
@@ -276,11 +264,64 @@ ${cleanFreelancerName}
 </html>`;
     }
 
-    // 🛡️ 4. ŠTANDARDNÉ RFC HLAVIČKY (bez podozrivých skriptových tagov ako X-Priority):
     const isCustomReplyEmail = freelancerEmail && 
       freelancerEmail.includes('@') && 
-      freelancerEmail.toLowerCase().trim() !== gmailUser.toLowerCase().trim() &&
+      freelancerEmail.toLowerCase().trim() !== (gmailUser || '').toLowerCase().trim() &&
       !freelancerEmail.includes('klient.sk');
+
+    // 🚀 A. ODOSIELANIE CEZ TRANSAKČNÝ RESEND API (ak je nakonfigurovaný RESEND_API_KEY)
+    if (resendApiKey) {
+      const resendFrom = process.env.RESEND_FROM || `DropBrief <onboarding@resend.dev>`;
+      const resendPayload = {
+        from: resendFrom,
+        to: [clientEmail],
+        subject: emailSubject,
+        text: plainTextContent,
+        html: htmlContent,
+      };
+
+      if (isCustomReplyEmail) {
+        resendPayload.reply_to = freelancerEmail.trim();
+      }
+
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resendPayload),
+      });
+
+      const resendData = await resendResponse.json();
+      if (!resendResponse.ok) {
+        throw new Error(resendData.message || 'Chyba Resend API pri odosielaní.');
+      }
+
+      return res.status(200).json({
+        success: true,
+        provider: 'resend',
+        messageId: resendData.id,
+        sentTo: clientEmail,
+        subject: emailSubject,
+        portalUrl: safePortalUrl,
+        sentAt: new Date().toISOString(),
+      });
+    }
+
+    // 🚀 B. ODOSIELANIE CEZ GMAIL SMTP (Fallback)
+    const cleanPassword = gmailPassword ? gmailPassword.replace(/\s+/g, '') : '';
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: gmailUser,
+        pass: cleanPassword,
+      },
+      connectionTimeout: 10000,
+    });
 
     const mailOptions = {
       from: `"${cleanFreelancerName}" <${gmailUser}>`,
@@ -298,6 +339,7 @@ ${cleanFreelancerName}
 
     return res.status(200).json({
       success: true,
+      provider: 'gmail_smtp',
       messageId: info.messageId,
       sentTo: clientEmail,
       subject: emailSubject,
@@ -311,7 +353,7 @@ ${cleanFreelancerName}
     console.error('Email reminder sending error:', error);
     return res.status(500).json({
       success: false,
-      error: error.message || 'Nastala neočakávaná chyba pri odosielaní e-mailu cez Gmail SMTP.',
+      error: error.message || 'Nastala neočakávaná chyba pri odosielaní e-mailu.',
     });
   }
 }
