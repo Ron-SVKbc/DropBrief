@@ -5,19 +5,13 @@ import {
   Send, 
   Mail, 
   CheckCircle2, 
-  Clock, 
   ExternalLink, 
   Loader2, 
   AlertCircle,
   ShieldCheck,
-  Copy,
-  Check,
   MessageSquare,
   Sparkles,
-  Info,
-  Smartphone,
-  Share2,
-  Server
+  Zap
 } from 'lucide-react';
 
 export default function EmailPreviewModal() {
@@ -26,14 +20,12 @@ export default function EmailPreviewModal() {
     setPreviewEmailProject, 
     openClientPortal, 
     sendActualReminder,
-    currentFreelancer,
-    addToast
+    currentFreelancer
   } = useApp();
 
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [copiedText, setCopiedText] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [customSubject, setCustomSubject] = useState('');
   const [showNoteField, setShowNoteField] = useState(false);
@@ -43,12 +35,11 @@ export default function EmailPreviewModal() {
     if (previewEmailProject) {
       const cleanTitle = previewEmailProject.title.replace(/[„“"']/g, '').trim();
       const fName = previewEmailProject.freelancerName || currentFreelancer?.nick || 'Freelancer';
-      setCustomSubject(`${fName}: ${cleanTitle} – podklady k zákazke`);
+      setCustomSubject(`${fName}: ${cleanTitle} – potrebné podklady`);
       setCustomMessage('');
       setShowNoteField(false);
       setSendSuccess(false);
       setErrorMessage('');
-      setCopiedText(false);
       setEmailStyle('personal');
     }
   }, [previewEmailProject]);
@@ -61,37 +52,7 @@ export default function EmailPreviewModal() {
   const slug = previewEmailProject.slug;
   const targetPortalUrl = `https://dropbrief.vercel.app/?p=${slug}`;
 
-  // Formátovanie textu e-mailu
-  const itemsListText = missingItems.length > 0 
-    ? missingItems.map((item, idx) => `  ${idx + 1}. ${item.title}${item.description ? ` (${item.description})` : ''}`).join('\n')
-    : '  - Všetky požadované podklady k projektu';
-
-  const notePart = customMessage.trim() ? `\nPoznámka od ${freelancerName}:\n"${customMessage.trim()}"\n` : '';
-
-  const fullEmailBody = `Dobrý deň, ${previewEmailProject.clientName},
-
-píšem Vám ohľadom projektu ${previewEmailProject.title}. K plynulému pokračovaniu prác potrebujeme od Vás doplniť nasledujúce podklady:
-
-${itemsListText}
-${previewEmailProject.deadline ? `\nPredpokladaný termín dokončenia: ${previewEmailProject.deadline}\n` : ''}${notePart}
-Podklady môžete pohodlne nahrať priamo cez odkaz projektu:
-${targetPortalUrl}
-
-V prípade akýchkoľvek otázok stačí odpovedať na tento e-mail.
-
-S pozdravom,
-${freelancerName}
-`;
-
-  // WhatsApp správa
-  const whatsappMessage = `Ahoj ${previewEmailProject.clientName}, posielam zabezpečený odkaz pre nahratie podkladov k projektu "${previewEmailProject.title}": ${targetPortalUrl}`;
-
-  // Odkazy na priame odoslanie cez osobný e-mail
-  const gmailWebComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(clientEmail)}&su=${encodeURIComponent(customSubject)}&body=${encodeURIComponent(fullEmailBody)}`;
-  const mailtoUrl = `mailto:${encodeURIComponent(clientEmail)}?subject=${encodeURIComponent(customSubject)}&body=${encodeURIComponent(fullEmailBody)}`;
-  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
-
-  const handleSendViaServer = async () => {
+  const handleSendReminder = async () => {
     setIsSending(true);
     setErrorMessage('');
     setSendSuccess(false);
@@ -104,27 +65,20 @@ ${freelancerName}
       });
       setSendSuccess(true);
     } catch (err) {
-      console.error('Failed to send reminder:', err);
-      setErrorMessage(err.message || 'Nepodarilo sa odoslať e-mail.');
+      console.error('Failed to send reminder via Resend:', err);
+      setErrorMessage(err.message || 'Nepodarilo sa odoslať e-mail cez Resend.');
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleCopyEmailText = () => {
-    navigator.clipboard.writeText(fullEmailBody);
-    setCopiedText(true);
-    addToast('Celý text e-mailu bol skopírovaný do schránky!', 'success', 'Skopírované');
-    setTimeout(() => setCopiedText(false), 3000);
-  };
-
   const cycleSubject = () => {
     const cleanTitle = previewEmailProject.title.replace(/[„“"']/g, '').trim();
     const presets = [
-      `${freelancerName}: ${cleanTitle} – podklady k zákazke`,
-      `Podklady k projektu: ${cleanTitle}`,
-      `Doplnenie materiálov – ${cleanTitle}`,
-      `${cleanTitle} – potrebné položky (${freelancerName})`
+      `${freelancerName}: ${cleanTitle} – potrebné podklady`,
+      `Podklady k zákazke: ${cleanTitle}`,
+      `Doplnenie materiálov pre projekt ${cleanTitle}`,
+      `Prosba o podklady – ${cleanTitle} (${freelancerName})`
     ];
     const currentIndex = presets.indexOf(customSubject);
     const nextIndex = (currentIndex + 1) % presets.length;
@@ -135,7 +89,6 @@ ${freelancerName}
     setPreviewEmailProject(null);
     setSendSuccess(false);
     setErrorMessage('');
-    setCopiedText(false);
   };
 
   return (
@@ -154,8 +107,8 @@ ${freelancerName}
         className="glass-card animate-fade-in"
         style={{
           width: '100%',
-          maxWidth: '720px',
-          maxHeight: '95vh',
+          maxWidth: '680px',
+          maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
           background: '#0d1322',
@@ -169,7 +122,7 @@ ${freelancerName}
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '14px 20px',
+          padding: '16px 22px',
           borderBottom: '1px solid var(--border-subtle)',
           background: 'rgba(99, 102, 241, 0.08)'
         }}>
@@ -178,20 +131,21 @@ ${freelancerName}
               width: '34px',
               height: '34px',
               borderRadius: 'var(--radius-sm)',
-              background: 'var(--accent-gradient)',
+              background: 'linear-gradient(135deg, #000000 0%, #1e1e38 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#fff'
             }}>
-              <Mail size={18} />
+              <Zap size={18} color="#38bdf8" />
             </div>
             <div>
               <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>
-                Odoslanie pripomienky klientovi
+                Odoslanie pripomienky cez Resend
               </strong>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Zvoľte spôsob odoslania pre 100 % doručiteľnosť bez spamu
+                Transakčné e-mailové API • Vysoká doručiteľnosť do Inboxu
               </span>
             </div>
           </div>
@@ -206,107 +160,46 @@ ${freelancerName}
           </button>
         </div>
 
-        {/* 100% INBOX GUARANTEED ACTIONS BAR */}
+        {/* Resend Guarantee Banner */}
         <div style={{
-          padding: '12px 20px',
-          background: 'rgba(16, 185, 129, 0.1)',
-          borderBottom: '1px solid rgba(16, 185, 129, 0.25)',
+          padding: '10px 22px',
+          background: 'rgba(56, 189, 248, 0.08)',
+          borderBottom: '1px solid rgba(56, 189, 248, 0.2)',
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
           gap: '8px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#34d399', fontWeight: 600 }}>
-              <ShieldCheck size={16} />
-              <span>Zaručené odoslanie bez spamu (z vášho reálneho účtu):</span>
-            </div>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Klient vás pozná = 0 % šanca spamu
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#7dd3fc' }}>
+            <ShieldCheck size={16} color="#38bdf8" />
+            <span><strong>Resend API aktívne:</strong> Oficiálne DKIM & SPF overenie • 3 000 e-mailov/mesiac zadarmo</span>
           </div>
 
-          {/* Quick Send Options */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            <a
-              href={gmailWebComposeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-primary btn-sm"
-              style={{
-                background: 'linear-gradient(135deg, #ea4335 0%, #db4437 100%)',
-                color: '#fff',
-                border: 'none',
-                boxShadow: '0 2px 8px rgba(234, 67, 53, 0.35)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.78rem',
-                textDecoration: 'none'
-              }}
-            >
-              <ExternalLink size={13} />
-              <strong>Otvoriť v Gmaile</strong>
-            </a>
-
-            <a
-              href={mailtoUrl}
-              className="btn btn-secondary btn-sm"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.78rem',
-                textDecoration: 'none'
-              }}
-            >
-              <Mail size={13} />
-              Outlook / Apple Mail
-            </a>
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-secondary btn-sm"
-              style={{
-                background: 'rgba(37, 211, 102, 0.15)',
-                border: '1px solid rgba(37, 211, 102, 0.35)',
-                color: '#25d366',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.78rem',
-                textDecoration: 'none'
-              }}
-            >
-              <Smartphone size={13} />
-              WhatsApp
-            </a>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Formát:</span>
             <button
               type="button"
-              onClick={handleCopyEmailText}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => setEmailStyle('personal')}
+              className={`btn btn-sm ${emailStyle === 'personal' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '0.72rem', padding: '2px 8px', height: 'auto' }}
             >
-              {copiedText ? (
-                <>
-                  <Check size={13} color="#10b981" />
-                  <span style={{ color: '#10b981' }}>Skopírované!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} />
-                  <span>Kopírovať text</span>
-                </>
-              )}
+              ✉️ Osobný
+            </button>
+            <button
+              type="button"
+              onClick={() => setEmailStyle('card')}
+              className={`btn btn-sm ${emailStyle === 'card' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ fontSize: '0.72rem', padding: '2px 8px', height: 'auto' }}
+            >
+              🎨 Karta
             </button>
           </div>
         </div>
 
         {/* Email Controls */}
         <div style={{ 
-          padding: '12px 20px', 
+          padding: '12px 22px', 
           borderBottom: '1px solid var(--border-subtle)', 
           fontSize: '0.8rem', 
           color: 'var(--text-muted)',
@@ -317,26 +210,10 @@ ${freelancerName}
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <strong>Príjemca:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;
+              <strong>Odosielateľ:</strong> DropBrief (Resend API)
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
-              <span style={{ fontSize: '0.75rem' }}>Formát:</span>
-              <button
-                type="button"
-                onClick={() => setEmailStyle('personal')}
-                className={`btn btn-sm ${emailStyle === 'personal' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '0.72rem', padding: '2px 8px', height: 'auto' }}
-              >
-                ✉️ Osobný
-              </button>
-              <button
-                type="button"
-                onClick={() => setEmailStyle('card')}
-                className={`btn btn-sm ${emailStyle === 'card' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '0.72rem', padding: '2px 8px', height: 'auto' }}
-              >
-                🎨 Karta
-              </button>
+            <div>
+              <strong>Príjemca:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;
             </div>
           </div>
 
@@ -394,7 +271,7 @@ ${freelancerName}
             ) : (
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '3px', color: 'var(--text-secondary)' }}>
-                  Osobná poznámka:
+                  Osobná poznámka pre klienta:
                 </label>
                 <textarea
                   className="input-field"
@@ -411,7 +288,7 @@ ${freelancerName}
 
         {/* Email Rendered Preview (Scrollable) */}
         <div style={{ 
-          padding: '16px 20px', 
+          padding: '16px 22px', 
           overflowY: 'auto', 
           flex: 1, 
           background: 'rgba(0, 0, 0, 0.25)' 
@@ -484,7 +361,7 @@ ${freelancerName}
               </p>
 
               <div style={{ marginTop: '24px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', fontSize: '0.72rem', color: '#94a3b8' }}>
-                Doručené cez DropBrief • Priama 1:1 správa
+                Doručené cez DropBrief • Resend Infrastructure
               </div>
             </div>
           ) : (
@@ -551,7 +428,7 @@ ${freelancerName}
               </div>
 
               <div style={{ borderTop: '1px solid #f1f5f9', background: '#f8fafc', padding: '10px 20px', fontSize: '0.72rem', color: '#94a3b8' }}>
-                Odosielateľ: {freelancerName} &bull; DropBrief EÚ
+                Odosielateľ: {freelancerName} &bull; DropBrief (Resend)
               </div>
             </div>
           )}
@@ -572,7 +449,7 @@ ${freelancerName}
             }}>
               <CheckCircle2 size={18} />
               <div>
-                <strong>E-mail bol úspešne odoslaný!</strong> Pripomienka odišla na adresu <u>{clientEmail}</u>.
+                <strong>E-mail bol úspešne odoslaný cez Resend!</strong> Pripomienka odišla na adresu <u>{clientEmail}</u>.
               </div>
             </div>
           )}
@@ -592,7 +469,7 @@ ${freelancerName}
             }}>
               <AlertCircle size={18} style={{ marginTop: '2px', flexShrink: 0 }} />
               <div>
-                <strong>Odoslanie cez server zlyhalo:</strong> {errorMessage}
+                <strong>Odoslanie zlyhalo:</strong> {errorMessage}
               </div>
             </div>
           )}
@@ -601,7 +478,7 @@ ${freelancerName}
 
         {/* Modal Action Footer */}
         <div style={{ 
-          padding: '12px 20px', 
+          padding: '14px 22px', 
           borderTop: '1px solid var(--border-subtle)', 
           background: 'rgba(10, 13, 20, 0.95)',
           display: 'flex',
@@ -633,21 +510,20 @@ ${freelancerName}
             </button>
 
             <button
-              id="btn-send-server-reminder"
+              id="btn-send-resend-reminder"
               type="button"
-              onClick={handleSendViaServer}
+              onClick={handleSendReminder}
               disabled={isSending || sendSuccess}
               className="btn btn-primary btn-sm"
               style={{
                 boxShadow: sendSuccess ? 'none' : 'var(--accent-glow)',
                 background: sendSuccess ? 'var(--success)' : undefined
               }}
-              title="Odoslať e-mail automatizovane cez cloud server"
             >
               {isSending ? (
                 <>
                   <Loader2 size={15} className="animate-spin" />
-                  Odosielam cez server...
+                  Odosielam cez Resend...
                 </>
               ) : sendSuccess ? (
                 <>
@@ -656,8 +532,8 @@ ${freelancerName}
                 </>
               ) : (
                 <>
-                  <Server size={14} />
-                  Odoslať automaticky cez server
+                  <Send size={15} />
+                  Odoslať e-mail cez Resend
                 </>
               )}
             </button>

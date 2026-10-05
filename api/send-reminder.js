@@ -1,5 +1,3 @@
-import nodemailer from 'nodemailer';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Metóda nie je povolená. Použite POST.' });
@@ -18,7 +16,7 @@ export default async function handler(req, res) {
       missingItems = [],
       customMessage = '',
       customSubject = '',
-      emailStyle = 'personal' // 'personal' (odporúčané pre 100% inbox) | 'card'
+      emailStyle = 'personal'
     } = req.body || {};
 
     if (!clientEmail || !clientEmail.includes('@')) {
@@ -30,13 +28,11 @@ export default async function handler(req, res) {
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
-    if (!resendApiKey && (!gmailUser || !gmailPassword)) {
+    if (!resendApiKey) {
       return res.status(500).json({ 
         success: false, 
-        error: 'Chýbajú e-mailové konfiguračné údaje (RESEND_API_KEY alebo GMAIL_USER v .env).' 
+        error: 'Chýba RESEND_API_KEY. Vytvorte si bezplatný účet na https://resend.com a pridajte kľúč do Environment Variables na Verceli (alebo do .env).' 
       });
     }
 
@@ -52,7 +48,7 @@ export default async function handler(req, res) {
       .replace(/[\r\n\t]/g, ' ')
       .trim();
 
-    // 🛡️ 1. ČISTÉ HTTPS URL (bez fragmentu a bez podozrivých portov):
+    // 🛡️ 1. ČISTÉ HTTPS URL (bez hash fragmentu):
     let safePortalUrl = String(portalUrl || '').trim();
     const matchSlug = safePortalUrl.match(/[?&](?:p|project)=([^&#]+)/);
     const slug = matchSlug ? matchSlug[1] : '';
@@ -65,10 +61,10 @@ export default async function handler(req, res) {
       safePortalUrl = 'https://dropbrief.vercel.app';
     }
 
-    // 🛡️ 2. VARIABILNÝ PREDMET BEZ SPAMOVÝCH SPÚŠŤAČOV (pretrhne hash predchádzajúceho spamu):
+    // 🛡️ 2. PREDMET SPRÁVY:
     const emailSubject = customSubject && customSubject.trim().length > 3
       ? customSubject.replace(/[\r\n\t]/g, ' ').trim()
-      : `${cleanFreelancerName}: ${cleanProjectTitle} – doplnenie podkladov`;
+      : `${cleanFreelancerName}: ${cleanProjectTitle} – potrebné podklady`;
 
     // Unikátny referenčný kód na pretrhnutie odtlačku predchádzajúceho spamu
     const uniqueRef = Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -89,8 +85,8 @@ export default async function handler(req, res) {
 píšem Vám ohľadom projektu ${cleanProjectTitle}. K plynulému pokračovaniu prác potrebujeme od Vás doplniť nasledujúce podklady:
 
 ${itemsListText}
-${deadline ? `\nPredpokladaný termín: ${deadline}\n` : ''}${customNoteText}
-Podklady môžete nahrať priamo cez odkaz projektu:
+${deadline ? `\nPredpokladaný termín dokončenia: ${deadline}\n` : ''}${customNoteText}
+Podklady môžete nahrať priamo cez zabezpečený odkaz projektu:
 ${safePortalUrl}
 
 V prípade akýchkoľvek otázok stačí odpovedať priamo na tento e-mail.
@@ -102,73 +98,9 @@ ${cleanFreelancerName}
 `;
 
     // 🛡️ 3. DVA ŠTÝLY E-MAILU:
-    // A) OSOBNÝ PRIRODZENÝ ŠTÝL (100% Inbox garancia - žiadny marketingový table wrapper, pôsobí ako ručne písaný e-mail)
-    // B) DIZAJNOVÁ KARTA (Formátovaná karta s tlačidlom)
-
     let htmlContent = '';
 
-    if (emailStyle === 'personal') {
-      const itemsListLi = missingItems.length > 0
-        ? missingItems.map((item) => `
-          <li style="margin-bottom: 6px;">
-            <strong>${escapeHtml(item.title)}</strong>${item.description ? ` &ndash; <span style="color: #64748b;">${escapeHtml(item.description)}</span>` : ''}
-          </li>
-        `).join('')
-        : `<li>Požadované podklady k projektu</li>`;
-
-      const customNoteBlock = customMessage && customMessage.trim() ? `
-        <div style="margin: 12px 0 16px 0; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #2563eb;">
-          <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 3px;">Poznámka od ${escapeHtml(cleanFreelancerName)}:</div>
-          <div style="font-size: 14px; color: #334155;">${escapeHtml(customMessage.trim()).replace(/\n/g, '<br>')}</div>
-        </div>
-      ` : '';
-
-      htmlContent = `<!DOCTYPE html>
-<html lang="sk">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(emailSubject)}</title>
-</head>
-<body style="margin: 0; padding: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b; background-color: #ffffff;">
-  <div style="max-width: 600px; margin: 0 auto;">
-    <p style="margin: 0 0 14px 0;">Dobrý deň, ${escapeHtml(cleanClientName)},</p>
-    
-    <p style="margin: 0 0 14px 0;">
-      píšem Vám ohľadom projektu <strong>${escapeHtml(cleanProjectTitle)}</strong>. Aby sme mohli plynule pokračovať v prácach, potrebovali by sme od Vás doplniť nasledujúce podklady:
-    </p>
-
-    ${customNoteBlock}
-
-    <ul style="margin: 0 0 18px 0; padding-left: 22px; color: #1e293b;">
-      ${itemsListLi}
-    </ul>
-
-    ${deadline ? `<p style="margin: 0 0 16px 0; color: #475569;">Termín odovzdania: <strong>${escapeHtml(deadline)}</strong></p>` : ''}
-
-    <p style="margin: 18px 0 18px 0;">
-      Podklady môžete pohodlne nahrať priamo cez odkaz projektu:<br>
-      <a href="${escapeHtml(safePortalUrl)}" style="color: #2563eb; text-decoration: underline; font-weight: 600; word-break: break-all;">
-        ${escapeHtml(safePortalUrl)}
-      </a>
-    </p>
-
-    <p style="margin: 0 0 16px 0;">
-      Ak máte k jednotlivým položkám akékoľvek otázky, kedykoľvek odpovedzte priamo na tento e-mail.
-    </p>
-
-    <p style="margin: 22px 0 0 0; color: #1e293b;">
-      S pozdravom,<br>
-      <strong>${escapeHtml(cleanFreelancerName)}</strong>
-    </p>
-
-    <div style="margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
-      Doručené cez DropBrief (${currentDateStr}) &bull; Ref: DB-${uniqueRef}
-    </div>
-  </div>
-</body>
-</html>`;
-    } else {
-      // Dizajnová karta
+    if (emailStyle === 'card') {
       const itemsHtml = missingItems.length > 0
         ? missingItems.map((item) => `
           <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -262,102 +194,117 @@ ${cleanFreelancerName}
   </table>
 </body>
 </html>`;
+    } else {
+      // Osobný štýl (predvolený)
+      const itemsListLi = missingItems.length > 0
+        ? missingItems.map((item) => `
+          <li style="margin-bottom: 6px;">
+            <strong>${escapeHtml(item.title)}</strong>${item.description ? ` &ndash; <span style="color: #64748b;">${escapeHtml(item.description)}</span>` : ''}
+          </li>
+        `).join('')
+        : `<li>Požadované podklady k projektu</li>`;
+
+      const customNoteBlock = customMessage && customMessage.trim() ? `
+        <div style="margin: 12px 0 16px 0; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #2563eb;">
+          <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 3px;">Poznámka od ${escapeHtml(cleanFreelancerName)}:</div>
+          <div style="font-size: 14px; color: #334155;">${escapeHtml(customMessage.trim()).replace(/\n/g, '<br>')}</div>
+        </div>
+      ` : '';
+
+      htmlContent = `<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(emailSubject)}</title>
+</head>
+<body style="margin: 0; padding: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b; background-color: #ffffff;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    <p style="margin: 0 0 14px 0;">Dobrý deň, ${escapeHtml(cleanClientName)},</p>
+    
+    <p style="margin: 0 0 14px 0;">
+      píšem Vám ohľadom projektu <strong>${escapeHtml(cleanProjectTitle)}</strong>. Aby sme mohli plynule pokračovať v prácach, potrebovali by sme od Vás doplniť nasledujúce podklady:
+    </p>
+
+    ${customNoteBlock}
+
+    <ul style="margin: 0 0 18px 0; padding-left: 22px; color: #1e293b;">
+      ${itemsListLi}
+    </ul>
+
+    ${deadline ? `<p style="margin: 0 0 16px 0; color: #475569;">Termín odovzdania: <strong>${escapeHtml(deadline)}</strong></p>` : ''}
+
+    <p style="margin: 18px 0 18px 0;">
+      Podklady môžete pohodlne nahrať priamo cez odkaz projektu:<br>
+      <a href="${escapeHtml(safePortalUrl)}" style="color: #2563eb; text-decoration: underline; font-weight: 600; word-break: break-all;">
+        ${escapeHtml(safePortalUrl)}
+      </a>
+    </p>
+
+    <p style="margin: 0 0 16px 0;">
+      Ak máte k jednotlivým položkám akékoľvek otázky, kedykoľvek odpovedzte priamo na tento e-mail.
+    </p>
+
+    <p style="margin: 22px 0 0 0; color: #1e293b;">
+      S pozdravom,<br>
+      <strong>${escapeHtml(cleanFreelancerName)}</strong>
+    </p>
+
+    <div style="margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
+      Doručené cez DropBrief (${currentDateStr}) &bull; Ref: DB-${uniqueRef}
+    </div>
+  </div>
+</body>
+</html>`;
     }
 
-    const isCustomReplyEmail = freelancerEmail && 
-      freelancerEmail.includes('@') && 
-      freelancerEmail.toLowerCase().trim() !== (gmailUser || '').toLowerCase().trim() &&
-      !freelancerEmail.includes('klient.sk');
-
-    // 🚀 A. ODOSIELANIE CEZ TRANSAKČNÝ RESEND API (ak je nakonfigurovaný RESEND_API_KEY)
-    if (resendApiKey) {
-      const resendFrom = process.env.RESEND_FROM || `DropBrief <onboarding@resend.dev>`;
-      const resendPayload = {
-        from: resendFrom,
-        to: [clientEmail],
-        subject: emailSubject,
-        text: plainTextContent,
-        html: htmlContent,
-      };
-
-      if (isCustomReplyEmail) {
-        resendPayload.reply_to = freelancerEmail.trim();
-      }
-
-      const resendResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey.trim()}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(resendPayload),
-      });
-
-      const resendData = await resendResponse.json().catch(() => ({}));
-      if (!resendResponse.ok) {
-        let errText = resendData.error?.message || resendData.message || `Chyba Resend API (${resendResponse.status})`;
-        if (errText.includes('only send to') || errText.includes('verified email') || errText.includes('testing')) {
-          errText += ' — Tip: V bezplatnom testovacom režime Resendu bez vlastnej domény je možné odosielať len na váš registračný e-mail. Pre posielanie na akéhokoľvek klienta pridajte v Resende vlastnú doménu, alebo použite tlačidlo „Otvoriť v Gmaile“.';
-        }
-        throw new Error(errText);
-      }
-
-      return res.status(200).json({
-        success: true,
-        provider: 'resend',
-        messageId: resendData.id,
-        sentTo: clientEmail,
-        subject: emailSubject,
-        portalUrl: safePortalUrl,
-        sentAt: new Date().toISOString(),
-      });
-    }
-
-    // 🚀 B. ODOSIELANIE CEZ GMAIL SMTP (Fallback)
-    const cleanPassword = gmailPassword ? gmailPassword.replace(/\s+/g, '') : '';
-
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: gmailUser,
-        pass: cleanPassword,
-      },
-      connectionTimeout: 10000,
-    });
-
-    const mailOptions = {
-      from: `"${cleanFreelancerName}" <${gmailUser}>`,
-      to: `"${cleanClientName}" <${clientEmail}>`,
+    // 🚀 ODOSLANIE CEZ RESEND API
+    const resendFrom = process.env.RESEND_FROM || `DropBrief <onboarding@resend.dev>`;
+    const resendPayload = {
+      from: resendFrom,
+      to: [clientEmail],
       subject: emailSubject,
       text: plainTextContent,
       html: htmlContent,
     };
 
-    if (isCustomReplyEmail) {
-      mailOptions.replyTo = `"${cleanFreelancerName}" <${freelancerEmail.trim()}>`;
+    if (freelancerEmail && freelancerEmail.includes('@') && !freelancerEmail.includes('klient.sk')) {
+      resendPayload.reply_to = freelancerEmail.trim();
     }
 
-    const info = await transporter.sendMail(mailOptions);
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey.trim()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resendPayload),
+    });
+
+    const resendData = await resendResponse.json().catch(() => ({}));
+
+    if (!resendResponse.ok) {
+      let errText = resendData.error?.message || resendData.message || `Chyba Resend API (${resendResponse.status})`;
+      if (errText.includes('only send to') || errText.includes('verified email') || errText.includes('testing')) {
+        errText += ' — Tip: V bezplatnom testovacom režime Resendu bez vlastnej domény je možné odosielať len na váš registračný e-mail. Pre posielanie na akéhokoľvek klienta pridajte v Resende vlastnú doménu (resend.com/domains).';
+      }
+      throw new Error(errText);
+    }
 
     return res.status(200).json({
       success: true,
-      provider: 'gmail_smtp',
-      messageId: info.messageId,
+      provider: 'resend',
+      messageId: resendData.id,
       sentTo: clientEmail,
       subject: emailSubject,
       portalUrl: safePortalUrl,
-      emailStyle: emailStyle,
-      refId: uniqueRef,
       sentAt: new Date().toISOString(),
     });
 
   } catch (error) {
-    console.error('Email reminder sending error:', error);
+    console.error('Resend email reminder error:', error);
     return res.status(500).json({
       success: false,
-      error: error.message || 'Nastala neočakávaná chyba pri odosielaní e-mailu.',
+      error: error.message || 'Nastala neočakávaná chyba pri odosielaní e-mailu cez Resend.',
     });
   }
 }
