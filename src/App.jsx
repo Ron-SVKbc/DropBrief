@@ -21,22 +21,36 @@ export default function App() {
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Check URL Hash for direct client portal simulation links
+  // Check URL query parameters and Hash for direct client portal links
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleUrlRoute = () => {
+      // 1. Check Query Params (?p=slug or ?project=slug)
+      const searchParams = new URLSearchParams(window.location.search);
+      const querySlug = searchParams.get('p') || searchParams.get('project');
+      if (querySlug) {
+        openClientPortal(querySlug);
+        return;
+      }
+
+      // 2. Check URL Hash (#client-portal?p=slug or #p=slug)
       const hash = window.location.hash;
-      if (hash.startsWith('#client-portal')) {
-        const params = new URLSearchParams(hash.split('?')[1]);
-        const slug = params.get('p');
-        if (slug) {
-          openClientPortal(slug);
+      if (hash.startsWith('#client-portal') || hash.startsWith('#p=')) {
+        const queryString = hash.includes('?') ? hash.split('?')[1] : hash.replace(/^#/, '');
+        const hashParams = new URLSearchParams(queryString);
+        const hashSlug = hashParams.get('p') || hashParams.get('project');
+        if (hashSlug) {
+          openClientPortal(hashSlug);
         }
       }
     };
 
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    handleUrlRoute();
+    window.addEventListener('hashchange', handleUrlRoute);
+    window.addEventListener('popstate', handleUrlRoute);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlRoute);
+      window.removeEventListener('popstate', handleUrlRoute);
+    };
   }, []);
 
   return (

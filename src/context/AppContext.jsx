@@ -533,7 +533,7 @@ export function AppProvider({ children }) {
     setPreviewEmailProject(proj);
   };
 
-  const sendActualReminder = async (projectId) => {
+  const sendActualReminder = async (projectId, options = {}) => {
     const proj = projects.find((p) => p.id === projectId);
     if (!proj) throw new Error('Projekt nebol nájdený.');
 
@@ -552,9 +552,11 @@ export function AppProvider({ children }) {
       clientEmail: proj.clientEmail,
       freelancerName: proj.freelancerName || currentFreelancer?.nick || 'Freelancer',
       freelancerEmail: proj.freelancerEmail || currentFreelancer?.email || '',
-      portalUrl: `${baseUrl}/#client-portal?p=${proj.slug}`,
+      portalUrl: `${baseUrl}/?p=${proj.slug}`,
       deadline: proj.deadline || '',
       missingItems: missingItems.map((i) => ({ title: i.title, description: i.description })),
+      customMessage: options.customMessage || '',
+      customSubject: options.customSubject || '',
     };
 
     const response = await fetch('/api/send-reminder', {

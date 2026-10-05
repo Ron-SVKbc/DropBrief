@@ -65,7 +65,11 @@ export default function Dashboard({ onOpenCreateModal }) {
   }, 0);
 
   const copyClientLink = (slug) => {
-    const url = `${window.location.origin}/#client-portal?p=${slug}`;
+    const origin = window.location.origin;
+    const baseUrl = origin.includes('localhost') || origin.includes('127.0.0.1')
+      ? 'https://dropbrief.vercel.app'
+      : origin;
+    const url = `${baseUrl}/?p=${slug}`;
     navigator.clipboard.writeText(url);
     addToast('Unikátny odkaz pre klienta bol skopírovaný do schránky!', 'success', 'Odkaz skopírovaný');
   };
