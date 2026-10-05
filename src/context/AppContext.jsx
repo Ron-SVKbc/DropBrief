@@ -557,6 +557,7 @@ export function AppProvider({ children }) {
       missingItems: missingItems.map((i) => ({ title: i.title, description: i.description })),
       customMessage: options.customMessage || '',
       customSubject: options.customSubject || '',
+      emailStyle: options.emailStyle || 'personal',
     };
 
     const response = await fetch('/api/send-reminder', {
