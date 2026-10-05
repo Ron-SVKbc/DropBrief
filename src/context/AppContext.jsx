@@ -540,6 +540,11 @@ export function AppProvider({ children }) {
     const missingItems = proj.items.filter((i) => !i.isCompleted);
     const today = new Date().toISOString().split('T')[0];
 
+    const origin = window.location.origin;
+    const baseUrl = origin.includes('localhost') || origin.includes('127.0.0.1')
+      ? 'https://dropbrief.vercel.app'
+      : origin;
+
     const payload = {
       projectId: proj.id,
       projectTitle: proj.title,
@@ -547,7 +552,7 @@ export function AppProvider({ children }) {
       clientEmail: proj.clientEmail,
       freelancerName: proj.freelancerName || currentFreelancer?.nick || 'Freelancer',
       freelancerEmail: proj.freelancerEmail || currentFreelancer?.email || '',
-      portalUrl: `${window.location.origin}/#client-portal?p=${proj.slug}`,
+      portalUrl: `${baseUrl}/#client-portal?p=${proj.slug}`,
       deadline: proj.deadline || '',
       missingItems: missingItems.map((i) => ({ title: i.title, description: i.description })),
     };

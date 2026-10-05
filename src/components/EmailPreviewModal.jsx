@@ -137,7 +137,7 @@ export default function EmailPreviewModal() {
           <div><strong>Odosielateľ:</strong> {freelancerName} (cez overený Google SMTP)</div>
           <div><strong>Príjemca:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;</div>
           <div><strong>Odpovede prídu na (Reply-To):</strong> {replyEmail}</div>
-          <div><strong>Predmet:</strong> ⏳ Pripomienka: Chýbajúce podklady k zákazke „{previewEmailProject.title}“</div>
+          <div><strong>Predmet:</strong> Pripomienka: Podklady k zákazke - {previewEmailProject.title.replace(/[„“"']/g, '')}</div>
         </div>
 
         {/* Email Rendered Preview (Scrollable) */}
