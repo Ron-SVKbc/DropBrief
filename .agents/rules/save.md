@@ -102,7 +102,9 @@ Vďaka prepojeniu GitHub ➔ Vercel funguje nasadzovanie **plne automaticky cez 
 | `src/data/templates.js` | Šablóny zberu podkladov (Webdizajn, Branding, Účtovníctvo, Sociálne siete). |
 | `src/index.css` | Globálny dizajn systém, CSS premenné, glassmorphism triedy. |
 | `supabase_schema.sql` | SQL schéma pre databázu a storage – zdroj pravdy pre štruktúru dát. |
-| `.env` | Lokálne API kľúče (necommitovať). |
+| `api/send-reminder.js` | **Serverless funkcia (Vercel & Vite dev):** Odosielanie pripomienok cez overený Google Gmail SMTP s ochranou pred spamom. |
+| `src/components/EmailPreviewModal.jsx` | Modál náhľadu a odoslania e-mailovej pripomienky klientovi. |
+| `.env` | Lokálne API kľúče a Gmail SMTP údaje (necommitovať). |
 | `.env.example` | Šablóna premenných pre nových vývojárov. |
 
 ---

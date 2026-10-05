@@ -56,6 +56,9 @@ Otvorte v prehliadači: **`http://localhost:3000/`**
 2. **Prepojte ho s Vercel.com (Free Hobby Tier):**
    - Kliknite na *„Add New Project“* -> vyberte váš GitHub repozitár.
    - Vercel automaticky rozpozná Vite projekt a za 30 sekúnd vygeneruje bezplatnú doménu (napr. `dropbrief.vercel.app`) s bezplatným SSL certifikátom.
-3. **Napojenie reálnych e-mailov (Resend.com):**
-   - Vytvorte si účet na [Resend.com](https://resend.com) (3 000 e-mailov mesačne zadarmo).
-   - Získate API kľúč a pripomienky sa začnú posielať skutočným klientom do schránky.
+3. **Napojenie e-mailových pripomienok (Google Gmail SMTP - 100 % zadarmo):**
+   - Na vašom bežnom Google účte si aktivujte 2-fázové overenie a vygenerujte 16-miestne heslo aplikácie: [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   - Do `.env` a v nastaveniach Vercelu doplňte:
+     - `GMAIL_USER=vas.email@gmail.com`
+     - `GMAIL_APP_PASSWORD=abcd efgh ijkl mnop`
+   - E-maily odchádzajú priamo cez oficiálne Google servery (`smtp.gmail.com`) so stopercentnou doručiteľnosťou priamo do schránky klienta bez padania do spamu.

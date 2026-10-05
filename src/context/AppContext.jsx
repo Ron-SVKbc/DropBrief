@@ -527,11 +527,43 @@ export function AppProvider({ children }) {
     }
   };
 
-  const sendSimulatedReminder = async (projectId) => {
+  const openReminderModal = (projectId) => {
     const proj = projects.find((p) => p.id === projectId);
     if (!proj) return;
+    setPreviewEmailProject(proj);
+  };
 
+  const sendActualReminder = async (projectId) => {
+    const proj = projects.find((p) => p.id === projectId);
+    if (!proj) throw new Error('Projekt nebol nájdený.');
+
+    const missingItems = proj.items.filter((i) => !i.isCompleted);
     const today = new Date().toISOString().split('T')[0];
+
+    const payload = {
+      projectId: proj.id,
+      projectTitle: proj.title,
+      clientName: proj.clientName,
+      clientEmail: proj.clientEmail,
+      freelancerName: proj.freelancerName || currentFreelancer?.nick || 'Freelancer',
+      freelancerEmail: proj.freelancerEmail || currentFreelancer?.email || '',
+      portalUrl: `${window.location.origin}/#client-portal?p=${proj.slug}`,
+      deadline: proj.deadline || '',
+      missingItems: missingItems.map((i) => ({ title: i.title, description: i.description })),
+    };
+
+    const response = await fetch('/api/send-reminder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const resData = await response.json().catch(() => ({}));
+
+    if (!response.ok || !resData.success) {
+      const errMsg = resData.error || `Chyba pri odosielaní (${response.status})`;
+      throw new Error(errMsg);
+    }
 
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, lastReminderSent: today } : p))
@@ -549,10 +581,17 @@ export function AppProvider({ children }) {
     }
 
     addToast(
-      `Automatická pripomienka odoslaná na ${proj.clientEmail}`,
+      `Pripomienka bola úspešne odoslaná na ${proj.clientEmail}!`,
       'success',
-      'Pripomienka odoslaná'
+      'E-mail odoslaný'
     );
+
+    return resData;
+  };
+
+  const sendSimulatedReminder = async (projectId) => {
+    const proj = projects.find((p) => p.id === projectId);
+    if (!proj) return;
     setPreviewEmailProject(proj);
   };
 
@@ -580,6 +619,8 @@ export function AppProvider({ children }) {
         deleteProject,
         updateItemValue,
         sendSimulatedReminder,
+        sendActualReminder,
+        openReminderModal,
         openClientPortal,
         openDashboard,
         fetchProjectBySlug,

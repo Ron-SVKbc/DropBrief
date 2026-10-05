@@ -25,6 +25,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     projects, 
     deleteProject, 
     sendSimulatedReminder, 
+    openReminderModal,
     openClientPortal, 
     addToast,
     currentFreelancer,
@@ -485,12 +486,13 @@ export default function Dashboard({ onOpenCreateModal }) {
                     {!isCompleted ? (
                       <button
                         id={`btn-remind-${proj.id}`}
-                        onClick={() => sendSimulatedReminder(proj.id)}
+                        onClick={() => openReminderModal(proj.id)}
                         className="btn btn-secondary btn-sm"
-                        style={{ color: 'var(--warning)', borderColor: 'var(--warning-border)' }}
+                        style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.35)' }}
+                        title="Otvoriť náhľad a odoslať pripomienku na e-mail klienta"
                       >
                         <Send size={14} />
-                        Simulovať odoslanie pripomienky na e-mail
+                        {proj.lastReminderSent ? `Pripomenuté (${proj.lastReminderSent}) • Poslať znova` : 'Odoslať pripomienku na e-mail'}
                       </button>
                     ) : (
                       <span style={{ fontSize: '0.8rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
