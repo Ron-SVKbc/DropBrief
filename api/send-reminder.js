@@ -293,9 +293,13 @@ ${cleanFreelancerName}
         body: JSON.stringify(resendPayload),
       });
 
-      const resendData = await resendResponse.json();
+      const resendData = await resendResponse.json().catch(() => ({}));
       if (!resendResponse.ok) {
-        throw new Error(resendData.message || 'Chyba Resend API pri odosielaní.');
+        let errText = resendData.error?.message || resendData.message || `Chyba Resend API (${resendResponse.status})`;
+        if (errText.includes('only send to') || errText.includes('verified email') || errText.includes('testing')) {
+          errText += ' — Tip: V bezplatnom testovacom režime Resendu bez vlastnej domény je možné odosielať len na váš registračný e-mail. Pre posielanie na akéhokoľvek klienta pridajte v Resende vlastnú doménu, alebo použite tlačidlo „Otvoriť v Gmaile“.';
+        }
+        throw new Error(errText);
       }
 
       return res.status(200).json({

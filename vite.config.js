@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   if (env.GMAIL_USER) process.env.GMAIL_USER = env.GMAIL_USER;
   if (env.GMAIL_APP_PASSWORD) process.env.GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD;
+  if (env.RESEND_API_KEY) process.env.RESEND_API_KEY = env.RESEND_API_KEY;
+  if (env.RESEND_FROM) process.env.RESEND_FROM = env.RESEND_FROM;
 
   return {
     plugins: [
