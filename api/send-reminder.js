@@ -258,13 +258,25 @@ ${cleanFreelancerName}
     }
 
     // 🚀 ODOSLANIE CEZ RESEND API
-    const resendFrom = process.env.RESEND_FROM || `DropBrief <onboarding@resend.dev>`;
+    // Podpora pre vlastnú overenú doménu (Namecheap + Resend)
+    let resendFrom = process.env.RESEND_FROM;
+    if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
+      // Vytvorí dôveryhodného a autentického odosielateľa: "Meno Freelancera via DropBrief <notifikacie@tvojadomena.com>"
+      const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
+      resendFrom = `${cleanFreelancerName} via DropBrief <${emailOnly}>`;
+    } else if (!resendFrom) {
+      resendFrom = `DropBrief <onboarding@resend.dev>`;
+    }
+
     const resendPayload = {
       from: resendFrom,
       to: [clientEmail],
       subject: emailSubject,
       text: plainTextContent,
       html: htmlContent,
+      headers: {
+        'X-Entity-Ref-ID': `DB-${uniqueRef}`,
+      },
     };
 
     if (freelancerEmail && freelancerEmail.includes('@') && !freelancerEmail.includes('klient.sk')) {
