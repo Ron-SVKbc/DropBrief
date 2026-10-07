@@ -53,12 +53,12 @@ export default async function handler(req, res) {
     const matchSlug = safePortalUrl.match(/[?&](?:p|project)=([^&#]+)/);
     const slug = matchSlug ? matchSlug[1] : '';
 
-    if (slug) {
-      safePortalUrl = `https://dropbrief.vercel.app/?p=${encodeURIComponent(slug)}`;
-    } else if (safePortalUrl.startsWith('https://') && !safePortalUrl.includes('localhost') && !safePortalUrl.includes('127.0.0.1')) {
+    if (safePortalUrl.startsWith('https://') && !safePortalUrl.includes('localhost') && !safePortalUrl.includes('127.0.0.1')) {
       safePortalUrl = safePortalUrl.split('#')[0];
+    } else if (slug) {
+      safePortalUrl = `https://usedropbrief.xyz/?p=${encodeURIComponent(slug)}`;
     } else {
-      safePortalUrl = 'https://dropbrief.vercel.app';
+      safePortalUrl = 'https://usedropbrief.xyz';
     }
 
     // 🛡️ 2. PREDMET SPRÁVY:

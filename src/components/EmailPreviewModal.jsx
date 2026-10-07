@@ -49,8 +49,10 @@ export default function EmailPreviewModal() {
   const missingItems = previewEmailProject.items.filter((i) => !i.isCompleted);
   const clientEmail = previewEmailProject.clientEmail;
   const freelancerName = previewEmailProject.freelancerName || currentFreelancer?.nick || 'Freelancer';
-  const slug = previewEmailProject.slug;
-  const targetPortalUrl = `https://dropbrief.vercel.app/?p=${slug}`;
+  const currentOrigin = typeof window !== 'undefined' && !window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')
+    ? window.location.origin
+    : 'https://usedropbrief.xyz';
+  const targetPortalUrl = `${currentOrigin}/?p=${slug}`;
 
   const handleSendReminder = async () => {
     setIsSending(true);

@@ -67,7 +67,7 @@ export default function Dashboard({ onOpenCreateModal }) {
   const copyClientLink = (slug) => {
     const origin = window.location.origin;
     const baseUrl = origin.includes('localhost') || origin.includes('127.0.0.1')
-      ? 'https://dropbrief.vercel.app'
+      ? 'https://usedropbrief.xyz'
       : origin;
     const url = `${baseUrl}/?p=${slug}`;
     navigator.clipboard.writeText(url);
