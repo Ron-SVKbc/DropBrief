@@ -268,6 +268,9 @@ ${cleanFreelancerName}
       resendFrom = `DropBrief <onboarding@resend.dev>`;
     }
 
+    const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
+    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifikacie@mail.usedropbrief.xyz');
+
     const resendPayload = {
       from: resendFrom,
       to: [clientEmail],
@@ -276,6 +279,7 @@ ${cleanFreelancerName}
       html: htmlContent,
       headers: {
         'X-Entity-Ref-ID': `DB-${uniqueRef}`,
+        'List-Unsubscribe': `<mailto:${cleanFromEmail}?subject=Unsubscribe>`,
       },
     };
 
