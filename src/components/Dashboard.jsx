@@ -22,7 +22,9 @@ import {
   User,
   Zap,
   Check,
-  X
+  X,
+  TrendingUp,
+  ArrowUpRight
 } from 'lucide-react';
 
 export default function Dashboard({ onOpenCreateModal }) {
@@ -38,10 +40,9 @@ export default function Dashboard({ onOpenCreateModal }) {
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'completed'
+  const [filterStatus, setFilterStatus] = useState('all');
   const [copiedSlug, setCopiedSlug] = useState(null);
 
-  // Filter projects belonging to this freelancer
   const myProjects = projects.filter((p) => {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
@@ -64,11 +65,10 @@ export default function Dashboard({ onOpenCreateModal }) {
   const totalProjects = myProjects.length;
   const completedProjects = myProjects.filter((p) => p.status === 'completed').length;
   const pendingProjects = totalProjects - completedProjects;
-  
-  // Calculate total missing items across projects
   const totalMissingItems = myProjects.reduce((acc, p) => {
     return acc + p.items.filter((i) => !i.isCompleted).length;
   }, 0);
+  const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
 
   const copyClientLink = (slug) => {
     const origin = window.location.origin;
@@ -89,7 +89,6 @@ export default function Dashboard({ onOpenCreateModal }) {
       return;
     }
 
-    // Generate summary JSON/text package for download
     const exportData = {
       project: proj.title,
       client: proj.clientName,
@@ -124,40 +123,37 @@ export default function Dashboard({ onOpenCreateModal }) {
   };
 
   return (
-    <div className="container" style={{ padding: '36px 20px 60px', flex: 1 }}>
-      
-      {/* Header Banner */}
+    <div className="container" style={{ padding: '32px 24px 72px', flex: 1 }}>
+
+      {/* ── Page Header ───────────────────────────────────────── */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         flexWrap: 'wrap',
-        gap: '20px',
-        marginBottom: '36px'
+        gap: '16px',
+        marginBottom: '32px'
       }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-            <span className="badge badge-accent" style={{ padding: '4px 10px', gap: '6px' }}>
-              <Sparkles size={12} />
-              <span>Workspace: <strong>{currentFreelancer?.nick || 'Freelancer'}</strong></span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+            <span className="badge badge-accent" style={{ padding: '3px 9px', gap: '5px' }}>
+              <Sparkles size={11} />
+              <span style={{ fontWeight: 700 }}>{currentFreelancer?.nick || 'Freelancer'}</span>
             </span>
-            <span className="badge badge-neutral" style={{ padding: '4px 8px' }}>
-              Pro Dashboard
-            </span>
+            <span className="badge badge-neutral" style={{ padding: '3px 8px' }}>Pro Dashboard</span>
           </div>
-
           <h1 style={{ 
-            fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', 
+            fontSize: 'clamp(1.65rem, 3vw, 2.1rem)', 
             fontWeight: 800, 
-            letterSpacing: '-0.03em', 
-            marginBottom: '6px',
-            color: 'var(--text-primary)'
+            letterSpacing: '-0.035em', 
+            marginBottom: '5px',
+            color: 'var(--text-primary)',
+            lineHeight: 1.2
           }}>
-            Moje projekty a klientske podklady
+            Moje projekty
           </h1>
-
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '680px', lineHeight: 1.5 }}>
-            Prehľad aktívnych zberov. Klienti nahrávajú súbory priamo cez svoj odkaz a systém dohliada na termíny.
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', maxWidth: '560px', lineHeight: 1.5 }}>
+            Prehľad aktívnych zberov. Klienti nahrávajú cez svoj odkaz — systém dohliada na termíny.
           </p>
         </div>
 
@@ -165,215 +161,182 @@ export default function Dashboard({ onOpenCreateModal }) {
           id="btn-create-project-main"
           onClick={onOpenCreateModal} 
           className="btn btn-primary btn-lg btn-pill"
-          style={{ boxShadow: 'var(--accent-glow)' }}
+          style={{ boxShadow: 'var(--glow-accent)', alignSelf: 'flex-start' }}
         >
-          <Plus size={18} />
-          Nový projekt pre klienta
+          <Plus size={17} />
+          Nový projekt
         </button>
       </div>
 
-      {/* Metrics Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '16px',
-        marginBottom: '36px'
-      }}>
-        
-        {/* Metric 1 */}
-        <div className="glass-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Aktívne projekty
-            </span>
+      {/* ── Bento Metrics Grid ────────────────────────────────── */}
+      <div className="bento-grid bento-grid-4 stagger-children" style={{ marginBottom: '28px' }}>
+
+        {/* Metric 1 — Aktívne */}
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <span className="metric-label">Aktívne projekty</span>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
               background: 'rgba(99, 102, 241, 0.12)',
               color: 'var(--accent-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid rgba(99, 102, 241, 0.25)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid rgba(99, 102, 241, 0.22)',
+              flexShrink: 0
             }}>
-              <Layers size={18} />
+              <Layers size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>{totalProjects}</div>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            Všetky sledované zákazky
-          </span>
+          <div className="metric-value" style={{ color: 'var(--text-primary)' }}>{totalProjects}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Všetky sledované zákazky</div>
         </div>
 
-        {/* Metric 2 */}
-        <div className="glass-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Čakajúce podklady
-            </span>
+        {/* Metric 2 — Čakajúce položky */}
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <span className="metric-label">Chýbajúce položky</span>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
               background: 'var(--warning-bg)',
               color: 'var(--warning)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid var(--warning-border)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--warning-border)',
+              flexShrink: 0
             }}>
-              <Clock size={18} />
+              <Clock size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--warning)', letterSpacing: '-0.02em' }}>
-            {totalMissingItems}
-          </div>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            Chýbajúce položky u klientov
-          </span>
+          <div className="metric-value" style={{ color: 'var(--warning-light)' }}>{totalMissingItems}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Čakajú na klientov</div>
         </div>
 
-        {/* Metric 3 */}
-        <div className="glass-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Kompletne odovzdané
-            </span>
+        {/* Metric 3 — Hotové */}
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <span className="metric-label">Kompletne dodané</span>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
               background: 'var(--success-bg)',
               color: 'var(--success)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid var(--success-border)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--success-border)',
+              flexShrink: 0
             }}>
-              <CheckCircle2 size={18} />
+              <CheckCircle2 size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--success)', letterSpacing: '-0.02em' }}>
-            {completedProjects}
-          </div>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            100 % pripravené na prácu
-          </span>
+          <div className="metric-value" style={{ color: 'var(--success-light)' }}>{completedProjects}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>100 % pripravené na prácu</div>
         </div>
 
-        {/* Metric 4 */}
-        <div className="glass-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Ušetrený čas
-            </span>
+        {/* Metric 4 — Úspešnosť */}
+        <div className="glass-card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <span className="metric-label">Miera dokončenia</span>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
               background: 'rgba(236, 72, 153, 0.12)',
               color: '#ec4899',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid rgba(236, 72, 153, 0.25)'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid rgba(236, 72, 153, 0.22)',
+              flexShrink: 0
             }}>
-              <Sparkles size={18} />
+              <TrendingUp size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f472b6', letterSpacing: '-0.02em' }}>
-            ~{totalProjects * 4} hodín
-          </div>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            Automatické pripomienky (Resend)
-          </span>
+          <div className="metric-value" style={{ color: '#f472b6' }}>{completionRate}%</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>~{totalProjects * 4} hodín ušetrených</div>
         </div>
 
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* ── Filter & Search ───────────────────────────────────── */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '14px',
-        marginBottom: '24px'
+        gap: '12px',
+        marginBottom: '20px'
       }}>
-        
-        {/* Search Input */}
-        <div style={{ position: 'relative', minWidth: '280px', flex: '1 1 320px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+        {/* Search */}
+        <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 300px', maxWidth: '420px' }}>
+          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
           <input
             id="search-projects-input"
             type="text"
             className="input"
-            placeholder="Hľadať projekt, meno alebo email klienta..."
+            placeholder="Hľadať projekt, klienta alebo email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ paddingLeft: '40px' }}
+            style={{ paddingLeft: '36px', paddingRight: searchTerm ? '36px' : '12px', fontSize: 'var(--text-sm)' }}
           />
           {searchTerm && (
             <button 
               type="button" 
               onClick={() => setSearchTerm('')} 
-              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}
             >
-              <X size={15} />
+              <X size={14} />
             </button>
           )}
         </div>
 
         {/* Status Filters */}
-        <div style={{
-          display: 'flex',
-          background: 'rgba(0, 0, 0, 0.4)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-full)',
-          padding: '4px',
-          gap: '4px'
-        }}>
+        <div className="segmented-control">
           <button
             onClick={() => setFilterStatus('all')}
             className={`btn btn-sm btn-pill ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px' }}
+            style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Všetky ({totalProjects})
+            Všetky · {totalProjects}
           </button>
           <button
             onClick={() => setFilterStatus('pending')}
             className={`btn btn-sm btn-pill ${filterStatus === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px' }}
+            style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Čakajúce ({pendingProjects})
+            Čakajúce · {pendingProjects}
           </button>
           <button
             onClick={() => setFilterStatus('completed')}
             className={`btn btn-sm btn-pill ${filterStatus === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px' }}
+            style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Hotové ({completedProjects})
+            Hotové · {completedProjects}
           </button>
         </div>
-
       </div>
 
-      {/* Projects List */}
+      {/* ── Projects List ─────────────────────────────────────── */}
       {filteredProjects.length === 0 ? (
-        <div className="glass-card" style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <FolderSync size={48} style={{ color: 'var(--text-muted)', margin: '0 auto 16px', opacity: 0.6 }} />
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '8px' }}>
-            {searchTerm ? 'Nenašli sa žiadne výsledky' : `Zatiaľ nemáte žiadne projekty, ${currentFreelancer?.nick || ''}`}
-          </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>
-            {searchTerm 
-              ? 'Skúste upraviť hľadaný výraz alebo zrušiť filtre.' 
-              : 'Vytvorte si svoj prvý projekt pre klienta a pošlite mu unikátny odkaz na nahrávanie, alebo si vložte ukážkovú testovaciu zákazku.'}
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="glass-card empty-state" style={{ padding: '64px 24px' }}>
+          <div style={{
+            width: '56px', height: '56px',
+            borderRadius: 'var(--radius-lg)',
+            background: 'var(--bg-glass)',
+            border: '1px solid var(--border-subtle)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '4px'
+          }}>
+            <FolderSync size={24} style={{ color: 'var(--text-tertiary)' }} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              {searchTerm ? 'Nenašli sa žiadne výsledky' : `Zatiaľ žiadne projekty, ${currentFreelancer?.nick || ''}`}
+            </h3>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', maxWidth: '440px', lineHeight: 1.55 }}>
+              {searchTerm 
+                ? 'Skúste upraviť hľadaný výraz alebo zrušiť filtre.' 
+                : 'Vytvorte prvý projekt a pošlite klientovi odkaz, alebo si vložte ukážkovú zákazku.'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button id="btn-empty-create" onClick={onOpenCreateModal} className="btn btn-primary btn-sm btn-pill">
-              <Plus size={16} /> Vytvoriť projekt
+              <Plus size={15} /> Vytvoriť projekt
             </button>
             {!searchTerm && (
               <button 
@@ -382,17 +345,17 @@ export default function Dashboard({ onOpenCreateModal }) {
                 className="btn btn-secondary btn-sm btn-pill"
                 title="Vložiť testovaciu zákazku pre vyskúšanie"
               >
-                <Sparkles size={15} color="var(--accent-primary)" /> Vložiť ukážkovú zákazku
+                <Sparkles size={14} color="var(--accent-primary)" /> Ukážková zákazka
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {filteredProjects.map((proj) => {
             const completedCount = proj.items.filter((i) => i.isCompleted).length;
             const totalCount = proj.items.length;
-            const progressPercent = Math.round((completedCount / totalCount) * 100);
+            const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
             const isCompleted = proj.status === 'completed';
             const isLinkCopied = copiedSlug === proj.slug;
 
@@ -401,66 +364,66 @@ export default function Dashboard({ onOpenCreateModal }) {
                 key={proj.id} 
                 className="glass-card" 
                 style={{
-                  padding: '26px',
-                  borderLeft: isCompleted ? '4px solid var(--success)' : '4px solid var(--warning)',
-                  boxShadow: 'var(--shadow-md), var(--shadow-inner-glow)'
+                  padding: '22px 24px',
+                  borderLeft: `3px solid ${isCompleted ? 'var(--success)' : 'var(--warning)'}`,
+                  boxShadow: 'var(--shadow-md), var(--shadow-inner-highlight)'
                 }}
               >
-                
-                {/* Project Header */}
+                {/* Project Header Row */}
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
                   flexWrap: 'wrap',
-                  gap: '14px',
-                  marginBottom: '18px'
+                  gap: '12px',
+                  marginBottom: '16px'
                 }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                      <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '5px' }}>
+                      <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em' }}>
                         {proj.title}
                       </h2>
                       {isCompleted ? (
                         <span className="badge badge-success">
-                          <CheckCircle2 size={12} /> Všetko dodané
+                          <CheckCircle2 size={11} /> Dodané
                         </span>
                       ) : (
                         <span className="badge badge-warning">
-                          <Clock size={12} /> Čaká sa na klienta
+                          <Clock size={11} /> Čaká na klienta
                         </span>
                       )}
-                      <span className="badge badge-accent" style={{ fontSize: '0.7rem' }}>
-                        <BellRing size={11} /> Každé {proj.reminderFrequency} dni
+                      <span className="badge badge-neutral" style={{ gap: '4px' }}>
+                        <BellRing size={10} /> {proj.reminderFrequency}d
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <User size={14} color="var(--text-muted)" />
-                        Klient: <strong>{proj.clientName}</strong> ({proj.clientEmail})
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <User size={13} />
+                        <strong style={{ color: 'var(--text-secondary)' }}>{proj.clientName}</strong>
+                        <span style={{ color: 'var(--text-quaternary)' }}>({proj.clientEmail})</span>
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={14} color="var(--text-muted)" />
-                        Termín: <strong>{proj.deadline}</strong>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Calendar size={13} />
+                        <span>Termín: <strong style={{ color: 'var(--text-secondary)' }}>{proj.deadline}</strong></span>
                       </span>
                       {proj.lastReminderSent && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        <span style={{ color: 'var(--text-quaternary)', fontSize: '0.76rem' }}>
                           Posledná pripomienka: {proj.lastReminderSent}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Top Right Project Actions */}
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Action buttons */}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
                     <button
                       id={`btn-copy-link-${proj.id}`}
                       onClick={() => copyClientLink(proj.slug)}
                       className="btn btn-secondary btn-sm btn-pill"
                       title="Skopírovať odkaz pre klienta"
                     >
-                      {isLinkCopied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
+                      {isLinkCopied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
                       {isLinkCopied ? 'Skopírované!' : 'Kopírovať link'}
                     </button>
 
@@ -470,8 +433,8 @@ export default function Dashboard({ onOpenCreateModal }) {
                       className="btn btn-primary btn-sm btn-pill"
                       title="Otvoriť portál tak, ako ho vidí klient"
                     >
-                      <ExternalLink size={14} />
-                      Otvoriť portál
+                      <ExternalLink size={13} />
+                      Portál
                     </button>
 
                     <button
@@ -481,45 +444,45 @@ export default function Dashboard({ onOpenCreateModal }) {
                         }
                       }}
                       className="btn btn-secondary btn-sm"
-                      style={{ color: 'var(--danger)', padding: '6px 9px', borderRadius: 'var(--radius-full)' }}
+                      style={{ color: 'var(--danger)', padding: '6px 8px', borderRadius: 'var(--radius-full)' }}
                       title="Odstrániť projekt"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
 
-                {/* Progress Bar Container */}
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                      Stav dodania podkladov: <strong>{completedCount} z {totalCount} hotovo</strong>
+                {/* Progress */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '5px' }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>
+                      Stav podkladov: <strong style={{ color: 'var(--text-secondary)' }}>{completedCount}/{totalCount}</strong>
                     </span>
-                    <span style={{ fontWeight: 800, color: isCompleted ? 'var(--success)' : 'var(--accent-primary)' }}>
+                    <span style={{ fontWeight: 800, color: isCompleted ? 'var(--success)' : 'var(--accent-primary)', letterSpacing: '-0.02em' }}>
                       {progressPercent}%
                     </span>
                   </div>
-                  <div className="progress-track" style={{ height: '8px' }}>
+                  <div className="progress-track">
                     <div 
                       className="progress-fill" 
                       style={{ 
                         width: `${progressPercent}%`,
-                        background: isCompleted ? 'var(--success)' : 'var(--accent-gradient)'
+                        background: isCompleted ? 'var(--success)' : 'var(--gradient-brand)'
                       }} 
                     />
                   </div>
                 </div>
 
-                {/* Items Quick Status List */}
+                {/* Items Quick Status */}
                 <div style={{
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  border: '1px solid var(--border-hairline)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '16px',
+                  padding: '12px 14px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                  gap: '10px',
-                  marginBottom: '18px'
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '6px',
+                  marginBottom: '16px'
                 }}>
                   {proj.items.map((item) => {
                     const fileCount = Array.isArray(item.value?.files) 
@@ -532,25 +495,22 @@ export default function Dashboard({ onOpenCreateModal }) {
                         style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          gap: '10px', 
-                          fontSize: '0.85rem',
-                          color: item.isCompleted ? 'var(--text-primary)' : 'var(--text-muted)'
+                          gap: '8px', 
+                          fontSize: '0.8rem',
+                          color: item.isCompleted ? 'var(--text-secondary)' : 'var(--text-quaternary)',
+                          padding: '2px 0'
                         }}
                       >
                         {item.isCompleted ? (
-                          <FileCheck size={16} color="var(--success)" style={{ flexShrink: 0 }} />
+                          <FileCheck size={14} color="var(--success)" style={{ flexShrink: 0 }} />
                         ) : (
-                          <FileX size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
+                          <FileX size={14} color="var(--warning)" style={{ flexShrink: 0 }} />
                         )}
-                        <span style={{ 
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
+                        <span className="truncate">
                           {item.title}
                           {fileCount > 1 && (
-                            <span style={{ marginLeft: '6px', fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
-                              ({fileCount} súborov)
+                            <span style={{ marginLeft: '5px', fontSize: '0.72rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
+                              ×{fileCount}
                             </span>
                           )}
                         </span>
@@ -559,48 +519,44 @@ export default function Dashboard({ onOpenCreateModal }) {
                   })}
                 </div>
 
-                {/* Bottom Bar Actions */}
+                {/* Bottom Action Bar */}
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: '12px',
-                  paddingTop: '14px',
-                  borderTop: '1px solid var(--border-subtle)'
+                  gap: '10px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-hairline)'
                 }}>
-                  
-                  {/* Left: Reminder Button */}
                   <div>
                     {!isCompleted ? (
                       <button
                         id={`btn-remind-${proj.id}`}
                         onClick={() => openReminderModal(proj.id)}
                         className="btn btn-secondary btn-sm btn-pill"
-                        style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.35)' }}
-                        title="Otvoriť náhľad a odoslať pripomienku na e-mail klienta"
+                        style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem' }}
+                        title="Otvoriť náhľad a odoslať pripomienku"
                       >
-                        <Send size={14} />
-                        {proj.lastReminderSent ? `Pripomenuté (${proj.lastReminderSent}) • Poslať znova` : 'Odoslať pripomienku cez Resend'}
+                        <Send size={13} />
+                        {proj.lastReminderSent ? `Poslať znova (${proj.lastReminderSent})` : 'Odoslať pripomienku'}
                       </button>
                     ) : (
-                      <span style={{ fontSize: '0.825rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                        <CheckCircle2 size={15} /> Všetky podklady pripravené na prácu
+                      <span style={{ fontSize: '0.8rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                        <CheckCircle2 size={14} /> Všetky podklady pripravené
                       </span>
                     )}
                   </div>
 
-                  {/* Right: Download Podklady */}
                   <button
                     id={`btn-download-${proj.id}`}
                     onClick={() => handleDownloadAll(proj)}
                     className="btn btn-secondary btn-sm btn-pill"
-                    style={{ fontSize: '0.825rem' }}
+                    style={{ fontSize: '0.8rem' }}
                   >
-                    <Download size={14} />
-                    Stiahnuť podklady ({completedCount})
+                    <Download size={13} />
+                    Export ({completedCount} položiek)
                   </button>
-
                 </div>
 
               </div>
@@ -609,100 +565,54 @@ export default function Dashboard({ onOpenCreateModal }) {
         </div>
       )}
 
-      {/* Feature Explainer for Trust */}
+      {/* ── Feature Explainer ─────────────────────────────────── */}
       <div className="glass-card" style={{
-        marginTop: '50px',
-        padding: '36px 30px',
-        background: 'linear-gradient(180deg, rgba(16, 22, 38, 0.7) 0%, rgba(9, 13, 22, 0.95) 100%)',
+        marginTop: '48px',
+        padding: '32px 28px',
+        background: 'linear-gradient(180deg, rgba(16, 22, 38, 0.65) 0%, rgba(9, 13, 22, 0.92) 100%)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-xl)'
       }}>
-        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 30px' }}>
-          <h3 style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '8px' }}>
-            Prečo klienti cez DropBrief radi odovzdávajú podklady?
+        <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 24px' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.025em' }}>
+            Prečo klienti radi odovzdávajú cez DropBrief?
           </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.925rem' }}>
-            Odstránili sme všetky prekážky a zložité registrácie, kvôli ktorým klienti odkladajú dodanie materiálov na neskôr.
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
+            Odstránili sme všetky prekážky, kvôli ktorým klienti odkladajú dodanie materiálov.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-          
-          <div style={{
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--border-subtle)'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(99, 102, 241, 0.12)',
-              color: 'var(--accent-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px'
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+          {[
+            { icon: Sparkles, color: 'var(--accent-primary)', bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.2)',
+              title: 'Bez hesiel a prihlasovania',
+              desc: 'Klient otvorí odkaz a okamžite nahráva. Žiadne zabudnuté heslá ani registrácie.' },
+            { icon: BellRing, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)',
+              title: 'Automatické pripomienky',
+              desc: 'Systém sám zdvorilo pripomenie chýbajúce položky cez Resend. Nemusíte klientov naháňať.' },
+            { icon: Shield, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
+              title: 'Bankové šifrovanie + GDPR',
+              desc: 'Súbory sú šifrované AES-256, uložené v EÚ (Írsko) a po 30 dňoch sa automaticky mažú.' }
+          ].map(({ icon: Icon, color, bg, border, title, desc }) => (
+            <div key={title} style={{
+              padding: '18px',
+              borderRadius: 'var(--radius-lg)',
+              background: 'rgba(255, 255, 255, 0.018)',
+              border: '1px solid var(--border-hairline)'
             }}>
-              <Sparkles size={20} />
+              <div style={{
+                width: '36px', height: '36px',
+                borderRadius: 'var(--radius-md)',
+                background: bg, color, border: `1px solid ${border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '10px'
+              }}>
+                <Icon size={18} />
+              </div>
+              <h4 style={{ fontSize: '0.925rem', fontWeight: 800, marginBottom: '5px', letterSpacing: '-0.015em' }}>{title}</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>{desc}</p>
             </div>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>Bez hesiel a prihlasovania</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Klient otvorí odkaz v mobile alebo na PC a okamžite nahráva. Žiadne zabudnuté heslá ani registrácie.
-            </p>
-          </div>
-
-          <div style={{
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--border-subtle)'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(245, 158, 11, 0.12)',
-              color: 'var(--warning)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px'
-            }}>
-              <BellRing size={20} />
-            </div>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>Automatické pripomienky</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Systém sám slušne pripomenie chýbajúce položky cez transakčný e-mail (Resend). Nemusíte klientov naháňať osobne.
-            </p>
-          </div>
-
-          <div style={{
-            padding: '20px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--border-subtle)'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(16, 185, 129, 0.12)',
-              color: 'var(--success)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px'
-            }}>
-              <Shield size={20} />
-            </div>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>Bankové šifrovanie & GDPR</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Súbory sú šifrované (AES-256), bezpečne uložené v EÚ (Frankfurt) a po 30 dňoch od dokončenia sa automaticky mažú.
-            </p>
-          </div>
-
+          ))}
         </div>
       </div>
 
