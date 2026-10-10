@@ -40,6 +40,10 @@ export default function Navbar({ onOpenCreateModal }) {
   };
 
   const handleDashboardClick = () => {
+    if (currentView === 'client-portal') {
+      openDashboard();
+      return;
+    }
     if (!currentFreelancer) {
       openAuthModal('login');
     } else {

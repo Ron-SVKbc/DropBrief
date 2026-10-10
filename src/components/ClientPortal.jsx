@@ -22,13 +22,80 @@ import {
   X,
   User,
   Calendar,
-  Check
+  Check,
+  FlaskConical,
+  RotateCcw
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
   if (mimeType && mimeType.startsWith('image/')) return true;
   return /\.(jpe?g|png|webp|gif|svg|heic|heif|bmp|avif)$/i.test(fileName || '');
 };
+
+// Východiskový stav skúšobného náhľadu (1 položka defaultne vyplnená, 3 čakajúce)
+const createInitialDemoProject = () => ({
+  id: 'demo-sandbox-project',
+  slug: 'restauracia-alfa',
+  title: 'Nový web & vizuálna identita – Reštaurácia Alfa',
+  clientName: 'Peter Novák',
+  clientEmail: 'peter.novak@restauracia-alfa.sk',
+  freelancerName: 'Marko (SplitAI Studio)',
+  freelancerEmail: 'marko@splitai.sk',
+  deadline: '2026-10-25',
+  reminderFrequency: 3,
+  lastReminderSent: null,
+  createdAt: '2026-10-01',
+  status: 'pending',
+  isDemoSandbox: true,
+  items: [
+    {
+      id: 'demo-item-1',
+      title: 'Logo spoločnosti vo vektoroch (SVG / AI / PDF)',
+      description: 'Potrebujeme logo v krivkách alebo v najvyššom rozlíšení s priehľadným pozadím (.PNG).',
+      type: 'file',
+      required: true,
+      isCompleted: true, // ✅ Defaultne vyplnená položka (1 zo 4)
+      completedAt: '2026-10-02T10:30:00Z',
+      value: {
+        fileName: 'logo_restauracia_alfa_vector.svg',
+        fileSize: '420 KB',
+        fileType: 'image/svg+xml',
+        url: null,
+        uploadedAt: '02.10.2026 10:30',
+      },
+    },
+    {
+      id: 'demo-item-2',
+      title: 'Texty na hlavnú stránku (O nás, Služby)',
+      description: 'Vložte texty, ktoré majú byť na webe, alebo napíšte základnú kostru myšlienok.',
+      type: 'text',
+      required: true,
+      isCompleted: false, // Čaká na zadanie textu
+      completedAt: null,
+      value: null,
+    },
+    {
+      id: 'demo-item-3',
+      title: 'Fotografie prevádzky a jedál (5 až 10 ks)',
+      description: 'Nahrajte reprezentatívne fotografie interiéru a jedál vo vysokom rozlíšení.',
+      type: 'file',
+      required: true,
+      isCompleted: false, // Čaká na nahratie fotografií
+      completedAt: null,
+      value: null,
+    },
+    {
+      id: 'demo-item-4',
+      title: 'Jedálny a nápojový lístok (PDF)',
+      description: 'Aktuálny cenník jedál a nápojov na zverejnenie na webe.',
+      type: 'file',
+      required: false,
+      isCompleted: false, // Voliteľná položka
+      completedAt: null,
+      value: null,
+    },
+  ],
+});
 
 export default function ClientPortal() {
   const { 
@@ -38,8 +105,19 @@ export default function ClientPortal() {
     updateItemValue, 
     addToast,
     fetchProjectBySlug,
-    isLoadingDb
+    isLoadingDb,
+    currentFreelancer
   } = useApp();
+
+  // Zistíme, či ide o skúšobný interaktívny sandbox náhľad
+  const isDemoMode = Boolean(
+    (!currentFreelancer && (!activeProjectSlug || activeProjectSlug === 'restauracia-alfa' || activeProjectSlug === 'demo-preview')) ||
+    activeProjectSlug === 'restauracia-alfa' ||
+    activeProjectSlug === 'demo-preview'
+  );
+
+  // Izolovaný stav ukážky – žije len v pamäti tohto komponentu a nikdy neodosiela na server
+  const [demoProject, setDemoProject] = useState(createInitialDemoProject);
 
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [uploadingItemId, setUploadingItemId] = useState(null);
@@ -82,14 +160,26 @@ export default function ClientPortal() {
     };
   }, [stagedFiles]);
 
-  const project = projects.find((p) => p.slug === activeProjectSlug) || projects[0];
+  // V režime demo používame lokálny demoProject, pri reálnom linku projekt z kontextu
+  const project = isDemoMode 
+    ? demoProject 
+    : (projects.find((p) => p.slug === activeProjectSlug) || projects[0]);
+
+  // Resetovanie ukážky do počiatočného stavu
+  const handleResetDemo = () => {
+    setDemoProject(createInitialDemoProject());
+    setTextInputs({});
+    setStagedFiles({});
+    addToast('Skúšobný náhľad bol obnovený do počiatočného stavu.', 'info', 'Pôvodný stav');
+  };
 
   useEffect(() => {
+    if (isDemoMode) return;
     if (activeProjectSlug && !projects.some((p) => p.slug === activeProjectSlug)) {
       setLoadingInitial(true);
       fetchProjectBySlug(activeProjectSlug).finally(() => setLoadingInitial(false));
     }
-  }, [activeProjectSlug, projects, fetchProjectBySlug]);
+  }, [activeProjectSlug, projects, fetchProjectBySlug, isDemoMode]);
 
   useEffect(() => {
     if (project) {
@@ -103,7 +193,7 @@ export default function ClientPortal() {
     }
   }, [project]);
 
-  if (loadingInitial || (isLoadingDb && !project)) {
+  if (!isDemoMode && (loadingInitial || (isLoadingDb && !project))) {
     return (
       <div className="container" style={{ padding: '120px 20px', textAlign: 'center' }}>
         <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 18px' }} />
@@ -201,6 +291,73 @@ export default function ClientPortal() {
         }
       }
 
+      // Režim skúšobného náhľadu – žiadne odosielanie na server
+      if (isDemoMode) {
+        addToast(
+          filesToUpload.length === 1 
+            ? `Spracúvam "${filesToUpload[0].name}" v skúšobnom náhľade...` 
+            : `Spracúvam ${filesToUpload.length} súborov v skúšobnom náhľade...`, 
+          'info', 
+          'Simulácia nahrávania'
+        );
+
+        // Krátka plynulá simulácia odozvy
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        const uploadedFiles = filesToUpload.map((file) => ({
+          id: 'f-demo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+          fileName: file.name,
+          fileSize: file.size > 1024 * 1024 
+            ? (file.size / 1024 / 1024).toFixed(1) + ' MB' 
+            : (file.size / 1024).toFixed(1) + ' KB',
+          fileType: file.type || 'application/octet-stream',
+          url: isImageFile(file.name, file.type) ? URL.createObjectURL(file) : null,
+          uploadedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        const allFiles = [...existingFiles, ...uploadedFiles];
+        const payload = {
+          files: allFiles,
+          fileName: allFiles.length === 1 ? allFiles[0].fileName : `${allFiles.length} súborov`,
+          fileSize: allFiles.length === 1 ? allFiles[0].fileSize : `${allFiles.length} súborov`,
+          url: allFiles[0]?.url,
+        };
+
+        setDemoProject((prev) => {
+          const updatedItems = prev.items.map((item) => {
+            if (item.id !== itemId) return item;
+            return {
+              ...item,
+              value: payload,
+              isCompleted: true,
+              completedAt: new Date().toISOString(),
+            };
+          });
+          const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+          return {
+            ...prev,
+            items: updatedItems,
+            status: reqDone ? 'completed' : 'pending',
+          };
+        });
+
+        handleClearStagedFiles(itemId);
+
+        addToast(
+          filesToUpload.length === 1 
+            ? `Súbor "${filesToUpload[0].name}" bol úspešne pridaný do ukážky!` 
+            : `Bolo úspešne pridaných ${filesToUpload.length} súborov do ukážky!`, 
+          'success', 
+          'Simulácia podkladov'
+        );
+
+        const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
+        const newPercent = Math.round((newCompleted / totalCount) * 100);
+        handleCheckCompletion(newPercent);
+        return;
+      }
+
+      // Reálny upload do cloudu (len ak nejde o demo)
       addToast(
         filesToUpload.length === 1 
           ? `Nahrávam ${filesToUpload[0].name} do cloudu...` 
@@ -270,6 +427,31 @@ export default function ClientPortal() {
 
     const filtered = existingFiles.filter((f, idx) => (f.id ? f.id !== fileIdentifier : idx !== fileIdentifier));
 
+    if (isDemoMode) {
+      setDemoProject((prev) => {
+        const updatedItems = prev.items.map((item) => {
+          if (item.id !== itemId) return item;
+          if (filtered.length === 0) {
+            return { ...item, value: null, isCompleted: false, completedAt: null };
+          }
+          return {
+            ...item,
+            value: {
+              files: filtered,
+              fileName: filtered.length === 1 ? filtered[0].fileName : `${filtered.length} súborov`,
+              fileSize: filtered.length === 1 ? filtered[0].fileSize : `${filtered.length} súborov`,
+              url: filtered[0]?.url,
+            },
+            isCompleted: true,
+          };
+        });
+        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
+      });
+      addToast(filtered.length === 0 ? 'Všetky súbory boli odstránené z ukážky.' : 'Súbor bol odstránený z ukážky.', 'info', 'Simulácia');
+      return;
+    }
+
     if (filtered.length === 0) {
       await updateItemValue(project.slug, itemId, null, false);
       addToast('Všetky súbory boli odstránené.', 'info', 'Položka resetovaná');
@@ -292,6 +474,28 @@ export default function ClientPortal() {
       return;
     }
 
+    if (isDemoMode) {
+      setDemoProject((prev) => {
+        const updatedItems = prev.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return {
+            ...item,
+            value: val.trim(),
+            isCompleted: true,
+            completedAt: new Date().toISOString(),
+          };
+        });
+        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
+      });
+
+      addToast('Textové podklady boli zaznamenané v skúšobnom náhľade!', 'success', 'Simulácia textu');
+      const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
+      const newPercent = Math.round((newCompleted / totalCount) * 100);
+      handleCheckCompletion(newPercent);
+      return;
+    }
+
     await updateItemValue(project.slug, itemId, val.trim(), true);
     addToast('Textové podklady boli uložené!', 'success', 'Text zaznamenaný');
 
@@ -301,6 +505,20 @@ export default function ClientPortal() {
   };
 
   const handleRemoveItemValue = async (itemId) => {
+    if (isDemoMode) {
+      setDemoProject((prev) => {
+        const updatedItems = prev.items.map((item) => {
+          if (item.id !== itemId) return item;
+          return { ...item, value: null, isCompleted: false, completedAt: null };
+        });
+        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
+      });
+      setTextInputs((prev) => ({ ...prev, [itemId]: '' }));
+      addToast('Položka bola vymazaná v ukážke.', 'info', 'Simulácia');
+      return;
+    }
+
     await updateItemValue(project.slug, itemId, null, false);
     setTextInputs((prev) => ({ ...prev, [itemId]: '' }));
     addToast('Položka bola vymazaná, môžete nahrať nové podklady.', 'info', 'Položka resetovaná');
@@ -309,28 +527,90 @@ export default function ClientPortal() {
   return (
     <div style={{ flex: 1, paddingBottom: '70px', position: 'relative' }}>
       
-      {/* Simulation Banner for the Freelancer */}
-      <div style={{
-        background: 'rgba(99, 102, 241, 0.12)',
-        borderBottom: '1px solid rgba(99, 102, 241, 0.25)',
-        padding: '10px 0',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <span style={{ color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-            <Eye size={16} color="var(--accent-primary)" />
-            <span><strong>Náhľad klientskeho pohľadu:</strong> Tento odkaz vidí váš klient (žiadne heslá, nahráva priamo).</span>
-          </span>
-          <button 
-            id="btn-back-to-dashboard"
-            onClick={openDashboard} 
-            className="btn btn-secondary btn-sm btn-pill"
-            style={{ padding: '5px 12px', fontSize: '0.8rem' }}
-          >
-            <ArrowLeft size={14} /> Späť do administrácie
-          </button>
+      {/* Simulation / Sandbox Banner */}
+      {isDemoMode ? (
+        <div style={{
+          background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.14) 100%)',
+          borderBottom: '1px solid rgba(139, 92, 246, 0.35)',
+          padding: '12px 0',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span className="badge" style={{
+                background: 'rgba(99, 102, 241, 0.28)',
+                border: '1px solid rgba(129, 140, 248, 0.5)',
+                color: '#e0e7ff',
+                padding: '4px 10px',
+                fontWeight: 700,
+                fontSize: '0.72rem',
+                letterSpacing: '0.04em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                <FlaskConical size={13} color="#a5b4fc" />
+                SKÚŠOBNÝ NÁHĽAD (SANDBOX)
+              </span>
+              
+              <div style={{ fontSize: '0.86rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <strong style={{ color: '#fff' }}>Takto vidí portál váš klient bez registrácie.</strong>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+                  • Vyskúšajte nahrať podklady — súbory sa neodosielajú na server a po odchode sa ukážka resetuje.
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                id="btn-reset-demo"
+                onClick={handleResetDemo}
+                className="btn btn-secondary btn-sm btn-pill"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+                title="Resetovať ukážku do pôvodného stavu"
+              >
+                <RotateCcw size={13} />
+                Obnoviť ukážku
+              </button>
+              <button 
+                id="btn-back-to-dashboard"
+                onClick={openDashboard} 
+                className="btn btn-primary btn-sm btn-pill"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+              >
+                <ArrowLeft size={13} /> {currentFreelancer ? 'Späť na Dashboard' : 'Návrat na úvod'}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : currentFreelancer ? (
+        <div style={{
+          background: 'rgba(99, 102, 241, 0.12)',
+          borderBottom: '1px solid rgba(99, 102, 241, 0.25)',
+          padding: '10px 0',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <span style={{ color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <Eye size={16} color="var(--accent-primary)" />
+              <span><strong>Náhľad zákazky ({project.title}):</strong> Tento odkaz vidí váš klient.</span>
+            </span>
+            <button 
+              id="btn-back-to-dashboard"
+              onClick={openDashboard} 
+              className="btn btn-secondary btn-sm btn-pill"
+              style={{ padding: '5px 12px', fontSize: '0.8rem' }}
+            >
+              <ArrowLeft size={14} /> Späť do administrácie
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="container" style={{ maxWidth: '880px', marginTop: '36px' }}>
         
@@ -357,9 +637,23 @@ export default function ClientPortal() {
           {/* Header Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
             <div>
-              <span className="badge badge-accent" style={{ marginBottom: '10px' }}>
-                <Sparkles size={11} /> Klientsky portál &bull; Bez registrácie
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                <span className="badge badge-accent">
+                  <Sparkles size={11} /> Klientsky portál &bull; Bez registrácie
+                </span>
+                {isDemoMode && (
+                  <span className="badge" style={{
+                    background: 'rgba(245, 158, 11, 0.14)',
+                    color: '#fbbf24',
+                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <FlaskConical size={11} /> Skúšobný režim (Interaktívna simulácia)
+                  </span>
+                )}
+              </div>
               <h1 style={{ fontSize: 'clamp(1.7rem, 3.5vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '8px', color: 'var(--text-primary)' }}>
                 {project.title}
               </h1>
@@ -725,7 +1019,7 @@ export default function ClientPortal() {
                                     </>
                                   ) : hasFiles ? (
                                     <>
-                                      Uložené v cloude: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
+                                      {isDemoMode ? 'Nahrané v ukážke' : 'Uložené v cloude'}: {fileList.length} {fileList.length === 1 ? 'súbor' : (fileList.length < 5 ? 'súbory' : 'súborov')}
                                     </>
                                   ) : (
                                     <>
@@ -776,15 +1070,15 @@ export default function ClientPortal() {
                                   <button 
                                     type="button"
                                     onClick={() => {
-                                      if (confirm('Naozaj chcete odstrániť všetky nahrané súbory z tejto položky?')) {
+                                      if (confirm(isDemoMode ? 'Naozaj chcete odstrániť súbory z tejto ukážkovej položky?' : 'Naozaj chcete odstrániť všetky nahrané súbory z tejto položky?')) {
                                         handleRemoveItemValue(item.id);
                                       }
                                     }}
                                     className="btn btn-secondary btn-sm btn-pill"
                                     style={{ padding: '6px 12px', color: 'var(--danger)', fontSize: '0.8rem' }}
-                                    title="Zmazať všetky nahrané súbory z cloudu"
+                                    title={isDemoMode ? "Zmazať súbory z ukážky" : "Zmazať všetky nahrané súbory z cloudu"}
                                   >
-                                    <Trash2 size={14} /> Zmazať z cloudu
+                                    <Trash2 size={14} /> {isDemoMode ? 'Zmazať z ukážky' : 'Zmazať z cloudu'}
                                   </button>
                                 )}
                               </div>
@@ -869,7 +1163,7 @@ export default function ClientPortal() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                                           <span>{f.fileSize || ''}</span>
                                           <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                                            ✓ Uložené v cloude
+                                            {isDemoMode ? '✓ Simulované uloženie' : '✓ Uložené v cloude'}
                                           </span>
                                         </div>
                                       </div>
@@ -893,7 +1187,7 @@ export default function ClientPortal() {
                                         onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
                                         className="btn btn-secondary btn-sm"
                                         style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
-                                        title="Odstrániť tento súbor z cloudu"
+                                        title={isDemoMode ? "Odstrániť tento súbor z ukážky" : "Odstrániť tento súbor z cloudu"}
                                       >
                                         <X size={14} />
                                       </button>
