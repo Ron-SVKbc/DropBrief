@@ -9,14 +9,16 @@ import EmailPreviewModal from './components/EmailPreviewModal';
 import LegalModal from './components/LegalModal';
 import AuthModal from './components/AuthModal';
 import ToastContainer from './components/ToastContainer';
+import { FolderSync, ShieldCheck, Lock, Zap } from 'lucide-react';
 
 export default function App() {
   const { 
     currentView, 
     setCurrentView, 
     setActiveProjectSlug, 
-    openClientPortal,
-    currentFreelancer 
+    openClientPortal, 
+    currentFreelancer,
+    setIsLegalModalOpen
   } = useApp();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -54,7 +56,7 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
       
       {/* Top Navigation */}
       <Navbar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
@@ -73,29 +75,69 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Modern SaaS Footer */}
       <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '24px 0',
-        background: 'rgba(10, 13, 20, 0.9)',
-        marginTop: 'auto'
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '32px 0 28px',
+        background: 'rgba(7, 9, 14, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        marginTop: 'auto',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)'
       }}>
         <div className="container" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '12px',
-          fontSize: '0.8rem',
+          gap: '16px',
+          fontSize: '0.825rem',
           color: 'var(--text-muted)'
         }}>
-          <div>
-            <strong>DropBrief</strong> • Nástroj na bezpečný zber podkladov od klientov
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--accent-gradient)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff'
+            }}>
+              <FolderSync size={16} />
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Micro-SaaS na zber podkladov od klientov
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <span>0 € prevádzkový stack</span>
-            <span>GDPR EÚ Frankfurt</span>
+
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="status-dot status-dot-live"></span>
+              <span>Systémy funkčné (Frankfurt EÚ)</span>
+            </span>
+
+            <button 
+              type="button"
+              onClick={() => setIsLegalModalOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '0.825rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <ShieldCheck size={14} color="var(--success)" />
+              GDPR & Bezpečnosť
+            </button>
+
             <span>256-bit SSL</span>
+            <span>0 € prevádzkový stack</span>
           </div>
         </div>
       </footer>

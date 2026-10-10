@@ -14,7 +14,9 @@ import {
   FileSpreadsheet, 
   Share2,
   Calendar,
-  BellRing
+  BellRing,
+  User,
+  Layers
 } from 'lucide-react';
 
 const ICONS_MAP = {
@@ -84,7 +86,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       return;
     }
 
-    const created = createProject({
+    createProject({
       title,
       clientName,
       clientEmail: clientEmail || `${clientName.toLowerCase().replace(/\s+/g, '')}@klient.sk`,
@@ -101,8 +103,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 0, 0, 0.82)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -110,15 +113,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       padding: '20px'
     }}>
       <div 
-        className="glass-card animate-fade-in"
+        className="glass-panel animate-fade-in"
         style={{
           width: '100%',
-          maxWidth: '720px',
+          maxWidth: '740px',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
-          background: '#0e1320',
-          border: '1px solid var(--border-active)'
+          background: '#0a0e19',
+          border: '1px solid var(--border-active)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), var(--accent-glow)'
         }}
       >
         {/* Modal Header */}
@@ -126,16 +130,32 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-subtle)'
+          padding: '20px 26px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'rgba(99, 102, 241, 0.05)'
         }}>
-          <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Vytvoriť nový zber podkladov
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Vyberte šablónu a systém pripraví bezpečný odkaz pre vášho klienta.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--accent-gradient)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
+            }}>
+              <Plus size={20} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                Vytvoriť nový zber podkladov
+              </h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Vyberte šablónu a systém pripraví bezpečný odkaz pre vášho klienta.
+              </p>
+            </div>
           </div>
 
           <button 
@@ -149,11 +169,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '24px', flex: 1 }}>
+        <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '26px', flex: 1 }}>
           
           {/* Step 1: Template Selection */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
+          <div style={{ marginBottom: '26px' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
               1. Vyberte šablónu odboru
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
@@ -166,17 +186,18 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     key={tpl.id}
                     onClick={() => handleSelectTemplate(tpl)}
                     style={{
-                      padding: '12px',
+                      padding: '14px 10px',
                       borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-glass)',
+                      background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)',
                       border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      boxShadow: isSelected ? '0 0 20px rgba(99, 102, 241, 0.3)' : 'none',
                       cursor: 'pointer',
                       transition: 'var(--transition)',
                       textAlign: 'center'
                     }}
                   >
-                    <IconComponent size={20} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} style={{ margin: '0 auto 6px' }} />
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} style={{ margin: '0 auto 6px' }} />
+                    <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)' }}>
                       {tpl.name}
                     </div>
                   </div>
@@ -186,9 +207,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           </div>
 
           {/* Step 2: Basic Info */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '26px' }}>
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                 Názov zákazky / projektu *
               </label>
               <input
@@ -203,7 +224,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                 Meno a priezvisko klienta *
               </label>
               <input
@@ -218,7 +239,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                 E-mail klienta (pre pripomienky)
               </label>
               <input
@@ -232,7 +253,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
                 Požadovaný termín dodania podkladov
               </label>
               <input
@@ -249,25 +270,25 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <div style={{
             background: 'rgba(245, 158, 11, 0.08)',
             border: '1px solid var(--warning-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px',
-            marginBottom: '24px'
+            borderRadius: 'var(--radius-lg)',
+            padding: '16px 20px',
+            marginBottom: '26px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <BellRing size={16} color="var(--warning)" />
-              <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                Automatický e-mailový robot (Zero-effort)
+              <strong style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
+                Automatický e-mailový robot (Resend API)
               </strong>
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '10px' }}>
-              Ak klient podklady neodošle, systém mu automaticky pošle priateľskú pripomienku s odkazom na dohranie.
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
+              Ak klient podklady neodošle, systém mu automaticky pošle priateľskú pripomienku s priamym odkazom na dohranie.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Pripomenúť každé:</span>
+              <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>Pripomenúť každé:</span>
               <select
                 id="select-reminder-frequency"
                 className="select"
-                style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
+                style={{ width: 'auto', padding: '6px 14px', fontSize: '0.825rem' }}
                 value={reminderFrequency}
                 onChange={(e) => setReminderFrequency(e.target.value)}
               >
@@ -281,24 +302,24 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
           {/* Step 4: Checklist Items */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 2. Položky checklistu ({items.length})
               </label>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button 
                   type="button" 
                   onClick={() => handleAddItem('file')} 
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                  className="btn btn-secondary btn-sm btn-pill"
+                  style={{ fontSize: '0.78rem', padding: '5px 12px' }}
                 >
                   <Upload size={13} /> + Súbor
                 </button>
                 <button 
                   type="button" 
                   onClick={() => handleAddItem('text')} 
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                  className="btn btn-secondary btn-sm btn-pill"
+                  style={{ fontSize: '0.78rem', padding: '5px 12px' }}
                 >
                   <FileText size={13} /> + Text
                 </button>
@@ -310,24 +331,24 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 <div 
                   key={item.id || idx}
                   style={{
-                    background: 'var(--bg-card)',
+                    background: 'rgba(255, 255, 255, 0.025)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-md)',
-                    padding: '12px 14px',
+                    padding: '12px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px'
                   }}
                 >
                   <div style={{ color: item.type === 'file' ? 'var(--accent-primary)' : 'var(--warning)', flexShrink: 0 }}>
-                    {item.type === 'file' ? <Upload size={16} /> : <FileText size={16} />}
+                    {item.type === 'file' ? <Upload size={17} /> : <FileText size={17} />}
                   </div>
 
                   <div style={{ flex: 1 }}>
                     <input
                       type="text"
                       className="input"
-                      style={{ padding: '6px 10px', fontSize: '0.85rem', marginBottom: '4px' }}
+                      style={{ padding: '7px 12px', fontSize: '0.875rem', marginBottom: '4px' }}
                       value={item.title}
                       onChange={(e) => handleUpdateItem(idx, 'title', e.target.value)}
                     />
@@ -335,7 +356,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       type="text"
                       className="input"
                       placeholder="Inštrukcia pre klienta..."
-                      style={{ padding: '4px 10px', fontSize: '0.75rem', background: 'transparent', borderColor: 'transparent' }}
+                      style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'transparent', borderColor: 'transparent' }}
                       value={item.description || ''}
                       onChange={(e) => handleUpdateItem(idx, 'description', e.target.value)}
                     />
@@ -344,10 +365,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
                     title="Odstrániť položku"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               ))}
@@ -358,18 +379,18 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <div style={{
             display: 'flex',
             justifyContent: 'flex-end',
-            gap: '10px',
-            marginTop: '28px',
-            paddingTop: '16px',
+            gap: '12px',
+            marginTop: '32px',
+            paddingTop: '18px',
             borderTop: '1px solid var(--border-subtle)'
           }}>
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+            <button type="button" onClick={onClose} className="btn btn-secondary btn-pill">
               Zrušiť
             </button>
             <button 
               id="btn-submit-create-project"
               type="submit" 
-              className="btn btn-primary"
+              className="btn btn-primary btn-pill"
             >
               <Check size={16} /> Vytvoriť a získať odkaz
             </button>

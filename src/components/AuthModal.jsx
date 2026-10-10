@@ -45,8 +45,8 @@ export default function AuthModal() {
       if (authModalMode === 'pin_reveal') {
         try {
           confetti({
-            particleCount: 80,
-            spread: 70,
+            particleCount: 100,
+            spread: 80,
             origin: { y: 0.6 }
           });
         } catch (e) {}
@@ -109,8 +109,9 @@ export default function AuthModal() {
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(0, 0, 0, 0.78)',
-      backdropFilter: 'blur(10px)',
+      background: 'rgba(0, 0, 0, 0.85)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -118,14 +119,15 @@ export default function AuthModal() {
       padding: '20px'
     }}>
       <div 
-        className="glass-card animate-fade-in"
+        className="glass-panel animate-fade-in"
         style={{
           width: '100%',
-          maxWidth: '480px',
-          background: '#0d1322',
-          border: '1px solid var(--accent-primary)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), var(--accent-glow)',
-          overflow: 'hidden'
+          maxWidth: '500px',
+          background: '#090e1a',
+          border: '1px solid var(--border-active)',
+          boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.8), var(--accent-glow)',
+          overflow: 'hidden',
+          borderRadius: 'var(--radius-xl)'
         }}
       >
         {/* Modal Header */}
@@ -133,29 +135,30 @@ export default function AuthModal() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 24px',
+          padding: '22px 26px',
           borderBottom: '1px solid var(--border-subtle)',
-          background: 'rgba(99, 102, 241, 0.08)'
+          background: 'rgba(99, 102, 241, 0.06)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '40px',
+              height: '40px',
               borderRadius: 'var(--radius-md)',
               background: 'var(--accent-gradient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff'
+              color: '#fff',
+              boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
             }}>
-              <KeyRound size={18} />
+              <KeyRound size={20} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
                 {authModalMode === 'pin_reveal' ? '🎉 Váš účet je pripravený!' : 
                  authModalMode === 'register' ? 'Nový účet freelancera' : 'Prihlásenie do Dashboardu'}
               </h3>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 {authModalMode === 'pin_reveal' ? 'Uložte si prístupový PIN kód' :
                  authModalMode === 'register' ? 'Vytvorenie profilu za 5 sekúnd bez hesiel' : 'Zadajte svoj Nick a 6-miestny PIN'}
               </span>
@@ -174,48 +177,49 @@ export default function AuthModal() {
 
         {/* PIN REVEAL STATE (Success Screen) */}
         {authModalMode === 'pin_reveal' && authRegisteredData && (
-          <div style={{ padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ padding: '32px 26px', textAlign: 'center' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '56px',
-              height: '56px',
+              width: '60px',
+              height: '60px',
               borderRadius: '50%',
-              background: 'var(--success-bg)',
+              background: 'rgba(16, 185, 129, 0.15)',
               color: 'var(--success)',
-              marginBottom: '16px'
+              marginBottom: '18px',
+              boxShadow: '0 0 25px rgba(16, 185, 129, 0.3)'
             }}>
-              <Sparkles size={28} />
+              <Sparkles size={30} />
             </div>
 
-            <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px' }}>
+            <h4 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '6px' }}>
               Vitajte v DropBrief, {authRegisteredData.nick}!
             </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '22px' }}>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
               Váš účet bol úspešne vytvorený. Tu je váš unikátny 6-miestny kód na prihlásenie:
             </p>
 
             {/* Glowing PIN Display Box */}
             <div style={{
-              background: 'rgba(10, 15, 30, 0.9)',
+              background: 'rgba(0, 0, 0, 0.4)',
               border: '2px dashed var(--accent-primary)',
               borderRadius: 'var(--radius-lg)',
-              padding: '20px 16px',
-              marginBottom: '20px',
+              padding: '24px 20px',
+              marginBottom: '24px',
               boxShadow: 'var(--accent-glow)'
             }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px', letterSpacing: '0.08em', fontWeight: 700 }}>
                 VÁŠ PRÍSTUPOVÝ PIN KÓD
               </span>
               <div style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '2.4rem',
+                fontSize: '2.8rem',
                 fontWeight: 800,
-                letterSpacing: '8px',
+                letterSpacing: '10px',
                 color: '#fff',
-                textShadow: '0 0 15px rgba(99, 102, 241, 0.8)',
-                marginBottom: '14px'
+                textShadow: '0 0 20px rgba(99, 102, 241, 0.8)',
+                marginBottom: '16px'
               }}>
                 {authRegisteredData.pin}
               </div>
@@ -224,8 +228,8 @@ export default function AuthModal() {
                 id="btn-copy-pin"
                 type="button"
                 onClick={() => handleCopyPin(authRegisteredData.pin)}
-                className={`btn btn-sm ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ margin: '0 auto', fontSize: '0.85rem' }}
+                className={`btn btn-sm btn-pill ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ margin: '0 auto', fontSize: '0.85rem', padding: '7px 18px' }}
               >
                 {copiedPin ? <Check size={15} /> : <Copy size={15} />}
                 {copiedPin ? 'Skopírované do schránky!' : 'Kopírovať PIN kód'}
@@ -236,14 +240,14 @@ export default function AuthModal() {
               background: 'rgba(245, 158, 11, 0.08)',
               border: '1px solid var(--warning-border)',
               borderRadius: 'var(--radius-md)',
-              padding: '12px 14px',
-              fontSize: '0.8rem',
+              padding: '14px 16px',
+              fontSize: '0.825rem',
               color: 'var(--text-secondary)',
               textAlign: 'left',
               display: 'flex',
-              gap: '10px',
+              gap: '12px',
               alignItems: 'flex-start',
-              marginBottom: '24px'
+              marginBottom: '26px'
             }}>
               <ShieldCheck size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
@@ -255,7 +259,7 @@ export default function AuthModal() {
               id="btn-enter-dashboard"
               type="button"
               onClick={closeAuthModal}
-              className="btn btn-primary btn-lg"
+              className="btn btn-primary btn-lg btn-pill"
               style={{ width: '100%', justifyContent: 'center' }}
             >
               Vstúpiť do môjho Dashboardu <ArrowRight size={18} />
@@ -269,7 +273,7 @@ export default function AuthModal() {
             {/* Tabs Switcher */}
             <div style={{
               display: 'flex',
-              background: 'rgba(0, 0, 0, 0.3)',
+              background: 'rgba(0, 0, 0, 0.4)',
               padding: '6px',
               borderBottom: '1px solid var(--border-subtle)',
               gap: '6px'
@@ -277,16 +281,16 @@ export default function AuthModal() {
               <button
                 type="button"
                 onClick={() => { setAuthModalMode('login'); setErrorMessage(''); }}
-                className={`btn btn-sm ${authModalMode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, border: 'none', justifyContent: 'center' }}
+                className={`btn btn-sm btn-pill ${authModalMode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
               >
                 <LogIn size={15} /> Prihlásenie
               </button>
               <button
                 type="button"
                 onClick={() => { setAuthModalMode('register'); setErrorMessage(''); }}
-                className={`btn btn-sm ${authModalMode === 'register' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, border: 'none', justifyContent: 'center' }}
+                className={`btn btn-sm btn-pill ${authModalMode === 'register' ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
               >
                 <UserPlus size={15} /> Nový účet (Zadarmo)
               </button>
@@ -295,16 +299,16 @@ export default function AuthModal() {
             {/* Error Banner */}
             {errorMessage && (
               <div style={{
-                margin: '16px 24px 0',
-                padding: '12px 14px',
+                margin: '18px 26px 0',
+                padding: '12px 16px',
                 background: 'var(--danger-bg)',
-                border: '1px solid var(--danger)',
+                border: '1px solid var(--danger-border)',
                 borderRadius: 'var(--radius-md)',
                 color: '#fca5a5',
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '10px'
               }}>
                 <AlertCircle size={16} color="var(--danger)" style={{ flexShrink: 0 }} />
                 <span>{errorMessage}</span>
@@ -313,8 +317,8 @@ export default function AuthModal() {
 
             {/* FORM 1: LOGIN */}
             {authModalMode === 'login' && (
-              <form onSubmit={handleLoginSubmit} style={{ padding: '24px' }}>
-                <div style={{ marginBottom: '18px' }}>
+              <form onSubmit={handleLoginSubmit} style={{ padding: '26px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Váš Nick / Meno ateliéru
                   </label>
@@ -330,7 +334,7 @@ export default function AuthModal() {
                   />
                 </div>
 
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '26px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       6-miestny číselný PIN
@@ -338,7 +342,7 @@ export default function AuthModal() {
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
                       {showPin ? <EyeOff size={13} /> : <Eye size={13} />}
                       {showPin ? 'Skryť' : 'Zobraziť'}
@@ -357,8 +361,9 @@ export default function AuthModal() {
                     required
                     style={{
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '1.2rem',
-                      letterSpacing: '4px'
+                      fontSize: '1.3rem',
+                      letterSpacing: '6px',
+                      textAlign: 'center'
                     }}
                   />
                 </div>
@@ -367,28 +372,28 @@ export default function AuthModal() {
                   id="btn-login-submit"
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary btn-lg"
-                  style={{ width: '100%', justifyContent: 'center', marginBottom: '16px' }}
+                  className="btn btn-primary btn-lg btn-pill"
+                  style={{ width: '100%', justifyContent: 'center', marginBottom: '18px' }}
                 >
                   {isSubmitting ? 'Overujem...' : 'Prihlásiť sa do Dashboardu'}
                 </button>
 
                 {/* Demo Quick Log in */}
                 <div style={{
-                  padding: '14px',
-                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                  borderRadius: 'var(--radius-lg)',
                   background: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid var(--border-subtle)',
                   textAlign: 'center'
                 }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
                     Chcete si to len rýchlo vyskúšať?
                   </span>
                   <button
                     type="button"
                     onClick={handleQuickDemo}
-                    className="btn btn-secondary btn-sm"
-                    style={{ margin: '0 auto', fontSize: '0.8rem' }}
+                    className="btn btn-secondary btn-sm btn-pill"
+                    style={{ margin: '0 auto', fontSize: '0.825rem' }}
                   >
                     <Sparkles size={14} color="var(--accent-primary)" />
                     Vstúpiť ako Demo Freelancer (Marko / 123456)
@@ -399,8 +404,8 @@ export default function AuthModal() {
 
             {/* FORM 2: REGISTER */}
             {authModalMode === 'register' && (
-              <form onSubmit={handleRegisterSubmit} style={{ padding: '24px' }}>
-                <div style={{ marginBottom: '18px' }}>
+              <form onSubmit={handleRegisterSubmit} style={{ padding: '26px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Váš Nick alebo názov ateliéru <span style={{ color: 'var(--accent-primary)' }}>*</span>
                   </label>
@@ -414,7 +419,7 @@ export default function AuthModal() {
                     required
                     autoFocus
                   />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     Tento názov uvidia vaši klienti v hlavičke portálu.
                   </span>
                 </div>
@@ -431,7 +436,7 @@ export default function AuthModal() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     Slúži na zasielanie notifikácií, keď klient nahrá podklady.
                   </span>
                 </div>
@@ -439,10 +444,10 @@ export default function AuthModal() {
                 <div style={{
                   background: 'rgba(99, 102, 241, 0.08)',
                   border: '1px solid var(--border-active)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 14px',
-                  marginBottom: '22px',
-                  fontSize: '0.8rem',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '14px 16px',
+                  marginBottom: '24px',
+                  fontSize: '0.825rem',
                   color: 'var(--text-secondary)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '2px' }}>
@@ -455,7 +460,7 @@ export default function AuthModal() {
                   id="btn-register-submit"
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
                   {isSubmitting ? 'Vytváram účet...' : 'Vytvoriť účet a vygenerovať PIN'}
