@@ -33,6 +33,7 @@ create table if not exists public.projects (
 );
 
 -- Migrácia pre existujúce databázy
+alter table public.projects add column if not exists freelancer_id uuid;
 alter table public.projects add column if not exists project_type text default 'one-off';
 alter table public.projects add column if not exists cadence_days integer default 1;
 alter table public.projects add column if not exists batches jsonb default '[]'::jsonb;

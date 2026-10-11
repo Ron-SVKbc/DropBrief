@@ -199,7 +199,20 @@ export function AppProvider({ children }) {
         query = query.ilike('freelancer_name', cleanNick);
       }
 
-      const { data, error } = await query;
+      let { data, error } = await query;
+
+      // Robust fallback if freelancer_id column does not exist yet in remote DB
+      if (error && isUuid) {
+        console.warn('Supabase projects query with freelancer_id failed, falling back to freelancer_name:', error.message);
+        const fallbackRes = await supabase
+          .from('projects')
+          .select('*, project_items(*)')
+          .order('created_at', { ascending: false })
+          .ilike('freelancer_name', cleanNick);
+
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+      }
 
       if (error) throw error;
 
@@ -921,11 +934,15 @@ export function AppProvider({ children }) {
       try {
         let q = supabase.from('projects').delete().eq('id', projectId);
         if (currentFreelancer?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentFreelancer.id)) {
-          q = q.or(`freelancer_id.eq.${currentFreelancer.id},freelancer_name.ilike.${currentFreelancer.nick}`);
+          const res = await q.or(`freelancer_id.eq.${currentFreelancer.id},freelancer_name.ilike.${currentFreelancer.nick}`);
+          if (res.error) {
+            await supabase.from('projects').delete().eq('id', projectId).ilike('freelancer_name', currentFreelancer.nick);
+          }
         } else if (currentFreelancer?.nick) {
-          q = q.ilike('freelancer_name', currentFreelancer.nick);
+          await q.ilike('freelancer_name', currentFreelancer.nick);
+        } else {
+          await q;
         }
-        await q;
       } catch (err) {
         console.error('Failed to delete project from Supabase:', err);
       }
