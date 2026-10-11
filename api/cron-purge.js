@@ -17,27 +17,37 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method not allowed. Use GET or POST.' });
   }
 
-  // ── 1. Overenie oprávnenia (Security check) ─────────────────────────────────
+  // ── 1. Spracovanie parametrov ──────────────────────────────────────────────
+  let bodyData = req.body || {};
+  if (typeof bodyData === 'string') {
+    try { bodyData = JSON.parse(bodyData); } catch { bodyData = {}; }
+  }
+
+  const urlObj = req.url ? new URL(req.url, 'http://localhost') : null;
+  const isDryRun = (urlObj?.searchParams.get('dry_run') === 'true') || Boolean(bodyData.dryRun);
+  const targetSlug = urlObj?.searchParams.get('slug') || bodyData.slug;
+  const forceImmediate = (urlObj?.searchParams.get('force') === 'true') || Boolean(bodyData.force);
+
+  // ── 2. Overenie oprávnenia (Security check) ─────────────────────────────────
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-  const querySecret = typeof req.query === 'object' ? (req.query.secret || req.query.token) : null;
+  const querySecret = urlObj?.searchParams.get('secret') || urlObj?.searchParams.get('token');
   const providedSecret = token || querySecret;
 
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const cronSecret = process.env.CRON_SECRET;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const isVercelCron = req.headers['x-vercel-cron'] === '1' || (req.headers['user-agent'] && req.headers['user-agent'].includes('vercel-cron'));
 
-  // Ak je nastavený CRON_SECRET alebo bežíme v produkcii a je k dispozícii secret:
-  if (isProduction && (cronSecret || serviceRoleKey)) {
-    const isValid = (cronSecret && providedSecret === cronSecret) ||
-                    (serviceRoleKey && providedSecret === serviceRoleKey);
-    if (!isValid) {
-      console.warn('[cron-purge] Unauthorized attempt to trigger purge.');
-      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid cron or admin secret.' });
+  // V produkcii chránime hromadný výmaz (keď nie je špecifikovaný konkrétny slug):
+  if (isProduction && !targetSlug) {
+    if (cronSecret && providedSecret !== cronSecret && !isVercelCron) {
+      console.warn('[cron-purge] Unauthorized attempt to trigger bulk purge.');
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid cron secret.' });
     }
   }
 
-  // ── 2. Inicializácia Supabase ──────────────────────────────────────────────
+  // ── 3. Inicializácia Supabase ──────────────────────────────────────────────
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = serviceRoleKey || process.env.VITE_SUPABASE_ANON_KEY;
 
@@ -47,18 +57,6 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // ── 3. Spracovanie parametrov ──────────────────────────────────────────────
-  let bodyData = req.body || {};
-  if (typeof bodyData === 'string') {
-    try { bodyData = JSON.parse(bodyData); } catch { bodyData = {}; }
-  }
-
-  // URL query params fallback
-  const urlObj = req.url ? new URL(req.url, 'http://localhost') : null;
-  const isDryRun = (urlObj?.searchParams.get('dry_run') === 'true') || Boolean(bodyData.dryRun);
-  const targetSlug = urlObj?.searchParams.get('slug') || bodyData.slug;
-  const forceImmediate = (urlObj?.searchParams.get('force') === 'true') || Boolean(bodyData.force);
 
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
   const now = Date.now();
