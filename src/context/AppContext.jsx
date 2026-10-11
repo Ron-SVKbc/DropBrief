@@ -817,7 +817,7 @@ export function AppProvider({ children }) {
       } catch (e) {}
     }
 
-    addToast(`Frekvencia zberu nastavená: každých ${days} ${days === 1 ? 'deň (denne)' : days < 5 ? 'dni' : 'dní'}.`, 'success', 'Frekvencia zmenená');
+    addToast(`Collection frequency set to every ${days} ${days === 1 ? 'day (daily)' : 'days'}.`, 'success', 'Cadence Updated');
   };
 
   const submitOngoingBatch = async (projectSlug, batchData) => {
@@ -910,7 +910,7 @@ export function AppProvider({ children }) {
       }
     }
 
-    addToast('Podklady na dnešný deň boli úspešne odovzdané!', 'success', 'Dávka odovzdaná');
+    addToast('Deliverables for today have been successfully submitted!', 'success', 'Batch Submitted');
     return targetProj;
   };
 

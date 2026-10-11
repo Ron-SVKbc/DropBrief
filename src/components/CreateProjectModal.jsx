@@ -319,7 +319,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Cadence picker pre dlhodobé zákazky */}
+            {/* Cadence picker for recurring projects */}
             {projectType === 'ongoing' && (
               <div style={{
                 marginTop: '14px',
@@ -332,22 +332,22 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                   <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f3e8ff', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={15} color="#c084fc" />
-                    Frekvencia pravidelného zberu dát *
+                    Recurring Deliverables Frequency *
                   </label>
                   <span style={{ fontSize: '0.73rem', color: '#c084fc', fontWeight: 700, background: 'rgba(168, 85, 247, 0.2)', padding: '2px 8px', borderRadius: '10px' }}>
-                    1 stály odkaz pre klienta
+                    1 permanent client link
                   </span>
                 </div>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
-                  Ako často má systém žiadať od klienta nové podklady? Klient má 1 odkaz – každých <strong>{cadenceDays === 1 ? '1 deň (denne)' : `${cadenceDays} dní`}</strong> sa na ňom formulár automaticky otvorí pre novú dávku (napr. dnešné reels, stories či týždenné dáta).
+                  How often should the system request new assets from the client? The client has 1 link — every <strong>{cadenceDays === 1 ? '1 day (Daily)' : `${cadenceDays} days`}</strong> the portal automatically resets for a fresh batch (e.g. today's reels, stories, or weekly records).
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                   {[
-                    { days: 1, label: 'Každý 1 deň (denne)' },
-                    { days: 2, label: 'Každé 2 dni' },
-                    { days: 3, label: 'Každé 3 dni' },
-                    { days: 7, label: 'Každý týždeň (7 dní)' },
-                    { days: 30, label: 'Každý mesiac (30 dní)' },
+                    { days: 1, label: 'Every 1 day (Daily)' },
+                    { days: 2, label: 'Every 2 days' },
+                    { days: 3, label: 'Every 3 days' },
+                    { days: 7, label: 'Every week (7 days)' },
+                    { days: 30, label: 'Every month (30 days)' },
                   ].map((opt) => {
                     const isSel = cadenceDays === opt.days;
                     return (
@@ -374,9 +374,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     );
                   })}
 
-                  {/* Vlastný počet dní */}
+                  {/* Custom day interval */}
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>alebo:</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>or:</span>
                     <input 
                       type="number"
                       min="1"
@@ -385,9 +385,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       onChange={(e) => setCadenceDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
                       className="input"
                       style={{ width: '64px', padding: '4px 8px', fontSize: '0.78rem', textAlign: 'center' }}
-                      title="Vlastný počet dní"
+                      title="Custom day interval"
                     />
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>dní</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>days</span>
                   </div>
                 </div>
               </div>

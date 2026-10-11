@@ -32,14 +32,14 @@ const isImageFile = (fileName, mimeType) => {
 };
 
 const sanitizeFileName = (name) => {
-  return (name || 'subor')
+  return (name || 'file')
     .replace(/[\\/:*?"<>|]/g, '_')
     .replace(/\s+/g, '_')
     .substring(0, 80);
 };
 
 const sanitizeFolderName = (name) => {
-  if (!name || typeof name !== 'string') return 'Podklady';
+  if (!name || typeof name !== 'string') return 'Deliverables';
   return name
     .replace(/[\x00-\x1f]/g, '')
     .replace(/[\\/]/g, ' - ')
@@ -49,7 +49,7 @@ const sanitizeFolderName = (name) => {
     .replace(/\s*-\s*-+\s*/g, ' - ')
     .replace(/^[. ]+|[. ]+$/g, '')
     .substring(0, 100)
-    .trim() || 'Podklady';
+    .trim() || 'Deliverables';
 };
 
 export default function ExportModal() {
@@ -124,7 +124,7 @@ export default function ExportModal() {
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
-    addToast(successMsg || 'Skopírované do schránky!', 'success', 'Skopírované');
+    addToast(successMsg || 'Copied to clipboard!', 'success', 'Copied');
     setTimeout(() => {
       setCopiedKey((prev) => (prev === key ? null : prev));
     }, 2200);
@@ -132,7 +132,7 @@ export default function ExportModal() {
 
   // Download single file
   const handleDownloadSingleFile = async (file) => {
-    const fileName = file.fileName || 'subor';
+    const fileName = file.fileName || 'file';
     
     if (file.url) {
       try {
@@ -147,7 +147,7 @@ export default function ExportModal() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(blobUrl);
-        addToast(`Súbor "${fileName}" bol úspešne stiahnutý.`, 'success', 'Súbor stiahnutý');
+        addToast(`File "${fileName}" was successfully downloaded.`, 'success', 'File Downloaded');
         return;
       } catch (err) {
         // Fallback for CORS or direct downloads
@@ -158,13 +158,13 @@ export default function ExportModal() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        addToast(`Sťahovanie súboru "${fileName}" spustené.`, 'info', 'Sťahovanie');
+        addToast(`Download of "${fileName}" started.`, 'info', 'Downloading');
         return;
       }
     }
 
     // Demo/offline simulated file download
-    const demoContent = `DropBrief — Podklad zo zákazky: ${project.title}\nNázov súboru: ${fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nOdovzdané: ${file.uploadedAt || new Date().toLocaleString('sk-SK')}\n\nTento súbor bol evidovaný v zákazke na DropBrief.`;
+    const demoContent = `DropBrief — Deliverable from project: ${project.title}\nFile name: ${fileName}\nSize: ${file.fileSize || 'N/A'}\nDelivered: ${file.uploadedAt || new Date().toLocaleString('en-US')}\n\nThis file was recorded in DropBrief.`;
     const blob = new Blob([demoContent], { type: 'text/plain;charset=utf-8' });
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -174,7 +174,7 @@ export default function ExportModal() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
-    addToast(`Súbor "${fileName}" bol stiahnutý.`, 'success', 'Súbor stiahnutý');
+    addToast(`File "${fileName}" was downloaded.`, 'success', 'File Downloaded');
   };
 
   // Download single text item as .txt
@@ -182,7 +182,7 @@ export default function ExportModal() {
     const text = getItemText(item);
     if (!text) return;
     const cleanTitle = sanitizeFolderName(item.title);
-    const fileContent = `Požiadavka: ${item.title}\nZákazka: ${project.title}\nKlient: ${project.clientName} (${project.clientEmail})\nOdovzdané: ${item.completedAt ? new Date(item.completedAt).toLocaleString('sk-SK') : 'N/A'}\n${'='.repeat(60)}\n\n${text}\n`;
+    const fileContent = `Requirement: ${item.title}\nProject: ${project.title}\nClient: ${project.clientName} (${project.clientEmail})\nDelivered: ${item.completedAt ? new Date(item.completedAt).toLocaleString('en-US') : 'N/A'}\n${'='.repeat(60)}\n\n${text}\n`;
     
     const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -194,7 +194,7 @@ export default function ExportModal() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    addToast(`Textová požiadavka "${item.title}" stiahnutá ako .txt súbor.`, 'success', 'Text stiahnutý');
+    addToast(`Text requirement "${item.title}" downloaded as .txt file.`, 'success', 'Text Downloaded');
   };
 
   // Download all files from a single item as sub-zip
@@ -219,10 +219,10 @@ export default function ExportModal() {
             const blob = await resp.blob();
             folder.file(file.fileName, blob);
           } catch (e) {
-            folder.file(`${file.fileName}_odkaz.txt`, `URL: ${file.url}\nNázov: ${file.fileName}`);
+            folder.file(`${file.fileName}_link.txt`, `URL: ${file.url}\nFile: ${file.fileName}`);
           }
         } else {
-          folder.file(file.fileName, `DropBrief súbor: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}`);
+          folder.file(file.fileName, `DropBrief file: ${file.fileName}\nSize: ${file.fileSize || 'N/A'}`);
         }
       }
 
@@ -235,50 +235,50 @@ export default function ExportModal() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      addToast(`Súbory z položky "${item.title}" stiahnuté v ZIPe.`, 'success', 'ZIP stiahnutý');
+      addToast(`Files from "${item.title}" downloaded in ZIP.`, 'success', 'ZIP Downloaded');
     } catch (err) {
-      addToast('Nepodarilo sa vytvoriť archív pre túto položku.', 'danger', 'Chyba');
+      addToast('Failed to create archive for this item.', 'danger', 'Error');
     }
   };
 
   // Download EVERYTHING as a folder (.ZIP archive)
   const handleDownloadAllAsFolder = async () => {
     if (completedItems.length === 0) {
-      addToast('Zákazka zatiaľ neobsahuje žiadne odovzdané podklady od klienta.', 'warning', 'Žiadne podklady');
+      addToast('This project does not contain any delivered assets yet.', 'warning', 'No Deliverables');
       return;
     }
 
     setIsZipping(true);
-    setZipProgress('Pripravujem štruktúru priečinkov v ZIPe...');
+    setZipProgress('Preparing folder structure in ZIP...');
 
     try {
       const zip = new JSZip();
 
-      // 1. Text Summary File (PREHLAD_PODKLADOV.txt)
+      // 1. Text Summary File (DELIVERABLES_OVERVIEW.txt)
       let summaryText = `======================================================================\n`;
-      summaryText += `DROPBRIEF — KOMPLETNÝ EXPORT PODKLADOV ZÁKAZKY\n`;
+      summaryText += `DROPBRIEF — COMPLETE PROJECT DELIVERABLES EXPORT\n`;
       summaryText += `======================================================================\n\n`;
-      summaryText += `Názov zákazky:  ${project.title}\n`;
-      summaryText += `Klient:         ${project.clientName} <${project.clientEmail}>\n`;
-      summaryText += `Freelancer:     ${project.freelancerName || 'Freelancer'}\n`;
-      summaryText += `Termín dodania: ${project.deadline || 'Nestanovený'}\n`;
-      summaryText += `Dátum exportu:  ${new Date().toLocaleString('sk-SK')}\n`;
-      summaryText += `Stav zberu:     ${completedCount} z ${totalCount} požiadaviek dokončených (${totalCount > 0 ? Math.round((completedCount/totalCount)*100) : 0}%)\n\n`;
+      summaryText += `Project:         ${project.title}\n`;
+      summaryText += `Client:          ${project.clientName} <${project.clientEmail}>\n`;
+      summaryText += `Freelancer:      ${project.freelancerName || 'Freelancer'}\n`;
+      summaryText += `Deadline:        ${project.deadline || 'None'}\n`;
+      summaryText += `Export Date:     ${new Date().toLocaleString('en-US')}\n`;
+      summaryText += `Progress:        ${completedCount} of ${totalCount} requirements completed (${totalCount > 0 ? Math.round((completedCount/totalCount)*100) : 0}%)\n\n`;
       summaryText += `----------------------------------------------------------------------\n`;
-      summaryText += `ZOZNAM DOKONČENÝCH A CHÝBAJÚCICH POLOŽIEK\n`;
+      summaryText += `LIST OF COMPLETED AND PENDING ITEMS\n`;
       summaryText += `----------------------------------------------------------------------\n\n`;
 
       items.forEach((item, idx) => {
         const num = String(idx + 1).padStart(2, '0');
-        const statusStr = item.isCompleted ? '[DORUČENÉ]' : '[CHÝBA - ČAKÁ SA NA KLIENTA]';
-        summaryText += `${num}. ${statusStr} ${item.title} (${item.type === 'file' ? 'Súbor' : 'Text'})\n`;
-        if (item.description) summaryText += `    Popis: ${item.description}\n`;
+        const statusStr = item.isCompleted ? '[DELIVERED]' : '[MISSING - PENDING CLIENT]';
+        summaryText += `${num}. ${statusStr} ${item.title} (${item.type === 'file' ? 'File' : 'Text'})\n`;
+        if (item.description) summaryText += `    Description: ${item.description}\n`;
         if (item.isCompleted && item.completedAt) {
-          summaryText += `    Dátum nahratia: ${new Date(item.completedAt).toLocaleString('sk-SK')}\n`;
+          summaryText += `    Delivered At: ${new Date(item.completedAt).toLocaleString('en-US')}\n`;
         }
         if (item.type === 'file' && item.isCompleted) {
           const fs = getItemFiles(item);
-          summaryText += `    Počet súborov: ${fs.length}\n`;
+          summaryText += `    Number of files: ${fs.length}\n`;
           fs.forEach((f) => {
             summaryText += `      - ${f.fileName} (${f.fileSize || 'N/A'})\n`;
           });
@@ -286,7 +286,7 @@ export default function ExportModal() {
         summaryText += `\n`;
       });
 
-      zip.file('PREHLAD_PODKLADOV.txt', summaryText);
+      zip.file('DELIVERABLES_OVERVIEW.txt', summaryText);
 
       // 2. Structured JSON export
       const jsonExport = {
@@ -306,7 +306,7 @@ export default function ExportModal() {
           value: i.value,
         }))
       };
-      zip.file('podklady_struktura.json', JSON.stringify(jsonExport, null, 2));
+      zip.file('deliverables_structure.json', JSON.stringify(jsonExport, null, 2));
 
       // 3. Process each completed item into its dedicated clean subfolder
       const usedFolderNames = new Map();
@@ -335,9 +335,9 @@ export default function ExportModal() {
 
             for (let fIdx = 0; fIdx < files.length; fIdx++) {
               const file = files[fIdx];
-              setZipProgress(`Sťahujem [${folderName}]: ${file.fileName}...`);
+              setZipProgress(`Downloading [${folderName}]: ${file.fileName}...`);
 
-              let finalFileName = file.fileName || `subor_${fIdx + 1}`;
+              let finalFileName = file.fileName || `file_${fIdx + 1}`;
               if (usedFileNames.has(finalFileName)) {
                 const ext = finalFileName.includes('.') ? finalFileName.slice(finalFileName.lastIndexOf('.')) : '';
                 const base = finalFileName.includes('.') ? finalFileName.slice(0, finalFileName.lastIndexOf('.')) : finalFileName;
@@ -353,11 +353,11 @@ export default function ExportModal() {
                   itemFolder.file(finalFileName, blob);
                 } catch (fetchErr) {
                   // Fallback info text if direct cross-origin fetch is blocked
-                  itemFolder.file(`${finalFileName}_odkaz.txt`, `Názov súboru: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nPriamy odkaz na stiahnutie:\n${file.url}`);
+                  itemFolder.file(`${finalFileName}_link.txt`, `File: ${file.fileName}\nSize: ${file.fileSize || 'N/A'}\nDirect URL:\n${file.url}`);
                 }
               } else {
                 // Demo simulated file
-                itemFolder.file(finalFileName, `DropBrief podklad: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nOdovzdané: ${file.uploadedAt || 'N/A'}`);
+                itemFolder.file(finalFileName, `DropBrief deliverable: ${file.fileName}\nSize: ${file.fileSize || 'N/A'}\nDelivered: ${file.uploadedAt || 'N/A'}`);
               }
             }
           }
@@ -365,15 +365,15 @@ export default function ExportModal() {
 
         // B. Text Requirement: Save the submitted text directly into this item's subfolder
         if (item.type === 'text' || textVal) {
-          setZipProgress(`Ukladám text [${folderName}]...`);
-          const textContent = `Požiadavka: ${item.title}\nZákazka: ${project.title}\nKlient: ${project.clientName} <${project.clientEmail}>\nOdovzdané: ${item.completedAt ? new Date(item.completedAt).toLocaleString('sk-SK') : 'N/A'}\n${'='.repeat(60)}\n\n${textVal || ''}\n`;
+          setZipProgress(`Saving text [${folderName}]...`);
+          const textContent = `Requirement: ${item.title}\nProject: ${project.title}\nClient: ${project.clientName} <${project.clientEmail}>\nDelivered: ${item.completedAt ? new Date(item.completedAt).toLocaleString('en-US') : 'N/A'}\n${'='.repeat(60)}\n\n${textVal || ''}\n`;
           const textFileName = `${folderName}.txt`;
           itemFolder.file(textFileName, textContent);
         }
       }
 
       // 4. Compress to ZIP
-      setZipProgress('Balím podklady do ZIP archívu...');
+      setZipProgress('Compressing deliverables into ZIP archive...');
       const zipBlob = await zip.generateAsync(
         { 
           type: 'blob', 
@@ -382,7 +382,7 @@ export default function ExportModal() {
         }, 
         (meta) => {
           if (meta.percent) {
-            setZipProgress(`Komprimujem ZIP: ${Math.round(meta.percent)}%...`);
+            setZipProgress(`Compressing ZIP: ${Math.round(meta.percent)}%...`);
           }
         }
       );
@@ -391,7 +391,7 @@ export default function ExportModal() {
       const downloadUrl = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `${project.slug || 'dropbrief'}-kompletne-podklady.zip`;
+      a.download = `${project.slug || 'dropbrief'}-complete-deliverables.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -405,13 +405,13 @@ export default function ExportModal() {
       });
 
       addToast(
-        `Kompletný ZIP priečinok (${completedCount} položiek) bol úspešne zabalený a stiahnutý!`,
+        `Complete ZIP archive (${completedCount} items) was successfully created and downloaded!`,
         'success',
-        'ZIP stiahnutý'
+        'ZIP Downloaded'
       );
     } catch (err) {
       console.error('Failed to create ZIP folder:', err);
-      addToast('Vyskytla sa chyba pri vytváraní ZIP priečinka.', 'danger', 'Chyba');
+      addToast('An error occurred while creating the ZIP folder.', 'danger', 'Error');
     } finally {
       setIsZipping(false);
       setZipProgress('');
@@ -449,13 +449,13 @@ export default function ExportModal() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${project.slug || 'podklady'}-export.json`;
+    a.download = `${project.slug || 'deliverables'}-export.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    addToast(`JSON prehľad pre "${project.title}" stiahnutý.`, 'success', 'JSON stiahnutý');
+    addToast(`JSON export for "${project.title}" downloaded.`, 'success', 'JSON Downloaded');
   };
 
   const toggleExpandText = (itemId) => {
@@ -502,14 +502,14 @@ export default function ExportModal() {
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                  Export & Sťahovanie podkladov
+                  Export & Deliverables Download
                 </h2>
                 <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                  {completedCount} z {totalCount} pripravených
+                  {completedCount} of {totalCount} ready
                 </span>
               </div>
               <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginTop: '2px' }} className="truncate">
-                Zákazka: <strong style={{ color: 'var(--text-primary)' }}>{project.title}</strong> &bull; Klient: <strong style={{ color: 'var(--text-primary)' }}>{project.clientName}</strong> ({project.clientEmail})
+                Project: <strong style={{ color: 'var(--text-primary)' }}>{project.title}</strong> &bull; Client: <strong style={{ color: 'var(--text-primary)' }}>{project.clientName}</strong> ({project.clientEmail})
               </p>
             </div>
           </div>
@@ -527,10 +527,10 @@ export default function ExportModal() {
                 fontWeight: 700,
                 gap: '8px'
               }}
-              title="Stiahnuť všetky doručené podklady prehľadne roztriedené v jednom ZIP priečinku"
+              title="Download all delivered assets neatly organized in a single ZIP folder"
             >
               {isZipping ? <Loader2 size={16} className="animate-spin" /> : <FolderDown size={16} />}
-              {isZipping ? (zipProgress || 'Vytváram priečinok...') : 'Stiahnuť všetko ako priečinok (.ZIP)'}
+              {isZipping ? (zipProgress || 'Creating folder...') : 'Download All as Folder (.ZIP)'}
             </button>
 
             {/* JSON Export */}
@@ -538,7 +538,7 @@ export default function ExportModal() {
               onClick={handleDownloadJson}
               className="btn btn-secondary btn-pill"
               style={{ fontSize: '0.8rem', padding: '8px 12px' }}
-              title="Stiahnuť surové dáta v JSON formáte"
+              title="Download raw data in JSON format"
             >
               <Download size={13} />
               JSON
@@ -549,7 +549,7 @@ export default function ExportModal() {
               onClick={closeExportModal}
               className="btn btn-secondary"
               style={{ borderRadius: 'var(--radius-full)', padding: '7px' }}
-              title="Zavrieť okno"
+              title="Close window"
             >
               <X size={17} />
             </button>
@@ -568,7 +568,7 @@ export default function ExportModal() {
           }}>
             <Loader2 size={16} className="animate-spin" color="var(--accent-primary)" />
             <div style={{ fontSize: '0.84rem', color: '#e0e7ff', fontWeight: 600 }}>
-              {zipProgress || 'Prebieha príprava archívu a sťahovanie súborov...'}
+              {zipProgress || 'Preparing archive and downloading files...'}
             </div>
           </div>
         )}
@@ -603,10 +603,10 @@ export default function ExportModal() {
             </div>
             <div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Doručené súbory
+                Received Files
               </div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {totalFilesCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>súborov v zákazke</span>
+                {totalFilesCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>files in project</span>
               </div>
             </div>
           </div>
@@ -632,10 +632,10 @@ export default function ExportModal() {
             </div>
             <div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Textové zadania
+                Text Deliverables
               </div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {totalTextsCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>textových podkladov</span>
+                {totalTextsCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>text submissions</span>
               </div>
             </div>
           </div>
@@ -661,10 +661,10 @@ export default function ExportModal() {
             </div>
             <div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Chýbajúce od klienta
+                Pending from Client
               </div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: missingCount > 0 ? 'var(--warning-light)' : 'var(--success-light)' }}>
-                {missingCount === 0 ? 'Všetko odovzdané (100%)' : `${missingCount} požiadaviek čaká`}
+                {missingCount === 0 ? 'All delivered (100%)' : `${missingCount} requirements pending`}
               </div>
             </div>
           </div>
@@ -687,7 +687,7 @@ export default function ExportModal() {
             <input
               type="text"
               className="input"
-              placeholder="Filtrovať v názvoch, súboroch a textoch..."
+              placeholder="Filter by title, file name, or text..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -716,35 +716,35 @@ export default function ExportModal() {
               className={`btn btn-sm btn-pill ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
             >
-              Všetky &bull; {totalCount}
+              All &bull; {totalCount}
             </button>
             <button
               onClick={() => setActiveFilter('completed')}
               className={`btn btn-sm btn-pill ${activeFilter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem', color: activeFilter === 'completed' ? '#fff' : 'var(--success-light)' }}
             >
-              Doručené &bull; {completedCount}
+              Delivered &bull; {completedCount}
             </button>
             <button
               onClick={() => setActiveFilter('files')}
               className={`btn btn-sm btn-pill ${activeFilter === 'files' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
             >
-              Iba súbory
+              Files Only
             </button>
             <button
               onClick={() => setActiveFilter('texts')}
               className={`btn btn-sm btn-pill ${activeFilter === 'texts' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
             >
-              Iba texty
+              Text Only
             </button>
             <button
               onClick={() => setActiveFilter('missing')}
               className={`btn btn-sm btn-pill ${activeFilter === 'missing' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem', color: activeFilter === 'missing' ? '#fff' : 'var(--warning-light)' }}
             >
-              Chýba &bull; {missingCount}
+              Missing &bull; {missingCount}
             </button>
           </div>
         </div>
@@ -754,9 +754,9 @@ export default function ExportModal() {
           {filteredItems.length === 0 ? (
             <div style={{ padding: '60px 20px', textAlign: 'center' }}>
               <AlertCircle size={36} color="var(--text-tertiary)" style={{ marginBottom: '10px' }} />
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>Žiadne vyhovujúce položky</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>No matching items</h3>
               <p style={{ color: 'var(--text-tertiary)', fontSize: '0.825rem' }}>
-                Zmeňte filter alebo hľadaný výraz pre zobrazenie požiadaviek.
+                Adjust your filter or search query to view requirements.
               </p>
             </div>
           ) : (
@@ -764,10 +764,10 @@ export default function ExportModal() {
               <thead>
                 <tr>
                   <th style={{ width: '48px', textAlign: 'center' }}>#</th>
-                  <th style={{ minWidth: '220px' }}>Požiadavka & Typ</th>
-                  <th style={{ minWidth: '130px' }}>Stav odovzdania</th>
-                  <th style={{ minWidth: '320px' }}>Doručený obsah od klienta</th>
-                  <th style={{ minWidth: '220px', textAlign: 'right' }}>Rýchle akcie</th>
+                  <th style={{ minWidth: '220px' }}>Requirement & Type</th>
+                  <th style={{ minWidth: '130px' }}>Submission Status</th>
+                  <th style={{ minWidth: '320px' }}>Received Content</th>
+                  <th style={{ minWidth: '220px', textAlign: 'right' }}>Quick Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -803,15 +803,15 @@ export default function ExportModal() {
                         </div>
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span className={`badge ${isFile ? 'badge-accent' : 'badge-violet'}`} style={{ fontSize: '0.66rem', padding: '1px 6px' }}>
-                            {isFile ? 'Súbor' : 'Text'}
+                            {isFile ? 'File' : 'Text'}
                           </span>
                           {item.required ? (
                             <span className="badge badge-neutral" style={{ fontSize: '0.64rem', padding: '1px 5px', color: 'var(--warning-light)' }}>
-                              Povinné
+                              Required
                             </span>
                           ) : (
                             <span className="badge badge-neutral" style={{ fontSize: '0.64rem', padding: '1px 5px', opacity: 0.7 }}>
-                              Voliteľné
+                              Optional
                             </span>
                           )}
                         </div>
@@ -828,11 +828,11 @@ export default function ExportModal() {
                           <div>
                             <span className="badge badge-success" style={{ gap: '4px', fontSize: '0.72rem', padding: '3px 8px' }}>
                               <CheckCircle2 size={12} />
-                              Doručené
+                              Delivered
                             </span>
                             {item.completedAt && (
                               <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '3px' }}>
-                                {new Date(item.completedAt).toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(item.completedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </div>
@@ -840,7 +840,7 @@ export default function ExportModal() {
                           <div>
                             <span className="badge badge-warning" style={{ gap: '4px', fontSize: '0.72rem', padding: '3px 8px' }}>
                               <Clock size={12} />
-                              Čaká sa na klienta
+                              Pending from client
                             </span>
                           </div>
                         )}
@@ -853,7 +853,7 @@ export default function ExportModal() {
                             /* File(s) list */
                             files.length === 0 ? (
                               <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                                Súbor odovzdaný klientom
+                                File submitted by client
                               </div>
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -899,7 +899,7 @@ export default function ExportModal() {
                                             {f.fileName}
                                           </div>
                                           <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-                                            {f.fileSize || 'Veľkosť neznáma'}
+                                            {f.fileSize || 'Unknown size'}
                                           </div>
                                         </div>
                                       </div>
@@ -912,16 +912,16 @@ export default function ExportModal() {
                                             onClick={() => handleDownloadSingleFile(f)}
                                             className="btn btn-secondary btn-sm"
                                             style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                                            title="Stiahnuť tento súbor"
+                                            title="Download this file"
                                           >
                                             <Download size={11} />
                                           </button>
                                           <button
                                             type="button"
-                                            onClick={() => handleCopy(f.url || f.fileName, fileCopyKey, 'Odkaz na súbor skopírovaný!')}
+                                            onClick={() => handleCopy(f.url || f.fileName, fileCopyKey, 'File link copied!')}
                                             className="btn btn-secondary btn-sm"
                                             style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                                            title="Kopírovať odkaz na súbor"
+                                            title="Copy link to file"
                                           >
                                             {isFileCopied ? <Check size={11} color="var(--success)" /> : <Copy size={11} />}
                                           </button>
@@ -949,7 +949,7 @@ export default function ExportModal() {
                                 whiteSpace: 'pre-wrap',
                                 fontFamily: 'var(--font-sans)'
                               }}>
-                                {text || 'Prázdny text'}
+                                {text || 'Empty text'}
                               </div>
                               {text && text.length > 140 && (
                                 <button
@@ -969,7 +969,7 @@ export default function ExportModal() {
                                   }}
                                 >
                                   {isTextExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                  {isTextExpanded ? 'Zbaliť text' : 'Zobraziť celý text'}
+                                  {isTextExpanded ? 'Collapse text' : 'Show full text'}
                                 </button>
                               )}
                             </div>
@@ -988,7 +988,7 @@ export default function ExportModal() {
                             gap: '6px'
                           }}>
                             <AlertCircle size={13} />
-                            <span>Zatiaľ neodovzdané</span>
+                            <span>Not submitted yet</span>
                           </div>
                         )}
                       </td>
@@ -999,17 +999,17 @@ export default function ExportModal() {
                           isFile ? (
                             /* Actions for File Item */
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              {/* Stiahnuť súbor / archív */}
+                              {/* Download file / archive */}
                               {files.length > 1 ? (
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadItemFilesZip(item)}
                                   className="btn btn-primary btn-sm"
                                   style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                                  title={`Stiahnuť všetkých ${files.length} súborov tejto položky`}
+                                  title={`Download all ${files.length} files for this item`}
                                 >
                                   <FileArchive size={12} />
-                                  Stiahnuť súbory ({files.length})
+                                  Download files ({files.length})
                                 </button>
                               ) : (
                                 <button
@@ -1017,53 +1017,53 @@ export default function ExportModal() {
                                   onClick={() => handleDownloadSingleFile(files[0] || item.value)}
                                   className="btn btn-primary btn-sm"
                                   style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                                  title="Stiahnuť tento súbor"
+                                  title="Download this file"
                                 >
                                   <Download size={12} />
-                                  Stiahnuť súbor
+                                  Download file
                                 </button>
                               )}
 
-                              {/* Kopírovať link */}
+                              {/* Copy link */}
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const linkToCopy = files[0]?.url || files[0]?.fileName || 'subor';
-                                  handleCopy(linkToCopy, `item-${item.id}`, 'Odkaz na súbor skopírovaný!');
+                                  const linkToCopy = files[0]?.url || files[0]?.fileName || 'file';
+                                  handleCopy(linkToCopy, `item-${item.id}`, 'File link copied!');
                                 }}
                                 className="btn btn-secondary btn-sm"
                                 style={{ fontSize: '0.76rem', padding: '5px 9px', gap: '5px' }}
-                                title="Kopírovať odkaz na stiahnutie"
+                                title="Copy download link"
                               >
                                 {copiedKey === `item-${item.id}` ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
-                                {copiedKey === `item-${item.id}` ? 'Skopírované!' : 'Kopírovať odkaz'}
+                                {copiedKey === `item-${item.id}` ? 'Copied!' : 'Copy link'}
                               </button>
                             </div>
                           ) : (
                             /* Actions for Text Item */
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              {/* Kopírovať text */}
+                              {/* Copy text */}
                               <button
                                 type="button"
-                                onClick={() => handleCopy(text, `item-text-${item.id}`, 'Text skopírovaný do schránky!')}
+                                onClick={() => handleCopy(text, `item-text-${item.id}`, 'Text copied to clipboard!')}
                                 className="btn btn-primary btn-sm"
                                 style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                                title="Kopírovať zadaný text do schránky"
+                                title="Copy submitted text to clipboard"
                               >
                                 {copiedKey === `item-text-${item.id}` ? <Check size={12} /> : <Copy size={12} />}
-                                {copiedKey === `item-text-${item.id}` ? 'Skopírované!' : 'Kopírovať text'}
+                                {copiedKey === `item-text-${item.id}` ? 'Copied!' : 'Copy text'}
                               </button>
 
-                              {/* Stiahnuť ako .txt */}
+                              {/* Download as .txt */}
                               <button
                                 type="button"
                                 onClick={() => handleDownloadTextItem(item)}
                                 className="btn btn-secondary btn-sm"
                                 style={{ fontSize: '0.76rem', padding: '5px 9px', gap: '5px' }}
-                                title="Stiahnuť text ako .txt súbor"
+                                title="Download copy as .txt file"
                               >
                                 <FileText size={12} />
-                                Stiahnuť .txt
+                                Download .txt
                               </button>
                             </div>
                           )
@@ -1078,10 +1078,10 @@ export default function ExportModal() {
                               }}
                               className="btn btn-secondary btn-sm"
                               style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                              title="Odoslať klientovi pripomienku k tejto položke"
+                              title="Send client a reminder for this requirement"
                             >
                               <Send size={11} />
-                              Pripomenúť klientovi
+                              Remind client
                             </button>
                           </div>
                         )}
@@ -1107,7 +1107,7 @@ export default function ExportModal() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
             <ShieldCheck size={16} color="var(--success)" />
-            <span>Súbory sú šifrované v EÚ cloude a pripravené na okamžité spracovanie vo vašich programoch.</span>
+            <span>Files are encrypted in EU cloud storage and ready for immediate workflow processing.</span>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -1116,7 +1116,7 @@ export default function ExportModal() {
               onClick={closeExportModal}
               className="btn btn-secondary btn-sm btn-pill"
             >
-              Zavrieť
+              Close
             </button>
 
             <button
@@ -1127,7 +1127,7 @@ export default function ExportModal() {
               style={{ fontWeight: 700, gap: '6px' }}
             >
               {isZipping ? <Loader2 size={14} className="animate-spin" /> : <FolderDown size={14} />}
-              Stiahnuť všetko ako priečinok (.ZIP)
+              Download All as Folder (.ZIP)
             </button>
           </div>
         </div>

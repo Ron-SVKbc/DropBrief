@@ -266,7 +266,7 @@ ${cleanFreelancerName}
     }
 
     const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
-    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifikacie@mail.usedropbrief.xyz');
+    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifications@mail.usedropbrief.xyz');
 
     const resendPayload = {
       from: resendFrom,

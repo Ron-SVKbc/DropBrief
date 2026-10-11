@@ -390,7 +390,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                             cursor: 'pointer',
                             transition: 'all 0.18s ease'
                           }}
-                          title="Pravidelný zber - kliknutím zmeníte typ"
+                          title="Recurring deliverables – click to change engagement type"
                         >
                           <RefreshCw size={10} /> {formatCadenceBadge(proj.cadenceDays || 1)}
                         </button>
@@ -414,7 +414,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                             cursor: 'pointer',
                             transition: 'all 0.18s ease'
                           }}
-                          title="Jednorazová zákazka - kliknutím zmeníte typ"
+                          title="One-off project – click to toggle engagement type"
                         >
                           <Zap size={10} /> One-off
                         </button>
@@ -422,11 +422,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                       {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
                         isTodaySubmitted(proj) ? (
                           <span className="badge badge-success">
-                            <CheckCircle2 size={11} /> Dnes dodané
+                            <CheckCircle2 size={11} /> Delivered today
                           </span>
                         ) : (
                           <span className="badge badge-warning">
-                            <Clock size={11} /> Čaká sa na dnes
+                            <Clock size={11} /> Pending for today
                           </span>
                         )
                       ) : (
@@ -485,11 +485,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                         openProjectDetail(proj.slug);
                       }}
                       className="btn btn-primary btn-sm btn-pill"
-                      title="Otvoriť detailný prehľad zákazky a správu elementov"
+                      title="Open project overview and asset management"
                       style={{ gap: '5px' }}
                     >
                       <Eye size={13} />
-                      Prehľad zákazky
+                      Project Overview
                     </button>
 
                     <button

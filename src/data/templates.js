@@ -78,20 +78,20 @@ export const PROJECT_TEMPLATES = [
     badge: 'Ongoing',
     projectType: 'ongoing',
     cadenceDays: 1,
-    description: 'Pravidelný zber fotiek, videí a popisov na siete (denne, každé 2 dni alebo týždenne).',
+    description: 'Regular collection of photos, videos, and captions for social channels (daily, every 2 days, or weekly).',
     items: [
       {
         id: 'item-1',
-        title: 'Surové fotky & videá na dnešný deň (Reels / Stories)',
-        description: 'Krátke video zábery, fotky z prevádzky, tímu alebo produktov na zostrihanie.',
+        title: 'Raw photos & videos for today (Reels / Stories)',
+        description: 'Short video clips, photos of operations, products, or team to edit.',
         type: 'file',
         allowedTypes: 'image/*,video/*',
         required: true,
       },
       {
         id: 'item-2',
-        title: 'Popis, zľavy a inštrukcie k príspevku',
-        description: 'Čo je dnes špeciálne? Akcia, novinka, text k príspevku alebo inštrukcia pre grafika.',
+        title: 'Caption notes, promos & post instructions',
+        description: 'What is special today? Promotion, news, post copy, or designer instructions.',
         type: 'text',
         required: true,
       }
@@ -208,7 +208,7 @@ export const INITIAL_DEMO_PROJECTS = [
         files: [
           {
             id: 'f-101',
-            fileName: 'dental_hygiena_reels.mp4',
+            fileName: 'dental_hygiene_reels.mp4',
             fileSize: '12.4 MB',
             fileType: 'video/mp4',
             url: null,
@@ -216,21 +216,21 @@ export const INITIAL_DEMO_PROJECTS = [
           },
           {
             id: 'f-102',
-            fileName: 'ambulancia_bielenie.jpg',
+            fileName: 'clinic_whitening.jpg',
             fileSize: '3.1 MB',
             fileType: 'image/jpeg',
             url: null,
             uploadedAt: '14:21'
           }
         ],
-        note: 'Dnešné video na Reels: Ukážka bezbolestnej dentálnej hygieny. Text: "Objednajte sa na preventívnu prehliadku ešte dnes."',
+        note: 'Today Reels video: Painless dental hygiene overview. Copy: "Schedule your preventive checkup today."',
       }
     ],
     items: [
       {
         id: 'item-1',
-        title: 'Surové fotky & videá na dnešný deň (Reels / Stories)',
-        description: 'Krátke video zábery, fotky z ambulancie alebo produktov na spracovanie.',
+        title: 'Raw photos & videos for today (Reels / Stories)',
+        description: 'Short video clips, clinic photos, or dental products to edit.',
         type: 'file',
         required: true,
         isCompleted: true,
@@ -239,7 +239,7 @@ export const INITIAL_DEMO_PROJECTS = [
           files: [
             {
               id: 'f-101',
-              fileName: 'dental_hygiena_reels.mp4',
+              fileName: 'dental_hygiene_reels.mp4',
               fileSize: '12.4 MB',
               fileType: 'video/mp4',
               url: null,
@@ -247,7 +247,7 @@ export const INITIAL_DEMO_PROJECTS = [
             },
             {
               id: 'f-102',
-              fileName: 'ambulancia_bielenie.jpg',
+              fileName: 'clinic_whitening.jpg',
               fileSize: '3.1 MB',
               fileType: 'image/jpeg',
               url: null,
@@ -258,13 +258,13 @@ export const INITIAL_DEMO_PROJECTS = [
       },
       {
         id: 'item-2',
-        title: 'Popis, zľavy a inštrukcie k príspevku',
-        description: 'Text k príspevku, akcia dňa alebo dôležité informácie pre pacientov.',
+        title: 'Caption notes, promos & post instructions',
+        description: 'Post copy, daily promo, or key patient notices.',
         type: 'text',
         required: true,
         isCompleted: true,
         completedAt: '2026-10-10',
-        value: 'Dnešné video na Reels: Ukážka bezbolestnej dentálnej hygieny. Text: "Objednajte sa na preventívnu prehliadku ešte dnes."'
+        value: 'Today Reels video: Painless dental hygiene overview. Copy: "Schedule your preventive checkup today."'
       }
     ]
   }

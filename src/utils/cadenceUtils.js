@@ -11,12 +11,12 @@ export function getTodayDateString() {
   return `${year}-${month}-${day}`;
 }
 
-export function formatDateSlovak(dateStr) {
+export function formatDatePretty(dateStr) {
   if (!dateStr) return '';
   try {
     const todayStr = getTodayDateString();
     
-    // Včerajší dátum
+    // Yesterday's date
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yYear = yesterday.getFullYear();
@@ -27,44 +27,48 @@ export function formatDateSlovak(dateStr) {
     const parts = dateStr.split('-');
     if (parts.length === 3) {
       const day = parseInt(parts[2], 10);
-      const month = parseInt(parts[1], 10);
-      const year = parts[0];
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[0], 10);
+      const dObj = new Date(year, month, day);
+      const monthName = dObj.toLocaleString('en-US', { month: 'short' });
 
       if (dateStr === todayStr) {
-        return `Dnes (${day}. ${month}. ${year})`;
+        return `Today (${monthName} ${day}, ${year})`;
       }
       if (dateStr === yesterdayStr) {
-        return `Včera (${day}. ${month}. ${year})`;
+        return `Yesterday (${monthName} ${day}, ${year})`;
       }
-      return `${day}. ${month}. ${year}`;
+      return `${monthName} ${day}, ${year}`;
     }
 
     const d = new Date(dateStr);
-    return d.toLocaleDateString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   } catch (e) {
     return dateStr;
   }
 }
 
+// Backward-compatible alias
+export const formatDateSlovak = formatDatePretty;
+
 export function formatCadenceDays(days) {
   const d = Number(days) || 1;
-  if (d === 1) return 'Každý 1 deň (denne)';
-  if (d === 2) return 'Každé 2 dni';
-  if (d === 3) return 'Každé 3 dni';
-  if (d === 7) return 'Každý týždeň (7 dní)';
-  if (d === 14) return 'Každé 2 týždne (14 dní)';
-  if (d === 30) return 'Každý mesiac (30 dní)';
-  if (d >= 2 && d <= 4) return `Každé ${d} dni`;
-  return `Každých ${d} dní`;
+  if (d === 1) return 'Every day (Daily)';
+  if (d === 2) return 'Every 2 days';
+  if (d === 3) return 'Every 3 days';
+  if (d === 7) return 'Every week (7 days)';
+  if (d === 14) return 'Every 2 weeks (14 days)';
+  if (d === 30) return 'Every month (30 days)';
+  return `Every ${d} days`;
 }
 
 export function formatCadenceBadge(days) {
   const d = Number(days) || 1;
-  if (d === 1) return 'Denne';
-  if (d === 2) return 'Každé 2 dni';
-  if (d === 7) return 'Týždenne';
-  if (d === 30) return 'Mesačne';
-  return `${d} dní`;
+  if (d === 1) return 'Daily';
+  if (d === 2) return 'Every 2d';
+  if (d === 7) return 'Weekly';
+  if (d === 30) return 'Monthly';
+  return `${d} days`;
 }
 
 export function getProjectBatches(project) {

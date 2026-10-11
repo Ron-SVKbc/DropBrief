@@ -48,12 +48,12 @@ const isImageFile = (fileName, mimeType) => {
 const createInitialDemoProject = () => ({
   id: 'demo-sandbox-project',
   slug: 'demo-preview',
-  title: 'Tvorba webstránky & Vizuálna identita – Kaviareň Aurora',
+  title: 'Website Creation & Visual Identity – Aurora Cafe',
   projectType: 'one-off',
-  clientName: 'Peter Novák (Bistro & Café Aurora)',
-  clientEmail: 'peter.novak@auroracafe.sk',
-  freelancerName: 'Štúdio Creative / Marko',
-  freelancerEmail: 'kontakt@studio-creative.sk',
+  clientName: 'Peter Novak (Bistro & Cafe Aurora)',
+  clientEmail: 'peter.novak@auroracafe.com',
+  freelancerName: 'Studio Creative / Marko',
+  freelancerEmail: 'contact@studio-creative.com',
   deadline: '2026-10-30',
   reminderFrequency: 3,
   lastReminderSent: null,
@@ -63,47 +63,47 @@ const createInitialDemoProject = () => ({
   items: [
     {
       id: 'demo-item-1',
-      title: 'Vektorové logo firmy (SVG / AI / PDF)',
-      description: 'Preferovaný vektorový formát (.SVG, .AI) alebo grafika vo vysokom rozlíšení s priehľadným pozadím (.PNG).',
+      title: 'Vector company logo (SVG / AI / PDF)',
+      description: 'Preferred vector format (.SVG, .AI) or high-resolution graphic with transparent background (.PNG).',
       type: 'file',
       required: true,
-      isCompleted: true, // Ukážkovo nahratá položka, aby návštevník videl stav hotového súboru
+      isCompleted: true, // Sample uploaded item so visitors can see a completed state
       completedAt: '2026-10-02T10:30:00Z',
       value: {
         fileName: 'aurora_logo_vector_final.svg',
         fileSize: '420 KB',
         fileType: 'image/svg+xml',
         url: null,
-        uploadedAt: '02.10.2026 10:30',
+        uploadedAt: 'Oct 02, 2026 10:30 AM',
       },
     },
     {
       id: 'demo-item-2',
-      title: 'Texty pre web (O nás, Príbeh kaviarne a ponuka špecialít)',
-      description: 'Vložte texty pre novú webstránku, popis ponuky alebo kľúčové body vášho podnikania.',
+      title: 'Website copy (About us, Cafe story, and specials menu)',
+      description: 'Enter copy for the new website, description of offerings, or key highlights of your business.',
       type: 'text',
       required: true,
-      isCompleted: false, // Čaká na zadanie textu
+      isCompleted: false, // Awaiting copy input
       completedAt: null,
       value: null,
     },
     {
       id: 'demo-item-3',
-      title: 'Fotografie priestorov a kávy (5 až 10 fotiek)',
-      description: 'Nahrajte reprezentatívne fotografie interiéru, kávy a dezertov vo vysokej kvalite.',
+      title: 'Interior & coffee photos (5 to 10 photos)',
+      description: 'Upload representative high-resolution photos of the interior, coffee, and pastries.',
       type: 'file',
       required: true,
-      isCompleted: false, // Čaká na nahratie fotografií
+      isCompleted: false, // Awaiting photo upload
       completedAt: null,
       value: null,
     },
     {
       id: 'demo-item-4',
-      title: 'Dizajnový manuál & Farebná paleta (PDF)',
-      description: 'Firemné farby (HEX kódy) alebo existujúci brand manuál, ak ho máte k dispozícii.',
+      title: 'Design manual & brand color palette (PDF)',
+      description: 'Brand colors (HEX codes) or existing brand manual if available.',
       type: 'file',
       required: false,
-      isCompleted: false, // Voliteľná položka
+      isCompleted: false, // Optional item
       completedAt: null,
       value: null,
     },
@@ -186,7 +186,7 @@ export default function ClientPortal() {
     setDemoProject(createInitialDemoProject());
     setTextInputs({});
     setStagedFiles({});
-    addToast('Skúšobný náhľad bol obnovený do východzieho stavu.', 'info', 'Obnovené');
+    addToast('Interactive demo preview has been reset to defaults.', 'info', 'Reset');
   };
 
   useEffect(() => {
@@ -231,9 +231,9 @@ export default function ClientPortal() {
     return (
       <div className="container" style={{ padding: '120px 20px', textAlign: 'center' }}>
         <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 18px' }} />
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Pripravujem klientsky portál...</h2>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Preparing client portal...</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', marginTop: '6px' }}>
-          Zabezpečené načítanie požiadaviek na podklady
+          Securely loading deliverables checklist
         </p>
       </div>
     );
@@ -242,12 +242,12 @@ export default function ClientPortal() {
   if (!project) {
     return (
       <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Zákazka sa nenašla</h2>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Project Not Found</h2>
         <p style={{ color: 'var(--text-muted)', margin: '14px 0 24px', fontSize: '0.95rem' }}>
-          Tento odkaz na zákazku mohol expirovať alebo bol presunutý. Skontrolujte prosím skopírovanú adresu.
+          This project link may have expired or been moved. Please verify the copied link address.
         </p>
         <button onClick={openDashboard} className="btn btn-primary btn-pill">
-          Späť na DropBrief
+          Back to DropBrief
         </button>
       </div>
     );
@@ -258,7 +258,7 @@ export default function ClientPortal() {
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const isAllDone = totalCount > 0 && completedCount === totalCount;
 
-  // Pravidelný zber (Cadence & Batches)
+  // Cadence & Batches (ongoing projects)
   const isOngoing = Boolean(project.projectType === 'ongoing' || project.project_type === 'ongoing');
   const todayDateStr = getTodayDateString();
   const todayBatch = getCurrentBatch(project, todayDateStr);
@@ -279,7 +279,7 @@ export default function ClientPortal() {
   // 1. Stage local files
   const handleStageFiles = (itemId, filesInput) => {
     if (isFreelancerReadOnly) {
-      addToast('Ako freelancer si prezeráte náhľad. Súbory a texty nahráva výhradne zákazník.', 'warning', 'Len pre zákazníka');
+      addToast('As a freelancer, you are viewing a preview. Files and text are uploaded exclusively by the client.', 'warning', 'Client Only');
       return;
     }
     if (!filesInput) return;
@@ -321,7 +321,7 @@ export default function ClientPortal() {
   // 4. Confirm upload to server
   const handleConfirmUpload = async (itemId) => {
     if (isFreelancerReadOnly) {
-      addToast('Ako freelancer nemôžete nahrávať súbory za klienta.', 'warning', 'Len pre zákazníka');
+      addToast('As a freelancer, you cannot upload files on behalf of the client.', 'warning', 'Client Only');
       return;
     }
     const filesToUpload = stagedFiles[itemId];
@@ -483,7 +483,7 @@ export default function ClientPortal() {
 
   const handleRemoveSingleFile = async (itemId, fileIdentifier) => {
     if (isFreelancerReadOnly) {
-      addToast('Ako freelancer nemôžete odstraňovať súbory klienta v klientskom portáli.', 'warning', 'Len pre zákazníka');
+      addToast('As a freelancer, you cannot delete client files in the client portal.', 'warning', 'Client Only');
       return;
     }
 
@@ -541,7 +541,7 @@ export default function ClientPortal() {
 
   const handleTextSave = async (itemId) => {
     if (isFreelancerReadOnly) {
-      addToast('Ako freelancer nemôžete zadávať texty namiesto zákazníka.', 'warning', 'Len pre zákazníka');
+      addToast('As a freelancer, you cannot enter text on behalf of the client.', 'warning', 'Client Only');
       return;
     }
 
@@ -601,7 +601,7 @@ export default function ClientPortal() {
 
   const handleRemoveItemValue = async (itemId) => {
     if (isFreelancerReadOnly) {
-      addToast('Ako freelancer nemôžete upravovať texty klienta cez klientsky portál.', 'warning', 'Len pre zákazníka');
+      addToast('As a freelancer, you cannot edit client text through the client portal.', 'warning', 'Client Only');
       return;
     }
 
@@ -655,13 +655,13 @@ export default function ClientPortal() {
                 gap: '6px'
               }}>
                 <FlaskConical size={14} color="#a5b4fc" />
-                SKÚŠOBNÝ INTERAKTÍVNY NÁHĽAD (DEMO)
+                INTERACTIVE DEMO PREVIEW
               </span>
               
               <div style={{ fontSize: '0.86rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#fff' }}>Presne takto vidí klientsky portál váš zákazník — bez prihlasovania a bez hesiel.</strong>
+                <strong style={{ color: '#fff' }}>This is exactly what your client sees — no password or login required.</strong>
                 <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.8rem' }}>
-                  • Vyskúšajte nahrávať súbory a meniť položky. Všetko funguje interaktívne v pamäti prehliadača a neodosiela sa na server.
+                  • Try uploading files and editing items. Everything runs interactively in browser memory and is not saved to the server.
                 </span>
               </div>
             </div>
@@ -672,10 +672,10 @@ export default function ClientPortal() {
                 onClick={handleResetDemo}
                 className="btn btn-secondary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
-                title="Obnoviť skúšobný náhľad do východzieho stavu"
+                title="Reset interactive preview to initial state"
               >
                 <RotateCcw size={13} />
-                Obnoviť demo
+                Reset demo
               </button>
               <button 
                 id="btn-back-to-dashboard"
@@ -683,7 +683,7 @@ export default function ClientPortal() {
                 className="btn btn-primary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
               >
-                <ArrowLeft size={13} /> {currentFreelancer ? 'Návrat na nástenku' : 'Späť na úvod'}
+                <ArrowLeft size={13} /> {currentFreelancer ? 'Back to Dashboard' : 'Back to Home'}
               </button>
             </div>
           </div>
@@ -702,7 +702,7 @@ export default function ClientPortal() {
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <span style={{ color: '#e0e7ff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
               <Lock size={16} color="var(--accent-primary)" />
-              <span><strong>Náhľad klientskeho portálu (Režim iba na čítanie):</strong> Ako freelancer si prezeráte rozhranie klienta. Nahrávanie súborov a textov je povolené iba zákazníkovi.</span>
+              <span><strong>Client Portal Preview (Read-only mode):</strong> As a freelancer, you are viewing the client interface. Uploading files and text is reserved for the client.</span>
             </span>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button 
@@ -711,7 +711,7 @@ export default function ClientPortal() {
                 className="btn btn-primary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.8rem', gap: '5px' }}
               >
-                <Layers size={13} /> Správa zákazky
+                <Layers size={13} /> Project Management
               </button>
               <button 
                 id="btn-back-to-dashboard"
@@ -719,7 +719,7 @@ export default function ClientPortal() {
                 className="btn btn-secondary btn-sm btn-pill"
                 style={{ padding: '6px 12px', fontSize: '0.8rem' }}
               >
-                <ArrowLeft size={13} /> Nástenka
+                <ArrowLeft size={13} /> Dashboard
               </button>
             </div>
           </div>
@@ -790,7 +790,7 @@ export default function ClientPortal() {
                     gap: '5px',
                     fontWeight: 700
                   }}>
-                    <FlaskConical size={11} /> Skúšobný náhľad (Zmeny sa neukladajú na server)
+                    <FlaskConical size={11} /> Interactive Preview (Changes are not saved to server)
                   </span>
                 )}
               </div>
@@ -799,9 +799,9 @@ export default function ClientPortal() {
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', lineHeight: 1.55, maxWidth: '520px' }}>
                 {isDemoMode ? (
-                  <>Vítajte v ukážke, <strong>{project.clientName}</strong>! Toto je interaktívny zoznam podkladov, ktoré požaduje freelancer pre realizáciu projektu. Vyskúšajte do neho nahrať súbory alebo vpísať texty.</>
+                  <>Welcome to the demo, <strong>{project.clientName}</strong>! This is an interactive checklist of deliverables requested by the freelancer. Feel free to upload files or enter copy to test the interface.</>
                 ) : (
-                  <>Dobrý deň <strong>{project.clientName}</strong>, tu je prehľadný kontrolný zoznam podkladov a informácií potrebných pre úspešné dokončenie vašej zákazky.</>
+                  <>Hello <strong>{project.clientName}</strong>, here is the organized checklist of deliverables and information needed to successfully complete your project.</>
                 )}
               </p>
             </div>
@@ -852,21 +852,21 @@ export default function ClientPortal() {
                   </div>
                   <div>
                     <strong style={{ fontSize: '1rem', color: '#fff', display: 'block' }}>
-                      {formatDateSlovak(todayDateStr)} – Dnešné podklady
+                      {formatDateSlovak(todayDateStr)} – Today's Deliverables
                     </strong>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      Pravidelný zber dát &bull; {formatCadenceDays(project.cadenceDays || 1)}
+                      Recurring Collection &bull; {formatCadenceDays(project.cadenceDays || 1)}
                     </span>
                   </div>
                 </div>
 
                 {isTodayDone ? (
                   <span className="badge badge-success" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
-                    <CheckCircle2 size={14} /> Dnes úspešne odovzdané
+                    <CheckCircle2 size={14} /> Delivered successfully today
                   </span>
                 ) : (
                   <span className="badge badge-warning" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
-                    <Clock size={14} /> Čaká sa na dnešné podklady
+                    <Clock size={14} /> Pending today's deliverables
                   </span>
                 )}
               </div>
@@ -886,7 +886,7 @@ export default function ClientPortal() {
                 }}>
                   <Sparkles size={20} color="var(--success)" style={{ flexShrink: 0 }} />
                   <span>
-                    Ďakujeme! Dnešné materiály boli bezpečne doručené. {project.freelancerName} ich spracuje. Na ďalšiu dávku sa formulár automaticky pripraví podľa nastavenej frekvencie ({formatCadenceDays(project.cadenceDays || 1)}).
+                    Thank you! Today's materials were securely received. {project.freelancerName} will process them. The portal will automatically prepare for the next batch according to the schedule ({formatCadenceDays(project.cadenceDays || 1)}).
                   </span>
                 </div>
               )}
@@ -1087,10 +1087,10 @@ export default function ClientPortal() {
                                 <Lock size={20} />
                               </div>
                               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                                Režim náhľadu: Nahrávanie vyhradené pre klienta
+                                Preview Mode: Uploads reserved for client
                               </div>
                               <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                                Súbory nahráva zákazník priamo cez svoj odkaz. Ako freelancer tu nemôžete odovzdávať súbory za klienta.
+                                Files are uploaded directly by the client through their dedicated link. As a freelancer, you cannot submit files on behalf of the client.
                               </span>
                             </div>
                           ) : (
@@ -1698,10 +1698,10 @@ export default function ClientPortal() {
                             </div>
                             <div>
                               <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '2px' }}>
-                                Režim náhľadu: Text zadáva klient
+                                Preview Mode: Text entry reserved for client
                               </div>
                               <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                                Textové podklady a odpovede vypĺňa zákazník priamo cez svoj odkaz. Ako freelancer tu nemôžete odosielať text namiesto klienta.
+                                Text deliverables and answers are provided directly by the client through their dedicated link. As a freelancer, you cannot enter text on behalf of the client.
                               </div>
                             </div>
                           </div>
@@ -1761,7 +1761,7 @@ export default function ClientPortal() {
           })}
         </div>
 
-        {/* Archív predchádzajúcich odovzdaní (pre dlhodobé zákazky) */}
+        {/* Archive of previous submissions (for ongoing projects) */}
         {isOngoing && getProjectBatches(project).length > 0 && (
           <div className="glass-card" style={{
             padding: '24px 28px',
@@ -1774,10 +1774,10 @@ export default function ClientPortal() {
               <Layers size={18} color="#c084fc" />
               <div>
                 <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>
-                  Archív vašich predchádzajúcich odovzdaní ({getProjectBatches(project).length})
+                  Archive of previous submissions ({getProjectBatches(project).length})
                 </strong>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Všetky skôr odovzdané dávky a materiály sú bezpečne uložené u {project.freelancerName}.
+                  All previously submitted batches and files are securely stored with {project.freelancerName}.
                 </span>
               </div>
             </div>
@@ -1806,7 +1806,7 @@ export default function ClientPortal() {
                           {formatDateSlovak(batch.date)}
                         </span>
                         <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 7px' }}>
-                          {count} {count === 1 ? 'súbor' : count < 5 ? 'súbory' : 'súborov'}
+                          {count} {count === 1 ? 'file' : 'files'}
                         </span>
                       </div>
                       {batch.note && (
@@ -1816,7 +1816,7 @@ export default function ClientPortal() {
                       )}
                     </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
-                      <CheckCircle2 size={13} /> Bezpečne odovzdané
+                      <CheckCircle2 size={13} /> Securely received
                     </span>
                   </div>
                 );

@@ -182,7 +182,7 @@ export default function Navbar({ onOpenCreateModal }) {
             }}
           >
             <LayoutDashboard size={13} />
-            {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Späť' : 'Dashboard') : 'For Freelancers'}
+            {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Back' : 'Dashboard') : 'For Freelancers'}
           </button>
 
           {currentFreelancer ? (
@@ -198,12 +198,12 @@ export default function Navbar({ onOpenCreateModal }) {
                   fontSize: '0.8rem',
                   gap: '6px'
                 }}
-                title="Rozkliknúť a vybrať zákazku pre klientsky náhľad"
+                title="Click to select a project for client preview"
               >
                 <Eye size={13} />
                 <span>
                   {currentView === 'client-portal' && currentPortalProject 
-                    ? `Náhľad: ${currentPortalProject.title.length > 16 ? currentPortalProject.title.slice(0, 15) + '...' : currentPortalProject.title}` 
+                    ? `Preview: ${currentPortalProject.title.length > 16 ? currentPortalProject.title.slice(0, 15) + '...' : currentPortalProject.title}` 
                     : 'Client View'}
                 </span>
                 <ChevronDown 
@@ -248,11 +248,11 @@ export default function Navbar({ onOpenCreateModal }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Eye size={13} color="var(--accent-primary)" />
                       <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Vybrať zákazku na náhľad
+                        Select Project for Preview
                       </span>
                     </div>
                     <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
-                      {projectList.length} {projectList.length === 1 ? 'zákazka' : 'zákaziek'}
+                      {projectList.length} {projectList.length === 1 ? 'project' : 'projects'}
                     </span>
                   </div>
 
@@ -260,7 +260,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   <div style={{ maxHeight: '260px', overflowY: 'auto', padding: '6px' }}>
                     {projectList.length === 0 ? (
                       <div style={{ padding: '16px 12px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
-                        Zatiaľ nemáte vytvorené žiadne zákazky.
+                        No projects created yet.
                       </div>
                     ) : (
                       projectList.map((p) => {
@@ -308,7 +308,7 @@ export default function Navbar({ onOpenCreateModal }) {
                                 <span className="truncate">{p.clientName}</span>
                                 <span>&bull;</span>
                                 <span style={{ color: isCompleted ? 'var(--success-light)' : 'var(--warning-light)', flexShrink: 0 }}>
-                                  {completedCount}/{totalItems} podkladov
+                                  {completedCount}/{totalItems} items
                                 </span>
                               </div>
                             </div>
@@ -353,11 +353,11 @@ export default function Navbar({ onOpenCreateModal }) {
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                     >
                       <Sparkles size={11} color="var(--accent-primary)" />
-                      <span>Demo Sandbox portál</span>
+                      <span>Demo Sandbox Portal</span>
                     </button>
 
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-quaternary)' }}>
-                      Bez hesiel
+                      No passwords
                     </span>
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 fontSize: '0.8rem',
                 gap: '6px'
               }}
-              title="Vyskúšať klientsky portál bez prihlásenia (Interaktívne demo)"
+              title="Try the client portal without login (Interactive Demo)"
             >
               <Eye size={13} />
               <span>Client View</span>

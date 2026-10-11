@@ -48,12 +48,12 @@ const isImageFile = (fileName, mimeType) => {
 };
 
 const QUICK_PRESETS = [
-  { title: 'Vektorové logo (SVG / AI / PDF)', description: 'Logo v krivkách na transparentnom pozadí pre web a tlač.', type: 'file', required: true },
-  { title: 'Texty a podklady na hlavnú stránku', description: 'Popis firmy, služby, príbeh značky a kontaktné údaje.', type: 'text', required: true },
-  { title: 'Fotografie priestorov, produktov a tímu (5-15 ks)', description: 'Kvalitné reprezentatívne fotografie vo vysokom rozlíšení.', type: 'file', required: true },
-  { title: 'Prístupy do hostingu a k doméne', description: 'Prihlasovacie údaje k registrátorovi domény alebo delegovaný prístup.', type: 'text', required: false },
-  { title: 'Fakturačné a firemné údaje (IČO, DIČ, IBAN)', description: 'Oficiálne údaje spoločnosti pre fakturáciu a pätičku webu.', type: 'text', required: true },
-  { title: 'Zmluva alebo podpísaná objednávka (PDF)', description: 'Obojstranne potvrdená zmluva o dielo alebo akceptovaná cenová ponuka.', type: 'file', required: false },
+  { title: 'Vector logo (SVG / AI / PDF)', description: 'Vector logo with transparent background for web and print.', type: 'file', required: true },
+  { title: 'Homepage copy & messaging', description: 'Company description, services, brand story, and contact details.', type: 'text', required: true },
+  { title: 'Photos of location, products & team (5-15 pcs)', description: 'High-resolution representative imagery.', type: 'file', required: true },
+  { title: 'Hosting & domain credentials or access', description: 'Domain registrar login or delegated manager access.', type: 'text', required: false },
+  { title: 'Billing & corporate details (Tax ID, VAT, IBAN)', description: 'Official company details for invoices and website footer.', type: 'text', required: true },
+  { title: 'Contract or signed proposal (PDF)', description: 'Countersigned agreement or accepted project estimate.', type: 'file', required: false },
 ];
 
 export default function ProjectDetailView() {
@@ -111,15 +111,15 @@ export default function ProjectDetailView() {
         <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
           <AlertCircle size={40} color="var(--warning)" style={{ marginBottom: '12px' }} />
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>
-            {!project ? 'Zákazka sa nenašla' : 'Prístup odmietnutý'}
+            {!project ? 'Project Not Found' : 'Access Denied'}
           </h2>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: '20px' }}>
             {!project 
-              ? 'Zvolená zákazka neexistuje alebo bola odstránená.' 
-              : 'Nemáte oprávnenie spravovať túto zákazku. Táto zákazka patrí inému účtu.'}
+              ? 'Selected project does not exist or has been removed.' 
+              : 'You do not have permission to manage this project. It belongs to another account.'}
           </p>
           <button onClick={openDashboard} className="btn btn-primary btn-pill">
-            <ArrowLeft size={16} /> Späť na Nástěnku
+            <ArrowLeft size={16} /> Back to Dashboard
           </button>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function ProjectDetailView() {
     const url = `${baseUrl}/?p=${project.slug}`;
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
-    addToast('Unikátny odkaz pre klienta bol skopírovaný do schránky!', 'success', 'Odkaz skopírovaný');
+    addToast('Private client link copied to clipboard!', 'success', 'Link Copied');
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
@@ -158,7 +158,7 @@ export default function ProjectDetailView() {
     if (!project.clientEmail) return;
     navigator.clipboard.writeText(project.clientEmail);
     setCopiedEmail(true);
-    addToast(`Email ${project.clientEmail} skopírovaný!`, 'success', 'Email skopírovaný');
+    addToast(`Email ${project.clientEmail} copied!`, 'success', 'Email Copied');
     setTimeout(() => setCopiedEmail(false), 2500);
   };
 
@@ -185,7 +185,7 @@ export default function ProjectDetailView() {
   const handleSubmitAddItem = async (e) => {
     e.preventDefault();
     if (!newItemTitle.trim()) {
-      addToast('Zadajte názov požiadavky.', 'warning', 'Chýba názov');
+      addToast('Please enter item title.', 'warning', 'Missing Title');
       return;
     }
 
@@ -198,7 +198,7 @@ export default function ProjectDetailView() {
       });
       setIsAddItemModalOpen(false);
     } catch (err) {
-      addToast('Nepodarilo sa pridať položku.', 'danger', 'Chyba');
+      addToast('Failed to add item.', 'danger', 'Error');
     }
   };
 
@@ -216,7 +216,7 @@ export default function ProjectDetailView() {
     e.preventDefault();
     if (!editingItem) return;
     if (!editItemTitle.trim()) {
-      addToast('Zadajte názov požiadavky.', 'warning', 'Chýba názov');
+      addToast('Please enter item title.', 'warning', 'Missing Title');
       return;
     }
 
@@ -230,7 +230,7 @@ export default function ProjectDetailView() {
       setIsEditItemModalOpen(false);
       setEditingItem(null);
     } catch (err) {
-      addToast('Nepodarilo sa aktualizovať položku.', 'danger', 'Chyba');
+      addToast('Failed to update item.', 'danger', 'Error');
     }
   };
 
@@ -238,14 +238,14 @@ export default function ProjectDetailView() {
   const handleDeleteItem = async (item) => {
     const hasFiles = item.isCompleted && item.value;
     const confirmMsg = hasFiles 
-      ? `Pozor: Položka "${item.title}" už obsahuje odovzdané podklady od klienta. Naozaj ju chcete natrvalo odstrániť?`
-      : `Naozaj chcete odstrániť položku "${item.title}" zo zákazky?`;
+      ? `Notice: Item "${item.title}" already contains submitted client files. Do you really want to permanently remove it?`
+      : `Are you sure you want to remove item "${item.title}" from this project?`;
 
     if (window.confirm(confirmMsg)) {
       try {
         await deleteItemFromProject(project.id, item.id);
       } catch (err) {
-        addToast('Nepodarilo sa odstrániť položku.', 'danger', 'Chyba');
+        addToast('Failed to remove item.', 'danger', 'Error');
       }
     }
   };
@@ -269,7 +269,7 @@ export default function ProjectDetailView() {
           style={{ gap: '6px' }}
         >
           <ArrowLeft size={14} />
-          Späť na Nástěnku
+          Back to Dashboard
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -290,10 +290,10 @@ export default function ProjectDetailView() {
               cursor: 'pointer',
               transition: 'all 0.18s ease'
             }}
-            title="Kliknutím zmeníte typ zákazky"
+            title="Click to toggle project type"
           >
             {project.projectType === 'ongoing' ? <RefreshCw size={11} /> : <Zap size={11} />}
-            {project.projectType === 'ongoing' ? `Pravidelný zber (${formatCadenceBadge(project.cadenceDays || 1)})` : 'Jednorazová zákazka (One-off)'}
+            {project.projectType === 'ongoing' ? `Ongoing Retainer (${formatCadenceBadge(project.cadenceDays || 1)})` : 'One-off Project'}
           </button>
 
           {/* Status badge */}
@@ -301,31 +301,31 @@ export default function ProjectDetailView() {
             isTodaySubmitted(project) ? (
               <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
                 <CheckCircle2 size={12} />
-                Dnes dodané (Pripravené)
+                Delivered today (Ready)
               </span>
             ) : (
               <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
                 <Clock size={12} />
-                Čaká sa na dnes
+                Pending for today
               </span>
             )
           ) : (
             isCompleted ? (
               <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
                 <CheckCircle2 size={12} />
-                Kompletné (100% odovzdané)
+                Complete (100% submitted)
               </span>
             ) : (
               <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
                 <Clock size={12} />
-                Čaká sa na klienta ({missingCount} chýba)
+                Waiting on client ({missingCount} pending)
               </span>
             )
           )}
 
           <span className="badge badge-neutral" style={{ padding: '4px 10px', gap: '5px' }}>
             <BellRing size={11} />
-            Pripomienka: každé {project.reminderFrequency || 3} dni
+            Reminder: every {project.reminderFrequency || 3} days
           </span>
         </div>
       </div>
@@ -377,7 +377,7 @@ export default function ProjectDetailView() {
                   cursor: 'pointer',
                   padding: 0
                 }}
-                title="Kopírovať email klienta"
+                title="Copy client email"
               >
                 <Mail size={14} />
                 <span>{project.clientEmail}</span>
@@ -386,13 +386,13 @@ export default function ProjectDetailView() {
 
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Calendar size={14} />
-                <span>Termín (Deadline): <strong style={{ color: 'var(--text-secondary)' }}>{project.deadline || 'Nestanovený'}</strong></span>
+                <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{project.deadline || 'Not set'}</strong></span>
               </span>
 
               {project.lastReminderSent && (
                 <span style={{ color: 'var(--warning-light)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Send size={12} />
-                  Posledná pripomienka: {project.lastReminderSent}
+                  Last reminder: {project.lastReminderSent}
                 </span>
               )}
             </div>
@@ -413,10 +413,10 @@ export default function ProjectDetailView() {
                   color: '#fff',
                   fontWeight: 700
                 }}
-                title="Poslať klientovi pripomienku cez Resend"
+                title="Send reminder to client via Resend"
               >
                 <Send size={14} />
-                Poslať pripomienku ({missingCount} chýba)
+                Send Reminder ({missingCount} pending)
               </button>
             ) : (
               <button
@@ -424,10 +424,10 @@ export default function ProjectDetailView() {
                 onClick={() => openReminderModal(project.id)}
                 className="btn btn-secondary btn-sm btn-pill"
                 style={{ fontSize: '0.8rem' }}
-                title="Poslať správu klientovi"
+                title="Message client"
               >
                 <Send size={13} />
-                Správa klientovi
+                Message Client
               </button>
             )}
 
@@ -436,10 +436,10 @@ export default function ProjectDetailView() {
               id="btn-detail-export"
               onClick={handleDownloadAll}
               className="btn btn-secondary btn-sm btn-pill"
-              title="Stiahnuť všetky doručené podklady"
+              title="Download all delivered assets"
             >
               <Download size={14} />
-              Export podkladov ({completedCount})
+              Export Assets ({completedCount})
             </button>
 
             {/* Add New Item Button */}
@@ -448,10 +448,10 @@ export default function ProjectDetailView() {
               onClick={handleOpenAddItemModal}
               className="btn btn-secondary btn-sm btn-pill"
               style={{ borderColor: 'var(--accent-primary)', color: '#c7d2fe' }}
-              title="Pridať novú požiadavku do checklistu"
+              title="Add new checklist requirement"
             >
               <Plus size={14} color="var(--accent-primary)" />
-              Pridať požiadavku
+              Add Item
             </button>
           </div>
         </div>
@@ -481,7 +481,7 @@ export default function ProjectDetailView() {
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
-                Privátny odkaz pre klienta (Nahrávanie bez registrácie)
+                Private Client Portal Link (Zero login required)
               </div>
               <div style={{ fontSize: '0.84rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }} className="truncate">
                 {window.location.origin.includes('localhost') ? 'https://usedropbrief.xyz' : window.location.origin}/?p={project.slug}
@@ -497,7 +497,7 @@ export default function ProjectDetailView() {
               style={{ padding: '6px 14px', fontSize: '0.8rem' }}
             >
               {copiedLink ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
-              {copiedLink ? 'Skopírované!' : 'Kopírovať odkaz'}
+              {copiedLink ? 'Copied!' : 'Copy Link'}
             </button>
 
             <button
@@ -505,10 +505,10 @@ export default function ProjectDetailView() {
               onClick={() => openClientPortal(project.slug)}
               className="btn btn-secondary btn-sm btn-pill"
               style={{ padding: '6px 12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
-              title="Pozrieť si náhľad klientskeho portálu"
+              title="Preview client portal"
             >
               <Eye size={13} />
-              Náhľad pre klienta
+              Client Preview
             </button>
           </div>
         </div>
@@ -529,26 +529,26 @@ export default function ProjectDetailView() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 700 }}>
-                  <RefreshCw size={11} /> Pravidelný zber
+                  <RefreshCw size={11} /> Ongoing Retainer
                 </span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                  Stály odkaz pre klienta
+                  Permanent client upload link
                 </span>
               </div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Frekvencia požadovania podkladov: <span style={{ color: '#c084fc' }}>{formatCadenceDays(project.cadenceDays || 1)}</span>
+                Deliverables cadence: <span style={{ color: '#c084fc' }}>{formatCadenceDays(project.cadenceDays || 1)}</span>
               </h3>
             </div>
 
             {/* Quick cadence selector buttons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Zmeniť frekvenciu:</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Change cadence:</span>
               {[
-                { days: 1, label: 'Každý 1 deň' },
-                { days: 2, label: 'Každé 2 dni' },
-                { days: 3, label: 'Každé 3 dni' },
-                { days: 7, label: 'Každý týždeň' },
-                { days: 30, label: 'Každý mesiac' },
+                { days: 1, label: 'Every day' },
+                { days: 2, label: 'Every 2 days' },
+                { days: 3, label: 'Every 3 days' },
+                { days: 7, label: 'Every week' },
+                { days: 30, label: 'Every month' },
               ].map((opt) => {
                 const isActive = (project.cadenceDays || 1) === opt.days;
                 return (
@@ -576,7 +576,7 @@ export default function ProjectDetailView() {
             </div>
           </div>
 
-          {/* Dnešný stav / Dnešná dávka */}
+          {/* Today status / Today batch */}
           {(() => {
             const todayStr = getTodayDateString();
             const todayBatch = getCurrentBatch(project, todayStr);
@@ -586,7 +586,7 @@ export default function ProjectDetailView() {
               <div style={{
                 padding: '18px 22px',
                 borderRadius: 'var(--radius-lg)',
-                background: isDelivered ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.08)',
+                background: isDelivered ? 'rgba(168, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.08)',
                 border: isDelivered ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -612,14 +612,14 @@ export default function ProjectDetailView() {
                         {formatDateSlovak(todayStr)}
                       </strong>
                       <span className={`badge ${isDelivered ? 'badge-success' : 'badge-warning'}`}>
-                        {isDelivered ? 'Podklady pripravené na spracovanie' : 'Čaká sa na dnešné podklady'}
+                        {isDelivered ? 'Assets ready for processing' : 'Waiting for today deliverables'}
                       </span>
                     </div>
                     <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
                       {isDelivered ? (
-                        <>Klient odovzdal dnešnú dávku: <strong>{todayBatch.files?.length || 0} súborov</strong> {todayBatch.note ? `• ${todayBatch.note.substring(0, 60)}...` : ''}</>
+                        <>Client submitted today batch: <strong>{todayBatch.files?.length || 0} files</strong> {todayBatch.note ? `• ${todayBatch.note.substring(0, 60)}...` : ''}</>
                       ) : (
-                        <>Klient zatiaľ nenahral dnešné materiály. Môžete mu poslať pripomienku 1 klikom.</>
+                        <>Client has not uploaded today deliverables yet. You can send a 1-click reminder.</>
                       )}
                     </div>
                   </div>
@@ -635,20 +635,20 @@ export default function ProjectDetailView() {
                         style={{ gap: '6px' }}
                       >
                         <Download size={13} />
-                        Stiahnuť dnešné podklady
+                        Download Today Assets
                       </button>
                       {todayBatch?.note && (
                         <button
                           type="button"
                           onClick={() => {
                             navigator.clipboard.writeText(todayBatch.note);
-                            addToast('Dnešný popis skopírovaný!', 'success', 'Skopírované');
+                            addToast('Today note copied to clipboard!', 'success', 'Copied');
                           }}
                           className="btn btn-secondary btn-sm btn-pill"
                           style={{ gap: '6px' }}
                         >
                           <Copy size={13} />
-                          Kopírovať popis
+                          Copy Note
                         </button>
                       )}
                     </>
@@ -666,7 +666,7 @@ export default function ProjectDetailView() {
                       }}
                     >
                       <Send size={13} />
-                      Poslať pripomienku na dnes
+                      Send Reminder for Today
                     </button>
                   )}
                 </div>
@@ -674,12 +674,12 @@ export default function ProjectDetailView() {
             );
           })()}
 
-          {/* História odovzdaní / dávok (Batches feed) */}
+          {/* Submission history / Batches feed */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Layers size={15} color="#c084fc" />
-                História odovzdaných dní ({getProjectBatches(project).length})
+                Submission History ({getProjectBatches(project).length})
               </div>
             </div>
 
@@ -693,7 +693,7 @@ export default function ProjectDetailView() {
                 color: 'var(--text-tertiary)',
                 fontSize: '0.85rem'
               }}>
-                Zatiaľ neboli zaznamenané žiadne predchádzajúce dávky. Keď klient odošle dnešné materiály, automaticky sa uložia do histórie.
+                No previous batches recorded yet. When the client submits today deliverables, they will be archived here automatically.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -731,7 +731,7 @@ export default function ProjectDetailView() {
                               {formatDateSlovak(batch.date)}
                             </strong>
                             <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-                              {filesCount} {filesCount === 1 ? 'súbor' : filesCount < 5 ? 'súbory' : 'súborov'}
+                              {filesCount} {filesCount === 1 ? 'file' : 'files'}
                             </span>
                           </div>
                           {batch.note && (
@@ -748,13 +748,13 @@ export default function ProjectDetailView() {
                             type="button"
                             onClick={() => {
                               navigator.clipboard.writeText(batch.note);
-                              addToast('Popis z dávky skopírovaný!', 'success', 'Skopírované');
+                              addToast('Batch note copied to clipboard!', 'success', 'Copied');
                             }}
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '4px 10px', fontSize: '0.74rem' }}
-                            title="Kopírovať popis"
+                            title="Copy note"
                           >
-                            <Copy size={12} /> Kopírovať popis
+                            <Copy size={12} /> Copy Note
                           </button>
                         )}
                         <button
@@ -762,9 +762,9 @@ export default function ProjectDetailView() {
                           onClick={handleDownloadAll}
                           className="btn btn-secondary btn-sm"
                           style={{ padding: '4px 10px', fontSize: '0.74rem' }}
-                          title="Stiahnuť podklady"
+                          title="Download assets"
                         >
-                          <Download size={12} /> Stiahnuť
+                          <Download size={12} /> Download
                         </button>
                       </div>
                     </div>
@@ -782,7 +782,7 @@ export default function ProjectDetailView() {
         {/* Metric 1 — Delivered */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <span className="metric-label">Odovzdané od klienta</span>
+            <span className="metric-label">Delivered by client</span>
             <div style={{
               width: '32px', height: '32px',
               borderRadius: 'var(--radius-md)',
@@ -799,7 +799,7 @@ export default function ProjectDetailView() {
             {completedCount} <span style={{ fontSize: '1rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/ {totalCount}</span>
           </div>
           <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-            {progressPercent}% požiadaviek skompletizovaných
+            {progressPercent}% of deliverables completed
           </div>
           
           <div className="progress-track" style={{ marginTop: '12px' }}>
@@ -816,7 +816,7 @@ export default function ProjectDetailView() {
         {/* Metric 2 — Missing */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <span className="metric-label">Čaká sa na klienta (Chýba)</span>
+            <span className="metric-label">Pending from client (Missing)</span>
             <div style={{
               width: '32px', height: '32px',
               borderRadius: 'var(--radius-md)',
@@ -833,7 +833,7 @@ export default function ProjectDetailView() {
             {missingCount}
           </div>
           <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-            {missingCount === 0 ? 'Žiadne chýbajúce podklady' : 'Vyžaduje pozornosť a nahratie klientom'}
+            {missingCount === 0 ? 'No missing deliverables' : 'Requires client attention & upload'}
           </div>
 
           <div style={{ marginTop: '12px' }}>
@@ -843,11 +843,11 @@ export default function ProjectDetailView() {
                 className="btn btn-secondary btn-sm"
                 style={{ width: '100%', fontSize: '0.76rem', color: 'var(--warning-light)', borderColor: 'var(--warning-border)', padding: '5px 10px' }}
               >
-                <Send size={12} /> Odoslať klientovi pripomienku
+                <Send size={12} /> Send reminder to client
               </button>
             ) : (
               <div style={{ fontSize: '0.76rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <CheckCircle2 size={13} /> Všetky podklady doručené
+                <CheckCircle2 size={13} /> All deliverables received
               </div>
             )}
           </div>
@@ -857,13 +857,13 @@ export default function ProjectDetailView() {
         <div className="glass-card" style={{ padding: '18px 20px', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(13, 18, 32, 0.6) 100%)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <ShieldCheck size={18} color="var(--accent-primary)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>Zabezpečený zber podkladov</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>Secure Deliverables Collection</span>
           </div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', lineHeight: 1.5, marginBottom: '10px' }}>
-            Súbory a texty nahráva výhradne zákazník cez svoj odkaz. Ako freelancer tu spravujete zoznam požiadaviek (pridávate, upravujete a uberáte elementy) a prezeráte doručené dáta.
+            Files and text are submitted exclusively by the client through their dedicated link. As a freelancer, you manage the list of requirements here and review submitted deliverables.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--accent-primary-light)', fontWeight: 600 }}>
-            <Sparkles size={12} /> Zero-friction: klient nepotrebuje žiadne heslo ani účet
+            <Sparkles size={12} /> Zero-friction: client needs no password or login
           </div>
         </div>
 
@@ -883,10 +883,10 @@ export default function ProjectDetailView() {
         }}>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '3px' }}>
-              Prehľad požiadaviek zákazky
+              Project Deliverables Checklist
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              Detailný rozpis doručených podkladov a chýbajúcich položiek pre túto zákazku.
+              Detailed overview of received deliverables and missing items for this project.
             </p>
           </div>
 
@@ -898,21 +898,21 @@ export default function ProjectDetailView() {
                 className={`btn btn-sm btn-pill ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700 }}
               >
-                Všetky &bull; {totalCount}
+                All &bull; {totalCount}
               </button>
               <button
                 onClick={() => setActiveFilter('missing')}
                 className={`btn btn-sm btn-pill ${activeFilter === 'missing' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'missing' ? '#fff' : 'var(--warning-light)' }}
               >
-                Chýba &bull; {missingCount}
+                Missing &bull; {missingCount}
               </button>
               <button
                 onClick={() => setActiveFilter('completed')}
                 className={`btn btn-sm btn-pill ${activeFilter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'completed' ? '#fff' : 'var(--success-light)' }}
               >
-                Poslané &bull; {completedCount}
+                Delivered &bull; {completedCount}
               </button>
             </div>
 
@@ -924,7 +924,7 @@ export default function ProjectDetailView() {
               style={{ gap: '6px' }}
             >
               <Plus size={14} />
-              Pridať požiadavku
+              Add Requirement
             </button>
           </div>
         </div>
@@ -934,18 +934,18 @@ export default function ProjectDetailView() {
           <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
             <CheckCircle2 size={36} color="var(--accent-primary)" style={{ marginBottom: '8px' }} />
             <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>
-              {activeFilter === 'missing' ? 'Všetky položky sú už poslané! 🎉' : activeFilter === 'completed' ? 'Zatiaľ neboli poslané žiadne podklady.' : 'Zákazka zatiaľ nemá žiadne požiadavky.'}
+              {activeFilter === 'missing' ? 'All items have been submitted! 🎉' : activeFilter === 'completed' ? 'No deliverables submitted yet.' : 'This project has no requirements yet.'}
             </h3>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.825rem', maxWidth: '420px', lineHeight: 1.5, marginBottom: '16px' }}>
               {activeFilter === 'missing' 
-                ? 'Klient úspešne odovzdal všetky požadované podklady.' 
+                ? 'The client has successfully submitted all requested deliverables.' 
                 : activeFilter === 'completed' 
-                  ? 'Pošlite klientovi pripomienku alebo odkaz, aby mohol nahrať potrebné súbory.' 
-                  : 'Pridajte novú požiadavku kliknutím na tlačidlo nižšie.'}
+                  ? 'Send the client a reminder or share their link so they can upload required files.' 
+                  : 'Add your first requirement by clicking the button below.'}
             </p>
             {activeFilter === 'all' && (
               <button onClick={handleOpenAddItemModal} className="btn btn-primary btn-sm btn-pill">
-                <Plus size={14} /> Pridať prvú požiadavku
+                <Plus size={14} /> Add First Requirement
               </button>
             )}
           </div>
@@ -1012,26 +1012,26 @@ export default function ProjectDetailView() {
                         {/* Badges */}
                         <span className={`badge ${isFile ? 'badge-accent' : 'badge-violet'}`} style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
                           {isFile ? <Upload size={10} /> : <FileText size={10} />}
-                          {isFile ? 'Súbor' : 'Text / Zadanie'}
+                          {isFile ? 'File' : 'Text / Details'}
                         </span>
 
                         {item.required ? (
                           <span className="badge badge-neutral" style={{ fontSize: '0.65rem', padding: '2px 6px', color: 'var(--warning-light)' }}>
-                            Povinné
+                            Required
                           </span>
                         ) : (
                           <span className="badge badge-neutral" style={{ fontSize: '0.65rem', padding: '2px 6px', opacity: 0.7 }}>
-                            Voliteľné
+                            Optional
                           </span>
                         )}
 
                         {isItemDone ? (
                           <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Check size={10} /> Klient odovzdal
+                            <Check size={10} /> Submitted by client
                           </span>
                         ) : (
                           <span className="badge badge-warning" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Clock size={10} /> Chýba &bull; Čaká sa
+                            <Clock size={10} /> Missing &bull; Pending
                           </span>
                         )}
                       </div>
@@ -1046,7 +1046,7 @@ export default function ProjectDetailView() {
                       {/* Completed Timestamp */}
                       {isItemDone && item.completedAt && (
                         <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', marginLeft: '32px', marginTop: '4px' }}>
-                          Odovzdané: <strong style={{ color: 'var(--text-secondary)' }}>{new Date(item.completedAt).toLocaleString('sk-SK')}</strong>
+                          Submitted: <strong style={{ color: 'var(--text-secondary)' }}>{new Date(item.completedAt).toLocaleString('en-US')}</strong>
                         </div>
                       )}
                     </div>
@@ -1058,10 +1058,10 @@ export default function ProjectDetailView() {
                         onClick={() => handleOpenEditItemModal(item)}
                         className="btn btn-secondary btn-sm"
                         style={{ padding: '5px 10px', fontSize: '0.78rem', borderRadius: 'var(--radius-sm)' }}
-                        title="Upraviť názov, popis alebo typ požiadavky"
+                        title="Edit title, instructions, or requirement type"
                       >
                         <Edit3 size={13} />
-                        Upraviť
+                        Edit
                       </button>
 
                       <button
@@ -1069,7 +1069,7 @@ export default function ProjectDetailView() {
                         onClick={() => handleDeleteItem(item)}
                         className="btn btn-secondary btn-sm"
                         style={{ padding: '5px 8px', fontSize: '0.78rem', color: 'var(--danger)', borderRadius: 'var(--radius-sm)' }}
-                        title="Odstrániť požiadavku zo zákazky"
+                        title="Delete requirement from project"
                       >
                         <Trash2 size={13} />
                       </button>
@@ -1090,12 +1090,12 @@ export default function ProjectDetailView() {
                           /* Files delivered */
                           <div>
                             <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>
-                              Doručené súbory od klienta ({fileList.length}):
+                              Files delivered by client ({fileList.length}):
                             </div>
 
                             {fileList.length === 0 ? (
                               <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
-                                Súbor odovzdaný: {item.value?.fileName || 'Súbor'} ({item.value?.fileSize || 'N/A'})
+                                File submitted: {item.value?.fileName || 'File'} ({item.value?.fileSize || 'N/A'})
                               </div>
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1148,7 +1148,7 @@ export default function ProjectDetailView() {
                                             {f.fileName}
                                           </div>
                                           <div style={{ fontSize: '0.73rem', color: 'var(--text-tertiary)' }}>
-                                            {f.fileSize || 'Veľkosť neznáma'} {f.uploadedAt ? `• ${f.uploadedAt}` : ''}
+                                            {f.fileSize || 'Size unknown'} {f.uploadedAt ? `• ${f.uploadedAt}` : ''}
                                           </div>
                                         </div>
                                       </div>
@@ -1163,11 +1163,11 @@ export default function ProjectDetailView() {
                                           className="btn btn-secondary btn-sm"
                                           style={{ fontSize: '0.78rem', padding: '5px 12px', gap: '5px' }}
                                         >
-                                          <Download size={12} /> Stiahnuť súbor
+                                          <Download size={12} /> Download file
                                         </a>
                                       ) : (
                                         <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                                          Lokálny demo súbor
+                                          Local demo file
                                         </span>
                                       )}
                                     </div>
@@ -1181,18 +1181,18 @@ export default function ProjectDetailView() {
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                               <span style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                Text / Podklady zadané klientom:
+                                Text / Information submitted by client:
                               </span>
                               <button
                                 onClick={() => {
                                   const textVal = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
                                   navigator.clipboard.writeText(textVal);
-                                  addToast('Text skopírovaný do schránky!', 'success', 'Skopírované');
+                                  addToast('Text copied to clipboard!', 'success', 'Copied');
                                 }}
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: '3px 8px', fontSize: '0.74rem', gap: '4px' }}
                               >
-                                <Copy size={11} /> Kopírovať text
+                                <Copy size={11} /> Copy text
                               </button>
                             </div>
                             <div style={{
@@ -1227,9 +1227,9 @@ export default function ProjectDetailView() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <AlertCircle size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
                           <div style={{ fontSize: '0.825rem', color: 'var(--warning-light)' }}>
-                            <strong>Klient zatiaľ tento podklad neodovzdal.</strong>
+                            <strong>Client has not submitted this deliverable yet.</strong>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                              Podklad bude sprístupnený hneď po tom, ako ho zákazník nahrá cez svoj privátny odkaz.
+                              This item will be available here as soon as the client uploads it via their private link.
                             </div>
                           </div>
                         </div>
@@ -1239,7 +1239,7 @@ export default function ProjectDetailView() {
                           className="btn btn-secondary btn-sm btn-pill"
                           style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.76rem', padding: '4px 12px' }}
                         >
-                          <Send size={11} /> Pripomenúť klientovi
+                          <Send size={11} /> Remind client
                         </button>
                       </div>
                     )}
@@ -1264,7 +1264,7 @@ export default function ProjectDetailView() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
           <Sparkles size={16} color="var(--accent-primary)" />
-          <span>Celkový stav: <strong>{completedCount} z {totalCount}</strong> požiadaviek dokončených ({progressPercent}%)</span>
+          <span>Overall status: <strong>{completedCount} of {totalCount}</strong> requirements completed ({progressPercent}%)</span>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1272,14 +1272,14 @@ export default function ProjectDetailView() {
             onClick={openDashboard} 
             className="btn btn-secondary btn-sm btn-pill"
           >
-            <ArrowLeft size={13} /> Návrat na Nástenku
+            <ArrowLeft size={13} /> Back to Dashboard
           </button>
           
           <button
             onClick={handleOpenAddItemModal}
             className="btn btn-primary btn-sm btn-pill"
           >
-            <Plus size={14} /> Pridať ďalšiu požiadavku
+            <Plus size={14} /> Add Another Requirement
           </button>
         </div>
       </div>
@@ -1338,10 +1338,10 @@ export default function ProjectDetailView() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Pridať požiadavku do zákazky
+                    Add Requirement to Project
                   </h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Definujte, čo presne má klient odovzdať cez svoj odkaz.
+                    Specify what deliverables the client needs to submit through their link.
                   </p>
                 </div>
               </div>
@@ -1361,7 +1361,7 @@ export default function ProjectDetailView() {
               {/* Presets */}
               <div style={{ marginBottom: '18px' }}>
                 <label style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700, display: 'block', marginBottom: '8px' }}>
-                  Rýchle predlohy na jeden klik:
+                  Quick 1-click presets:
                 </label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {QUICK_PRESETS.map((p, idx) => (
@@ -1381,12 +1381,12 @@ export default function ProjectDetailView() {
               {/* Title */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Názov požiadavky *
+                  Requirement Title *
                 </label>
                 <input
                   type="text"
                   className="input"
-                  placeholder="napr. Vektorové logo (SVG, AI) alebo Texty na web"
+                  placeholder="e.g. Vector logo (SVG, AI) or Website copy"
                   value={newItemTitle}
                   onChange={(e) => setNewItemTitle(e.target.value)}
                   autoFocus
@@ -1397,12 +1397,12 @@ export default function ProjectDetailView() {
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Inštrukcie a popis pre klienta
+                  Instructions & details for client
                 </label>
                 <textarea
                   className="textarea"
                   rows={3}
-                  placeholder="Vysvetlite klientovi požiadavku (napr. Logo na priehľadnom pozadí, formát SVG alebo PNG vo vysokom rozlíšení)..."
+                  placeholder="Explain the requirement to the client (e.g. Transparent background logo, SVG or high-resolution PNG)..."
                   value={newItemDesc}
                   onChange={(e) => setNewItemDesc(e.target.value)}
                 />
@@ -1412,21 +1412,21 @@ export default function ProjectDetailView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
                 <div>
                   <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Typ podkladu
+                    Deliverable Type
                   </label>
                   <select 
                     className="select"
                     value={newItemType}
                     onChange={(e) => setNewItemType(e.target.value)}
                   >
-                    <option value="file">📁 Súbor (Foto, PDF, Logo, ZIP)</option>
-                    <option value="text">📝 Text / Zadanie (Popis, heslá, kópia)</option>
+                    <option value="file">📁 File (Photos, PDF, Logo, ZIP)</option>
+                    <option value="text">📝 Text / Content (Descriptions, credentials, copy)</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Dôležitosť
+                    Requirement Status
                   </label>
                   <label style={{
                     display: 'flex',
@@ -1446,7 +1446,7 @@ export default function ProjectDetailView() {
                       style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      Povinná položka
+                      Required item
                     </span>
                   </label>
                 </div>
@@ -1459,14 +1459,14 @@ export default function ProjectDetailView() {
                   onClick={() => setIsAddItemModalOpen(false)} 
                   className="btn btn-secondary btn-sm btn-pill"
                 >
-                  Zrušiť
+                  Cancel
                 </button>
                 <button 
                   type="submit" 
                   className="btn btn-primary btn-sm btn-pill"
                   style={{ gap: '6px' }}
                 >
-                  <Plus size={14} /> Pridať do zákazky
+                  <Plus size={14} /> Add to Project
                 </button>
               </div>
 
@@ -1529,10 +1529,10 @@ export default function ProjectDetailView() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Upraviť požiadavku
+                    Edit Requirement
                   </h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Zmena názvu, popisu a pravidiel pre klienta.
+                    Update title, instructions, and client settings.
                   </p>
                 </div>
               </div>
@@ -1552,7 +1552,7 @@ export default function ProjectDetailView() {
               {/* Title */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Názov požiadavky *
+                  Requirement Title *
                 </label>
                 <input
                   type="text"
@@ -1566,7 +1566,7 @@ export default function ProjectDetailView() {
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Inštrukcie a popis pre klienta
+                  Instructions & details for client
                 </label>
                 <textarea
                   className="textarea"
@@ -1580,21 +1580,21 @@ export default function ProjectDetailView() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
                 <div>
                   <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Typ podkladu
+                    Deliverable Type
                   </label>
                   <select 
                     className="select"
                     value={editItemType}
                     onChange={(e) => setEditItemType(e.target.value)}
                   >
-                    <option value="file">📁 Súbor</option>
-                    <option value="text">📝 Text / Zadanie</option>
+                    <option value="file">📁 File</option>
+                    <option value="text">📝 Text / Copy</option>
                   </select>
                 </div>
 
                 <div>
                   <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Dôležitosť
+                    Requirement Status
                   </label>
                   <label style={{
                     display: 'flex',
@@ -1614,7 +1614,7 @@ export default function ProjectDetailView() {
                       style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      Povinná položka
+                      Required item
                     </span>
                   </label>
                 </div>
@@ -1627,13 +1627,13 @@ export default function ProjectDetailView() {
                   onClick={() => setIsEditItemModalOpen(false)} 
                   className="btn btn-secondary btn-sm btn-pill"
                 >
-                  Zrušiť
+                  Cancel
                 </button>
                 <button 
                   type="submit" 
                   className="btn btn-primary btn-sm btn-pill"
                 >
-                  Uložiť zmeny
+                  Save Changes
                 </button>
               </div>
 
