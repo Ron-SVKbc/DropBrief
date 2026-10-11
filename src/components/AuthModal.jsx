@@ -45,9 +45,10 @@ export default function AuthModal() {
       if (authModalMode === 'pin_reveal') {
         try {
           confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.6 }
+            particleCount: 40,
+            spread: 60,
+            origin: { y: 0.6 },
+            disableForReducedMotion: true
           });
         } catch (e) {}
       }
@@ -106,28 +107,24 @@ export default function AuthModal() {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.85)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 115,
-      padding: '20px'
-    }}>
+    <div 
+      className="modal-overlay"
+      style={{ zIndex: 115 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeAuthModal();
+      }}
+    >
       <div 
-        className="glass-panel animate-fade-in"
+        className="auth-modal-card animate-fade-in"
         style={{
           width: '100%',
           maxWidth: '500px',
-          background: '#090e1a',
-          border: '1px solid var(--border-active)',
-          boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.8), var(--accent-glow)',
+          background: '#0a0f1d',
+          border: '1px solid var(--border-medium)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75), 0 0 25px rgba(99, 102, 241, 0.16)',
           overflow: 'hidden',
-          borderRadius: 'var(--radius-xl)'
+          borderRadius: 'var(--radius-xl)',
+          position: 'relative'
         }}
       >
         {/* Modal Header */}

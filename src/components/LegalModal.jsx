@@ -8,20 +8,15 @@ export default function LegalModal() {
   if (!isLegalModalOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.85)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 120,
-      padding: '20px'
-    }}>
+    <div 
+      className="modal-overlay"
+      style={{ zIndex: 120 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setIsLegalModalOpen(false);
+      }}
+    >
       <div 
-        className="glass-panel animate-fade-in"
+        className="auth-modal-card animate-fade-in"
         style={{
           width: '100%',
           maxWidth: '700px',

@@ -22,7 +22,7 @@ export async function getCloudFreelancer(nick) {
   const cleanNick = nick.trim().toLowerCase();
   const safeNick = cleanNick.replace(/[^a-z0-9]/g, '_');
 
-  // 1. Skúsiť najprv SQL tabuľku v Supabase
+  // 1. Skúsiť primárne SQL tabuľku v Supabase
   try {
     const { data: dbUser, error } = await supabase
       .from('freelancers')
@@ -30,19 +30,24 @@ export async function getCloudFreelancer(nick) {
       .ilike('nick', cleanNick)
       .maybeSingle();
 
-    if (!error && dbUser) {
-      return {
-        id: dbUser.id,
-        nick: dbUser.nick,
-        pin: dbUser.pin_code,
-        pinHash: dbUser.pin_code,
-        email: dbUser.email || '',
-        createdAt: dbUser.created_at,
-      };
+    if (!error) {
+      if (dbUser) {
+        return {
+          id: dbUser.id,
+          nick: dbUser.nick,
+          pin: dbUser.pin_code,
+          pinHash: dbUser.pin_code,
+          email: dbUser.email || '',
+          createdAt: dbUser.created_at,
+        };
+      }
+      // Ak tabuľka existuje a vrátila null, používateľ s týmto nickom v DB neexistuje.
+      // Netreba robiť pomalé zbytočné volanie do Storage (404 Object not found).
+      return null;
     }
   } catch (e) {}
 
-  // 2. Ak tabuľka neexistuje alebo používateľ nebol nájdený, skúsiť Storage profil
+  // 2. Iba ak SQL tabuľka vyhodila chybu (napr. neexistuje tabuľka v DB), skúsime Storage fallback
   try {
     const filePath = `_profiles/fl_${safeNick}.json`;
     const { data: fileData, error: dErr } = await supabase.storage
@@ -94,7 +99,7 @@ export async function verifyCloudPin(inputPin, storedUser) {
 }
 
 /**
- * Uloženie nového účtu freelancera do cloudu (DB + šifrovaný Storage profil)
+ * Uloženie nového účtu freelancera do cloudu (DB + šifrovaný Storage profil fallback)
  */
 export async function saveCloudFreelancer(freelancer) {
   if (!supabase || !freelancer) return freelancer;
@@ -105,37 +110,38 @@ export async function saveCloudFreelancer(freelancer) {
   const pinHash = await hashPin(freelancer.pin);
 
   // 1. Uložiť do SQL tabuľky – výhradne hashed PIN, nikdy plain-text
+  let dbSaved = false;
   try {
-    await supabase.from('freelancers').insert({
+    const { error: insertErr } = await supabase.from('freelancers').insert({
       nick: freelancer.nick.trim(),
       pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
       email: freelancer.email || '',
     });
+    if (!insertErr) {
+      dbSaved = true;
+      // Bleskový návrat – dáta sú v DB, netreba brzdiť UI storage operáciou
+      return freelancer;
+    }
   } catch (e) {}
 
-  // 2. Uložiť do Storage bucketu – len hash, bez plain-text PINu
-  try {
-    const safePayload = {
-      id: freelancer.id,
-      nick: freelancer.nick,
-      pinHash: pinHash,
-      email: freelancer.email || '',
-      createdAt: freelancer.createdAt || new Date().toISOString(),
-      // POZOR: plain-text PIN sa nikdy neukladá do cloudu
-    };
+  // 2. Iba ak SQL tabuľka zlyhala, fallback do Storage bucketu (s upsert: true bez separátneho remove)
+  if (!dbSaved) {
+    try {
+      const safePayload = {
+        id: freelancer.id,
+        nick: freelancer.nick,
+        pinHash: pinHash,
+        email: freelancer.email || '',
+        createdAt: freelancer.createdAt || new Date().toISOString(),
+      };
 
-    const blob = new Blob([JSON.stringify(safePayload, null, 2)], { type: 'application/json' });
-    
-    await supabase.storage.from('client-uploads').remove([filePath]);
-    const { error: upErr } = await supabase.storage
-      .from('client-uploads')
-      .upload(filePath, blob, { contentType: 'application/json' });
-
-    if (upErr) {
-      console.warn('Storage profile upload error:', upErr);
+      const blob = new Blob([JSON.stringify(safePayload, null, 2)], { type: 'application/json' });
+      await supabase.storage
+        .from('client-uploads')
+        .upload(filePath, blob, { contentType: 'application/json', upsert: true });
+    } catch (e) {
+      console.error('Failed to sync freelancer to storage fallback:', e);
     }
-  } catch (e) {
-    console.error('Failed to sync freelancer to storage:', e);
   }
 
   return freelancer;
