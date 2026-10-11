@@ -7,6 +7,7 @@ import ProjectDetailView from './components/ProjectDetailView';
 import WelcomeView from './components/WelcomeView';
 import CreateProjectModal from './components/CreateProjectModal';
 import EmailPreviewModal from './components/EmailPreviewModal';
+import ExportModal from './components/ExportModal';
 import LegalModal from './components/LegalModal';
 import AuthModal from './components/AuthModal';
 import ToastContainer from './components/ToastContainer';
@@ -152,6 +153,7 @@ export default function App() {
         onClose={() => setIsCreateModalOpen(false)} 
       />
       <EmailPreviewModal />
+      <ExportModal />
       <LegalModal />
       <AuthModal />
       <ToastContainer />

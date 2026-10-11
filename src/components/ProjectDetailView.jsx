@@ -54,6 +54,7 @@ export default function ProjectDetailView() {
     openDashboard, 
     openClientPortal, 
     openReminderModal, 
+    openExportModal,
     addItemToProject, 
     updateItemInProject, 
     deleteItemFromProject, 
@@ -138,50 +139,7 @@ export default function ProjectDetailView() {
   };
 
   const handleDownloadAll = () => {
-    if (completedItems.length === 0) {
-      addToast('Klient zatiaľ neodovzdal žiadne podklady.', 'warning', 'Žiadne podklady');
-      return;
-    }
-
-    const exportData = {
-      project: project.title,
-      slug: project.slug,
-      client: project.clientName,
-      clientEmail: project.clientEmail,
-      freelancer: project.freelancerName || currentFreelancer?.nick || 'Freelancer',
-      exportedAt: new Date().toISOString(),
-      summary: {
-        totalItems: totalCount,
-        completedItems: completedCount,
-        missingItems: missingCount,
-      },
-      submittedItems: completedItems.map((item) => {
-        const fileList = Array.isArray(item.value?.files)
-          ? item.value.files
-          : (item.value?.fileName ? [item.value] : null);
-
-        return {
-          id: item.id,
-          title: item.title,
-          type: item.type,
-          description: item.description,
-          completedAt: item.completedAt,
-          value: item.type === 'file' ? { fileCount: fileList?.length || 0, files: fileList } : item.value,
-        };
-      })
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${project.slug}-podklady.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    addToast(`Export doručených podkladov pre "${project.title}" stiahnutý.`, 'success', 'Export stiahnutý');
+    openExportModal(project.id);
   };
 
   // Add Item handler

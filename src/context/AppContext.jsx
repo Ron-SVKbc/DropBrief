@@ -108,6 +108,7 @@ export function AppProvider({ children }) {
   const [activeProjectSlug, setActiveProjectSlug] = useState('demo-preview');
   const [toasts, setToasts] = useState([]);
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
+  const [exportModalProject, setExportModalProject] = useState(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
 
@@ -702,6 +703,20 @@ export function AppProvider({ children }) {
     setPreviewEmailProject(proj);
   };
 
+  const openExportModal = (projectIdOrSlug) => {
+    if (!projectIdOrSlug) return;
+    const proj = typeof projectIdOrSlug === 'object'
+      ? projectIdOrSlug
+      : projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+    if (proj) {
+      setExportModalProject(proj);
+    }
+  };
+
+  const closeExportModal = () => {
+    setExportModalProject(null);
+  };
+
   const sendActualReminder = async (projectId, options = {}) => {
     const proj = projects.find((p) => p.id === projectId);
     if (!proj) throw new Error('Project not found.');
@@ -975,6 +990,10 @@ export function AppProvider({ children }) {
         removeToast,
         previewEmailProject,
         setPreviewEmailProject,
+        exportModalProject,
+        setExportModalProject,
+        openExportModal,
+        closeExportModal,
         isLegalModalOpen,
         setIsLegalModalOpen,
         isLiveDb: isSupabaseConfigured,

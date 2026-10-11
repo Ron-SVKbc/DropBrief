@@ -35,6 +35,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     deleteProject, 
     sendSimulatedReminder, 
     openReminderModal,
+    openExportModal,
     openClientPortal, 
     openProjectDetail,
     addToast,
@@ -94,43 +95,7 @@ export default function Dashboard({ onOpenCreateModal }) {
   };
 
   const handleDownloadAll = (proj) => {
-    const completedItems = proj.items.filter((i) => i.isCompleted);
-    if (completedItems.length === 0) {
-      addToast('The client has not uploaded any assets yet.', 'warning', 'No Assets');
-      return;
-    }
-
-    const exportData = {
-      project: proj.title,
-      client: proj.clientName,
-      clientEmail: proj.clientEmail,
-      exportedAt: new Date().toISOString(),
-      items: completedItems.map((item) => {
-        const fileList = Array.isArray(item.value?.files)
-          ? item.value.files
-          : (item.value?.fileName ? [item.value] : null);
-
-        return {
-          itemTitle: item.title,
-          type: item.type,
-          fileCount: fileList ? fileList.length : undefined,
-          files: fileList || item.value,
-          completedAt: item.completedAt
-        };
-      })
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${proj.slug}-assets.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    addToast(`Export package for "${proj.title}" downloaded.`, 'success', 'Files Exported');
+    openExportModal(proj.id || proj);
   };
 
   return (
