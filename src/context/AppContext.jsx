@@ -21,6 +21,37 @@ function setStoredProjectType(key, type) {
   } catch (e) {}
 }
 
+/**
+ * Generuje bezpečný, vysoko-entropický slug (8 znakov náhodnosti = 1+ bilión kombinácií).
+ * Automaticky odstraňuje diakritiku (mäkčene/dĺžne) a používa Crockford base32 abecedu bez zameniteľných znakov.
+ */
+export function generateSecureSlug(baseName = 'client', length = 8) {
+  const cleanBase = (baseName || 'client')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // odstránenie diakritiky (č -> c, š -> s, ä -> a)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'client';
+
+  // Base32 Crockford abeceda bez vizuálne zameniteľných znakov (0 vs O, 1 vs I vs L)
+  const chars = '23456789abcdefghjkmnpqrstuvwxyz';
+  let randomSuffix = '';
+
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const randomBytes = new Uint8Array(length);
+    crypto.getRandomValues(randomBytes);
+    for (let i = 0; i < length; i++) {
+      randomSuffix += chars[randomBytes[i] % chars.length];
+    }
+  } else {
+    for (let i = 0; i < length; i++) {
+      randomSuffix += chars[Math.floor(Math.random() * chars.length)];
+    }
+  }
+
+  return `${cleanBase}-${randomSuffix}`;
+}
+
 function mapDbToProject(proj) {
   const storedTypes = getStoredProjectTypes();
   const explicitType = proj.project_type || proj.projectType || storedTypes[proj.slug] || storedTypes[proj.id];
@@ -618,13 +649,12 @@ export function AppProvider({ children }) {
   };
 
   const createProject = async (newProjData) => {
-    const randomSlug =
-      (newProjData.clientName || 'client')
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-') +
-      '-' +
-      Math.random().toString(36).substring(2, 6);
+    let randomSlug = generateSecureSlug(newProjData.clientName || 'client', 8);
+
+    // Prevencia lokálnej kolízie
+    while (projects.some((p) => p.slug?.toLowerCase() === randomSlug.toLowerCase())) {
+      randomSlug = generateSecureSlug(newProjData.clientName || 'client', 8);
+    }
 
     const tempId = 'proj-' + Date.now();
     const flId = currentFreelancer ? currentFreelancer.id : null;
@@ -635,6 +665,9 @@ export function AppProvider({ children }) {
     setStoredProjectType(randomSlug, projectType);
     setStoredProjectType(tempId, projectType);
 
+    // Dynamický predvolený deadline: dnešok + 14 dní
+    const defaultDeadline = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     const newProject = {
       id: tempId,
       freelancerId: flId,
@@ -644,7 +677,7 @@ export function AppProvider({ children }) {
       clientEmail: newProjData.clientEmail,
       freelancerName: flName,
       freelancerEmail: flEmail,
-      deadline: newProjData.deadline || '2026-10-20',
+      deadline: newProjData.deadline || defaultDeadline,
       reminderFrequency: Number(newProjData.reminderFrequency) || 3,
       lastReminderSent: null,
       createdAt: new Date().toISOString().split('T')[0],
