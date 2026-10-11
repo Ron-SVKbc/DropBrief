@@ -3,7 +3,8 @@ export const PROJECT_TEMPLATES = [
     id: 'web-design',
     name: 'Web Design & Development',
     icon: 'Globe',
-    badge: 'Most Popular',
+    badge: 'One-off',
+    projectType: 'one-off',
     description: 'Complete asset collection for building a new website or online store.',
     items: [
       {
@@ -42,7 +43,8 @@ export const PROJECT_TEMPLATES = [
     id: 'branding',
     name: 'Logo & Visual Identity',
     icon: 'Palette',
-    badge: 'Creative',
+    badge: 'One-off',
+    projectType: 'one-off',
     description: 'For graphic designers creating a new brand identity or redesign.',
     items: [
       {
@@ -70,43 +72,11 @@ export const PROJECT_TEMPLATES = [
     ]
   },
   {
-    id: 'accounting',
-    name: 'Accounting & Tax Filing',
-    icon: 'FileSpreadsheet',
-    badge: 'Finance',
-    description: 'For accountants and financial advisors collecting monthly or tax-year records.',
-    items: [
-      {
-        id: 'item-1',
-        title: 'Bank statements for the period (PDF / CSV)',
-        description: 'All business accounts statements including Stripe, PayPal, and merchant processors.',
-        type: 'file',
-        allowedTypes: '.pdf,.csv,.xlsx',
-        required: true,
-      },
-      {
-        id: 'item-2',
-        title: 'Issued sales invoices register',
-        description: 'PDF invoices or ledger export from your invoicing software.',
-        type: 'file',
-        allowedTypes: '.pdf,.zip,.xlsx',
-        required: true,
-      },
-      {
-        id: 'item-3',
-        title: 'Supplier bills & expense receipts',
-        description: 'Expenses for fuel, materials, office supplies, equipment, and SaaS subscriptions.',
-        type: 'file',
-        allowedTypes: '.pdf,.zip,image/*',
-        required: true,
-      }
-    ]
-  },
-  {
     id: 'social-media',
     name: 'Social Media Management',
     icon: 'Share2',
-    badge: 'Marketing',
+    badge: 'Ongoing',
+    projectType: 'ongoing',
     description: 'Monthly asset collection for Instagram, TikTok, and LinkedIn content.',
     items: [
       {
@@ -132,6 +102,31 @@ export const PROJECT_TEMPLATES = [
         required: false,
       }
     ]
+  },
+  {
+    id: 'custom',
+    name: 'Custom / Vlastné',
+    icon: 'Sparkles',
+    badge: 'Custom',
+    projectType: 'one-off',
+    description: 'Custom checklist tailored for any freelance work, retainer or one-off delivery.',
+    items: [
+      {
+        id: 'item-1',
+        title: 'Project Brief & Specifications',
+        description: 'Paste project brief, goals, or outline what you need from the client.',
+        type: 'text',
+        required: true,
+      },
+      {
+        id: 'item-2',
+        title: 'Primary Files & Brand Assets',
+        description: 'Upload all relevant brand assets, documents, or content.',
+        type: 'file',
+        allowedTypes: '*/*',
+        required: true,
+      }
+    ]
   }
 ];
 
@@ -140,6 +135,7 @@ export const INITIAL_DEMO_PROJECTS = [
     id: 'proj-alfa',
     slug: 'brand-identity',
     title: 'New Website & Visual Identity',
+    projectType: 'one-off',
     clientName: 'Peter Novak',
     clientEmail: 'peter.novak@example.com',
     freelancerName: 'Creative Studio',
@@ -197,7 +193,8 @@ export const INITIAL_DEMO_PROJECTS = [
   {
     id: 'proj-dental',
     slug: 'dental-care-sro',
-    title: 'Brand Kit & Social Assets – Dental Care Clinic',
+    title: 'Social Media Management – Dental Clinic',
+    projectType: 'ongoing',
     clientName: 'Dr. Susan Miller',
     clientEmail: 'info@dentalcare-clinic.com',
     freelancerName: 'Creative Studio',

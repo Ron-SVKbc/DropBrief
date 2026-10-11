@@ -5,6 +5,15 @@ import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer
 const AppContext = createContext();
 
 function mapDbToProject(proj) {
+  const inferredType = proj.project_type || proj.projectType || (
+    (proj.title && (
+      proj.title.toLowerCase().includes('social') || 
+      proj.title.toLowerCase().includes('monthly') || 
+      proj.title.toLowerCase().includes('správa') || 
+      proj.title.toLowerCase().includes('retainer')
+    )) ? 'ongoing' : 'one-off'
+  );
+
   return {
     id: proj.id,
     slug: proj.slug,
@@ -19,6 +28,7 @@ function mapDbToProject(proj) {
     lastReminderSent: proj.last_reminder_sent,
     createdAt: proj.created_at ? proj.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
     status: proj.status || 'pending',
+    projectType: inferredType,
     items: (proj.project_items || proj.items || [])
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       .map((item) => ({
@@ -400,6 +410,8 @@ export function AppProvider({ children }) {
     const flName = currentFreelancer ? currentFreelancer.nick : (newProjData.freelancerName || 'Freelancer');
     const flEmail = currentFreelancer?.email || newProjData.freelancerEmail || '';
 
+    const projectType = newProjData.projectType || 'one-off';
+
     const newProject = {
       id: tempId,
       freelancerId: flId,
@@ -414,6 +426,7 @@ export function AppProvider({ children }) {
       lastReminderSent: null,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'pending',
+      projectType,
       items: newProjData.items.map((item, index) => ({
         id: 'item-' + (index + 1) + '-' + Date.now(),
         title: item.title,
@@ -431,7 +444,7 @@ export function AppProvider({ children }) {
     // Save to Supabase (if configured)
     if (isSupabaseConfigured && supabase) {
       try {
-        const insertPayload = {
+        let insertPayload = {
           slug: randomSlug,
           title: newProjData.title,
           client_name: newProjData.clientName,
@@ -441,13 +454,26 @@ export function AppProvider({ children }) {
           deadline: newProjData.deadline || '',
           reminder_frequency: Number(newProjData.reminderFrequency) || 3,
           status: 'pending',
+          project_type: projectType,
         };
 
-        const { data: insertedProj, error: pErr } = await supabase
+        let { data: insertedProj, error: pErr } = await supabase
           .from('projects')
           .insert(insertPayload)
           .select()
           .single();
+
+        // Fallback if remote DB doesn't have project_type column yet
+        if (pErr && pErr.message && pErr.message.toLowerCase().includes('project_type')) {
+          delete insertPayload.project_type;
+          const retryRes = await supabase
+            .from('projects')
+            .insert(insertPayload)
+            .select()
+            .single();
+          insertedProj = retryRes.data;
+          pErr = retryRes.error;
+        }
 
         if (pErr) throw pErr;
 

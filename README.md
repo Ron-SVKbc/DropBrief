@@ -50,11 +50,10 @@ DropBrief generates a **frictionless, dedicated client portal** via a secure dir
 - **Deliverability-First:** Clean RFC-compliant headers, `List-Unsubscribe` support, and custom domain authentication (e.g., via Namecheap + Resend).
 
 ### 4. 📋 Pre-Built Industry Templates (1-Click)
-- 🌐 **Web Design & Development:** Vector logos (SVG/AI), homepage copy, team/product photos, hosting & domain credentials.
-- 🎨 **Logo & Visual Identity:** Brand name, slogan guidelines, inspirational moodboards, color palette preferences.
-- 📊 **Accounting & Tax Filing:** Bank statements (PDF/CSV), issued sales invoices, expense receipts.
-- 📱 **Social Media Management:** Monthly promotion priorities, raw video reels, photos, offer updates.
-- ✏️ **Custom Projects:** Create tailored checklists with custom file types and text requirements on the fly.
+- 🌐 **Web Design & Development (One-off):** Vector logos (SVG/AI), homepage copy, team/product photos, hosting & domain credentials.
+- 🎨 **Logo & Visual Identity (One-off):** Brand name, slogan guidelines, inspirational moodboards, color palette preferences.
+- 📱 **Social Media Management (Ongoing):** Monthly promotion priorities, raw video reels, photos, offer updates.
+- ✨ **Custom / Vlastné (Flexible):** Create tailored checklists with custom file types and text requirements for any one-off or long-term engagement.
 
 ### 5. 🛡️ GDPR & European Data Privacy
 - **EU Hosted:** Supabase database and storage hosted in the European Union (Ireland / Frankfurt).

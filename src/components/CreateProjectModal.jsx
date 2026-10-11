@@ -11,26 +11,29 @@ import {
   Sparkles, 
   Globe, 
   Palette, 
-  FileSpreadsheet, 
   Share2,
   Calendar,
   BellRing,
   User,
-  Layers
+  Layers,
+  Zap,
+  RefreshCw,
+  Info
 } from 'lucide-react';
 
 const ICONS_MAP = {
   Globe: Globe,
   Palette: Palette,
-  FileSpreadsheet: FileSpreadsheet,
   Share2: Share2,
+  Sparkles: Sparkles,
 };
 
 export default function CreateProjectModal({ isOpen, onClose }) {
   const { createProject, openClientPortal, currentFreelancer } = useApp();
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
-  const [title, setTitle] = useState('Website Design & Build');
+  const [projectType, setProjectType] = useState('one-off'); // 'one-off' | 'ongoing'
+  const [title, setTitle] = useState('Website Design & Development for Client');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [freelancerName, setFreelancerName] = useState(() => currentFreelancer?.nick || 'Freelancer');
@@ -52,7 +55,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   const handleSelectTemplate = (tpl) => {
     setSelectedTemplateId(tpl.id);
-    setTitle(`${tpl.name} for Client`);
+    if (tpl.id === 'custom') {
+      setTitle('');
+    } else {
+      setTitle(`${tpl.name} for Client`);
+    }
+    setProjectType(tpl.projectType || 'one-off');
     setItems(tpl.items.map((i) => ({ ...i })));
   };
 
@@ -86,13 +94,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       return;
     }
 
+    const finalTitle = title.trim() || (selectedTemplateId === 'custom' ? 'Custom Project' : 'New Project');
+
     createProject({
-      title,
+      title: finalTitle,
       clientName,
       clientEmail: clientEmail || `${clientName.toLowerCase().replace(/\s+/g, '')}@client.com`,
       freelancerName,
       deadline,
       reminderFrequency,
+      projectType,
       items
     });
 
@@ -147,7 +158,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 Create New Asset Collection
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Choose a template and the system generates a secure link for your client.
+                Choose a template or custom brief. Link is generated with zero registration for client.
               </p>
             </div>
           </div>
@@ -166,9 +177,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '26px', flex: 1 }}>
           
           {/* Step 1: Template Selection */}
-          <div style={{ marginBottom: '26px' }}>
+          <div style={{ marginBottom: '22px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
-              1. Choose Industry Template
+              1. Choose Template / Šablóna
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
               {PROJECT_TEMPLATES.map((tpl) => {
@@ -178,6 +189,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 return (
                   <div
                     key={tpl.id}
+                    id={`tpl-card-${tpl.id}`}
                     onClick={() => handleSelectTemplate(tpl)}
                     style={{
                       padding: '14px 10px',
@@ -187,80 +199,194 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       boxShadow: isSelected ? '0 0 20px rgba(99, 102, 241, 0.3)' : 'none',
                       cursor: 'pointer',
                       transition: 'var(--transition)',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} style={{ margin: '0 auto 6px' }} />
-                    <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)' }}>
+                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} style={{ marginBottom: '6px' }} />
+                    <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)', marginBottom: '4px' }}>
                       {tpl.name}
                     </div>
+                    {tpl.id === 'social-media' ? (
+                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <RefreshCw size={9} /> Dlhodobé
+                      </span>
+                    ) : tpl.id === 'custom' ? (
+                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Sparkles size={9} /> Vlastné
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Zap size={9} /> Jednorázové
+                      </span>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Step 2: Basic Info */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '26px' }}>
-            <div>
-              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Project / Commission Title *
-              </label>
-              <input
-                id="input-project-title"
-                type="text"
-                className="input"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. E-Commerce Store Redesign"
-              />
-            </div>
+          {/* Step 2: Project Type (Jednorázové vs Dlhodobé) */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+              <span>2. Typ zákazky / Engagement Type *</span>
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+              {/* Option 1: Jednorázové */}
+              <div 
+                id="btn-select-one-off"
+                onClick={() => setProjectType('one-off')}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  background: projectType === 'one-off' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                  border: projectType === 'one-off' ? '2px solid #38bdf8' : '1px solid var(--border-subtle)',
+                  boxShadow: projectType === 'one-off' ? '0 0 16px rgba(56, 189, 248, 0.22)' : 'none',
+                  transition: 'var(--transition)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <div style={{
+                  width: '34px', height: '34px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: projectType === 'one-off' ? 'rgba(56, 189, 248, 0.22)' : 'rgba(255, 255, 255, 0.05)',
+                  color: projectType === 'one-off' ? '#38bdf8' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Zap size={18} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'one-off' ? '#fff' : 'var(--text-primary)' }}>
+                    Jednorázové • One-off
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
+                    Web, logo, identita, jednorazový projekt
+                  </div>
+                </div>
+                {projectType === 'one-off' && <Check size={16} color="#38bdf8" />}
+              </div>
 
-            <div>
-              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Client Full Name *
-              </label>
-              <input
-                id="input-client-name"
-                type="text"
-                className="input"
-                required
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="e.g. Martin Vance"
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Client Email (for reminders)
-              </label>
-              <input
-                id="input-client-email"
-                type="email"
-                className="input"
-                value={clientEmail}
-                onChange={(e) => setClientEmail(e.target.value)}
-                placeholder="client@company.com"
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Target Delivery Deadline
-              </label>
-              <input
-                id="input-project-deadline"
-                type="date"
-                className="input"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-              />
+              {/* Option 2: Dlhodobé */}
+              <div 
+                id="btn-select-ongoing"
+                onClick={() => setProjectType('ongoing')}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  background: projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                  border: projectType === 'ongoing' ? '2px solid #a855f7' : '1px solid var(--border-subtle)',
+                  boxShadow: projectType === 'ongoing' ? '0 0 16px rgba(168, 85, 247, 0.22)' : 'none',
+                  transition: 'var(--transition)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <div style={{
+                  width: '34px', height: '34px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.22)' : 'rgba(255, 255, 255, 0.05)',
+                  color: projectType === 'ongoing' ? '#c084fc' : 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <RefreshCw size={18} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'ongoing' ? '#fff' : 'var(--text-primary)' }}>
+                    Dlhodobé • Ongoing
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
+                    Social media, správa obsahu, mesačný retainer
+                  </div>
+                </div>
+                {projectType === 'ongoing' && <Check size={16} color="#c084fc" />}
+              </div>
             </div>
           </div>
 
-          {/* Step 3: Automated Reminders Config */}
+          {/* Step 3: Basic Info */}
+          <div style={{ marginBottom: '22px' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
+              3. Project & Client Details
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div style={{ gridColumn: selectedTemplateId === 'custom' ? '1 / -1' : 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {selectedTemplateId === 'custom' ? 'Názov zákazky / O čo ide *' : 'Project / Commission Title *'}
+                  </label>
+                  {selectedTemplateId === 'custom' && (
+                    <span style={{ fontSize: '0.72rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                      Vlastné zadanie
+                    </span>
+                  )}
+                </div>
+                <input
+                  id="input-project-title"
+                  type="text"
+                  className="input"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={selectedTemplateId === 'custom' ? "Napr. SEO Audit, Strih videí, Mesačný consulting, Tvorba eshopu..." : "e.g. E-Commerce Store Redesign"}
+                  autoFocus={selectedTemplateId === 'custom'}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                  Client Full Name *
+                </label>
+                <input
+                  id="input-client-name"
+                  type="text"
+                  className="input"
+                  required
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="e.g. Martin Vance"
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                  Client Email (for reminders)
+                </label>
+                <input
+                  id="input-client-email"
+                  type="email"
+                  className="input"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  placeholder="client@company.com"
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                  Target Delivery Deadline
+                </label>
+                <input
+                  id="input-project-deadline"
+                  type="date"
+                  className="input"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Automated Reminders Config */}
           <div style={{
             background: 'rgba(245, 158, 11, 0.08)',
             border: '1px solid var(--warning-border)',
@@ -298,7 +424,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                2. Checklist Items ({items.length})
+                4. Checklist Items ({items.length})
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button 

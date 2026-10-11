@@ -419,7 +419,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '20px' }}>
             {[
               { num: '01', icon: Layers, color: 'var(--accent-primary)', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.22)', glow: '0 0 14px rgba(99,102,241,0.28)',
-                title: '1. Pick a template', body: 'Choose an industry template (Web Design, Branding, Accounting, Social Media) or customize your items. Setup takes under 30 seconds.' },
+                title: '1. Pick a template', body: 'Choose a template (Web Design, Branding, Social Media, Custom) or build your own checklist. Setup takes under 30 seconds.' },
               { num: '02', icon: Send, color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.22)', glow: '0 0 14px rgba(245,158,11,0.28)',
                 title: '2. Send link to client', body: 'Send the direct link via WhatsApp, Slack, or email. The client opens the link and sees their checklist immediately with zero login friction.' },
               { num: '03', icon: CheckCircle2, color: 'var(--success)', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.22)', glow: '0 0 14px rgba(16,185,129,0.28)',

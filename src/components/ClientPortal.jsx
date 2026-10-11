@@ -24,7 +24,9 @@ import {
   Calendar,
   Check,
   FlaskConical,
-  RotateCcw
+  RotateCcw,
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
@@ -37,6 +39,7 @@ const createInitialDemoProject = () => ({
   id: 'demo-sandbox-project',
   slug: 'brand-identity',
   title: 'New Website & Brand Identity',
+  projectType: 'one-off',
   clientName: 'Peter Novak',
   clientEmail: 'peter.novak@example.com',
   freelancerName: 'Creative Studio',
@@ -640,6 +643,31 @@ export default function ClientPortal() {
                 <span className="badge badge-accent">
                   <Sparkles size={11} /> Client Portal &bull; No Login Required
                 </span>
+                {(project.projectType === 'ongoing' || project.project_type === 'ongoing') ? (
+                  <span className="badge" style={{
+                    background: 'rgba(168, 85, 247, 0.14)',
+                    color: '#c084fc',
+                    border: '1px solid rgba(168, 85, 247, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 700
+                  }}>
+                    <RefreshCw size={11} /> Dlhodobé • Ongoing
+                  </span>
+                ) : (
+                  <span className="badge" style={{
+                    background: 'rgba(56, 189, 248, 0.14)',
+                    color: '#38bdf8',
+                    border: '1px solid rgba(56, 189, 248, 0.35)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 700
+                  }}>
+                    <Zap size={11} /> Jednorázové • One-off
+                  </span>
+                )}
                 {isDemoMode && (
                   <span className="badge" style={{
                     background: 'rgba(245, 158, 11, 0.14)',

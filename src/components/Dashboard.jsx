@@ -24,7 +24,8 @@ import {
   Check,
   X,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  RefreshCw
 } from 'lucide-react';
 
 export default function Dashboard({ onOpenCreateModal }) {
@@ -52,10 +53,17 @@ export default function Dashboard({ onOpenCreateModal }) {
   });
 
   const filteredProjects = myProjects.filter((p) => {
+    const term = searchTerm.toLowerCase().trim();
+    const isOneOffSearch = ['jednorazove', 'jednorázové', 'one-off', 'oneoff'].some((kw) => term.includes(kw));
+    const isOngoingSearch = ['dlhodobe', 'dlhodobé', 'ongoing', 'retainer'].some((kw) => term.includes(kw));
+    const matchesType = (isOneOffSearch && p.projectType === 'one-off') || (isOngoingSearch && p.projectType === 'ongoing');
+
     const matchesSearch = 
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
+      p.title.toLowerCase().includes(term) ||
+      p.clientName.toLowerCase().includes(term) ||
+      p.clientEmail.toLowerCase().includes(term) ||
+      (p.projectType && p.projectType.toLowerCase().includes(term)) ||
+      matchesType;
     
     if (filterStatus === 'pending') return matchesSearch && p.status !== 'completed';
     if (filterStatus === 'completed') return matchesSearch && p.status === 'completed';
@@ -383,6 +391,39 @@ export default function Dashboard({ onOpenCreateModal }) {
                       <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em' }}>
                         {proj.title}
                       </h2>
+                      {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
+                        <span 
+                          className="badge" 
+                          style={{ 
+                            background: 'rgba(168, 85, 247, 0.14)', 
+                            color: '#c084fc', 
+                            border: '1px solid rgba(168, 85, 247, 0.3)',
+                            gap: '4px',
+                            fontWeight: 700,
+                            fontSize: '0.73rem',
+                            padding: '2px 8px'
+                          }}
+                          title="Dlhodobá zákazka / Ongoing Retainer"
+                        >
+                          <RefreshCw size={10} /> Dlhodobé • Ongoing
+                        </span>
+                      ) : (
+                        <span 
+                          className="badge" 
+                          style={{ 
+                            background: 'rgba(56, 189, 248, 0.14)', 
+                            color: '#38bdf8', 
+                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                            gap: '4px',
+                            fontWeight: 700,
+                            fontSize: '0.73rem',
+                            padding: '2px 8px'
+                          }}
+                          title="Jednorázová zákazka / One-off Project"
+                        >
+                          <Zap size={10} /> Jednorázové • One-off
+                        </span>
+                      )}
                       {isCompleted ? (
                         <span className="badge badge-success">
                           <CheckCircle2 size={11} /> Completed
