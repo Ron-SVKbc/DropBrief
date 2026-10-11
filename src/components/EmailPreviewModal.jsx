@@ -36,7 +36,7 @@ export default function EmailPreviewModal() {
     if (previewEmailProject) {
       const cleanTitle = previewEmailProject.title.replace(/[„“"']/g, '').trim();
       const fName = previewEmailProject.freelancerName || currentFreelancer?.nick || 'Freelancer';
-      setCustomSubject(`${fName}: ${cleanTitle} – potrebné podklady`);
+      setCustomSubject(`${fName}: ${cleanTitle} – pending project assets`);
       setCustomMessage('');
       setShowNoteField(false);
       setSendSuccess(false);
@@ -70,7 +70,7 @@ export default function EmailPreviewModal() {
       setSendSuccess(true);
     } catch (err) {
       console.error('Failed to send reminder via Resend:', err);
-      setErrorMessage(err.message || 'Nepodarilo sa odoslať e-mail cez Resend.');
+      setErrorMessage(err.message || 'Failed to send email via Resend.');
     } finally {
       setIsSending(false);
     }
@@ -79,10 +79,10 @@ export default function EmailPreviewModal() {
   const cycleSubject = () => {
     const cleanTitle = previewEmailProject.title.replace(/[„“"']/g, '').trim();
     const presets = [
-      `${freelancerName}: ${cleanTitle} – potrebné podklady`,
-      `Podklady k zákazke: ${cleanTitle}`,
-      `Doplnenie materiálov pre projekt ${cleanTitle}`,
-      `Prosba o podklady – ${cleanTitle} (${freelancerName})`
+      `${freelancerName}: ${cleanTitle} – pending project assets`,
+      `Assets required for: ${cleanTitle}`,
+      `Checklist update for project ${cleanTitle}`,
+      `Quick brief follow-up – ${cleanTitle} (${freelancerName})`
     ];
     const currentIndex = presets.indexOf(customSubject);
     const nextIndex = (currentIndex + 1) % presets.length;
@@ -148,10 +148,10 @@ export default function EmailPreviewModal() {
             </div>
             <div>
               <strong style={{ fontSize: '1rem', color: 'var(--text-primary)', display: 'block' }}>
-                Odoslanie pripomienky cez Resend
+                Send Reminder via Resend
               </strong>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Transakčné e-mailové API &bull; Vysoká doručiteľnosť do schránky klienta
+                Transactional Email API &bull; High inbox deliverability
               </span>
             </div>
           </div>
@@ -179,18 +179,18 @@ export default function EmailPreviewModal() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.825rem', color: '#7dd3fc' }}>
             <ShieldCheck size={16} color="#38bdf8" />
-            <span><strong>Resend API aktívne:</strong> Oficiálne DKIM & SPF overenie &bull; 3 000 e-mailov/mesiac zadarmo</span>
+            <span><strong>Resend API Active:</strong> Official DKIM & SPF verification &bull; 3,000 free emails/month</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Štýl:</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Style:</span>
             <button
               type="button"
               onClick={() => setEmailStyle('personal')}
               className={`btn btn-sm btn-pill ${emailStyle === 'personal' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '0.75rem', padding: '3px 10px', height: 'auto' }}
             >
-              ✉️ Osobný
+              ✉️ Personal
             </button>
             <button
               type="button"
@@ -198,7 +198,7 @@ export default function EmailPreviewModal() {
               className={`btn btn-sm btn-pill ${emailStyle === 'card' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ fontSize: '0.75rem', padding: '3px 10px', height: 'auto' }}
             >
-              🎨 Karta
+              🎨 Card
             </button>
           </div>
         </div>
@@ -216,17 +216,17 @@ export default function EmailPreviewModal() {
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <strong>Odosielateľ:</strong> DropBrief (Resend API)
+              <strong>Sender:</strong> DropBrief (Resend API)
             </div>
             <div>
-              <strong>Príjemca:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;
+              <strong>Recipient:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;
             </div>
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                <strong>Predmet správy:</strong>
+                <strong>Subject Line:</strong>
               </label>
               <button
                 type="button"
@@ -243,7 +243,7 @@ export default function EmailPreviewModal() {
                   gap: '4px'
                 }}
               >
-                <Sparkles size={11} /> Zmeniť formuláciu
+                <Sparkles size={11} /> Change phrasing
               </button>
             </div>
             <input 
@@ -272,19 +272,19 @@ export default function EmailPreviewModal() {
                   gap: '5px'
                 }}
               >
-                <MessageSquare size={13} /> + Pridať vlastnú poznámku k správe
+                <MessageSquare size={13} /> + Add personal note to email
               </button>
             ) : (
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '4px', color: 'var(--text-secondary)' }}>
-                  Osobná poznámka pre klienta:
+                  Personal note for client:
                 </label>
                 <textarea
                   className="textarea"
                   rows={2}
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  placeholder="Napr.: Ahoj Peter, prebehol som zadanie a chýba nám už len zopár detailov..."
+                  placeholder="e.g. Hi Peter, I reviewed the brief and we just need a few remaining items..."
                   style={{ fontSize: '0.825rem', resize: 'vertical' }}
                 />
               </div>
@@ -313,11 +313,11 @@ export default function EmailPreviewModal() {
               boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
             }}>
               <p style={{ margin: '0 0 12px 0' }}>
-                Dobrý deň, {previewEmailProject.clientName},
+                Hi {previewEmailProject.clientName},
               </p>
 
               <p style={{ margin: '0 0 12px 0' }}>
-                píšem Vám ohľadom projektu <strong>{previewEmailProject.title}</strong>. Aby sme mohli plynule pokračovať v prácach, potrebovali by sme od Vás doplniť nasledujúce podklady:
+                I am reaching out regarding project <strong>{previewEmailProject.title}</strong>. To keep our timeline moving forward smoothly, we need the following deliverables from you:
               </p>
 
               {customMessage.trim() && (
@@ -329,7 +329,7 @@ export default function EmailPreviewModal() {
                   fontSize: '0.85rem'
                 }}>
                   <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Poznámka od {freelancerName}:
+                    Note from {freelancerName}:
                   </div>
                   {customMessage}
                 </div>
@@ -339,35 +339,35 @@ export default function EmailPreviewModal() {
                 {missingItems.map((item) => (
                   <li key={item.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>
                     <strong>{item.title}</strong>
-                    {item.description ? <span style={{ color: '#64748b' }}> – {item.description}</span> : ''}
+                    {item.description ? <span style={{ color: '#64748b' }}> &ndash; {item.description}</span> : ''}
                   </li>
                 ))}
               </ul>
 
               {previewEmailProject.deadline && (
                 <p style={{ margin: '0 0 14px 0', fontSize: '0.85rem', color: '#475569' }}>
-                  Termín odovzdania: <strong>{previewEmailProject.deadline}</strong>
+                  Target deadline: <strong>{previewEmailProject.deadline}</strong>
                 </p>
               )}
 
               <p style={{ margin: '14px 0', fontSize: '0.88rem' }}>
-                Podklady môžete pohodlne nahrať priamo cez odkaz projektu:<br />
+                You can easily upload these files directly via your secure project link:<br />
                 <a href={targetPortalUrl} target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 600, wordBreak: 'break-all' }}>
                   {targetPortalUrl}
                 </a>
               </p>
 
               <p style={{ margin: '0 0 14px 0', fontSize: '0.85rem' }}>
-                Ak máte k jednotlivým položkám akékoľvek otázky, kedykoľvek odpovedzte priamo na tento e-mail.
+                If you have any questions about any of the items, feel free to reply directly to this email.
               </p>
 
               <p style={{ margin: '18px 0 0 0', fontSize: '0.88rem' }}>
-                S pozdravom,<br />
+                Best regards,<br />
                 <strong>{freelancerName}</strong>
               </p>
 
               <div style={{ marginTop: '24px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', fontSize: '0.75rem', color: '#94a3b8' }}>
-                Doručené cez DropBrief &bull; Resend Infrastructure
+                Delivered via DropBrief &bull; Resend Infrastructure
               </div>
             </div>
           ) : (
@@ -389,16 +389,16 @@ export default function EmailPreviewModal() {
                   {freelancerName}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
-                  Projekt: <strong>{previewEmailProject.title}</strong>
+                  Project: <strong>{previewEmailProject.title}</strong>
                 </div>
               </div>
 
               <div style={{ padding: '22px 24px' }}>
                 <p style={{ fontSize: '0.9rem', color: '#1e293b', margin: '0 0 12px 0' }}>
-                  Dobrý deň, {previewEmailProject.clientName},
+                  Hi {previewEmailProject.clientName},
                 </p>
                 <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  pre plynulé pokračovanie prác na projekte <strong>{previewEmailProject.title}</strong> potrebujeme doplniť nasledujúce podklady:
+                  to keep work on <strong>{previewEmailProject.title}</strong> on schedule, we need to collect the following items:
                 </p>
 
                 {customMessage.trim() && (
@@ -424,17 +424,17 @@ export default function EmailPreviewModal() {
 
                 <div style={{ margin: '18px 0 12px' }}>
                   <div style={{ display: 'inline-block', background: '#4f46e5', color: '#ffffff', fontWeight: 700, fontSize: '0.9rem', padding: '10px 24px', borderRadius: 'var(--radius-md)' }}>
-                    Nahrať podklady k projektu
+                    Upload Project Assets
                   </div>
                 </div>
 
                 <div style={{ fontSize: '0.78rem', color: '#64748b', wordBreak: 'break-all', marginTop: '12px' }}>
-                  Priamy odkaz: <span style={{ color: '#4f46e5', textDecoration: 'underline' }}>{targetPortalUrl}</span>
+                  Direct link: <span style={{ color: '#4f46e5', textDecoration: 'underline' }}>{targetPortalUrl}</span>
                 </div>
               </div>
 
               <div style={{ borderTop: '1px solid #f1f5f9', background: '#f8fafc', padding: '12px 24px', fontSize: '0.75rem', color: '#94a3b8' }}>
-                Odosielateľ: {freelancerName} &bull; DropBrief (Resend)
+                Sender: {freelancerName} &bull; DropBrief (Resend)
               </div>
             </div>
           )}
@@ -455,7 +455,7 @@ export default function EmailPreviewModal() {
             }}>
               <CheckCircle2 size={20} />
               <div>
-                <strong>E-mail bol úspešne odoslaný cez Resend!</strong> Pripomienka odišla na adresu <u>{clientEmail}</u>.
+                <strong>Email successfully sent via Resend!</strong> Reminder sent to <u>{clientEmail}</u>.
               </div>
             </div>
           )}
@@ -475,7 +475,7 @@ export default function EmailPreviewModal() {
             }}>
               <AlertCircle size={20} style={{ marginTop: '2px', flexShrink: 0 }} />
               <div>
-                <strong>Odoslanie zlyhalo:</strong> {errorMessage}
+                <strong>Sending failed:</strong> {errorMessage}
               </div>
             </div>
           )}
@@ -498,7 +498,7 @@ export default function EmailPreviewModal() {
             onClick={handleClose} 
             className="btn btn-secondary btn-sm btn-pill"
           >
-            {sendSuccess ? 'Hotovo, zavrieť' : 'Zavrieť'}
+            {sendSuccess ? 'Done, close' : 'Close'}
           </button>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -509,10 +509,10 @@ export default function EmailPreviewModal() {
                 openClientPortal(previewEmailProject.slug);
               }}
               className="btn btn-secondary btn-sm btn-pill"
-              title="Zobraziť portál tak, ako ho uvidí klient"
+              title="Open portal as viewed by client"
             >
               <ExternalLink size={14} />
-              Otvoriť portál
+              Open Portal
             </button>
 
             <button
@@ -529,17 +529,17 @@ export default function EmailPreviewModal() {
               {isSending ? (
                 <>
                   <Loader2 size={15} className="animate-spin" />
-                  Odosielam cez Resend...
+                  Sending via Resend...
                 </>
               ) : sendSuccess ? (
                 <>
                   <Check size={15} />
-                  Odoslané!
+                  Sent!
                 </>
               ) : (
                 <>
                   <Send size={15} />
-                  Odoslať e-mail cez Resend
+                  Send Email via Resend
                 </>
               )}
             </button>

@@ -107,17 +107,17 @@ export function AppProvider({ children }) {
       }
     } catch (err) {
       console.error('Supabase fetch error:', err);
-      addToast('Nepodarilo sa načítať projekty zo vzdialenej databázy.', 'warning', 'Chyba spojenia');
+      addToast('Failed to load projects from remote database.', 'warning', 'Connection Error');
     } finally {
       setIsLoadingDb(false);
     }
   }, []);
 
-  // Načítanie konkrétneho projektu podľa slugu (ideálne pre klienta na cudzom zariadení)
+  // Fetch specific project by slug (ideal for client on remote device)
   const fetchProjectBySlug = useCallback(async (slug) => {
     if (!slug) return null;
 
-    // Najprv skontrolujeme lokálny state
+    // Check local state first
     const local = projects.find((p) => p.slug === slug);
     if (local && !isSupabaseConfigured) return local;
 
@@ -147,13 +147,13 @@ export function AppProvider({ children }) {
     return local || null;
   }, [projects]);
 
-  // Realtime synchronizácia pri live pripojení
+  // Realtime synchronization on live connection
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
 
     fetchSupabaseProjects();
 
-    // Počúvanie zmien v databáze v reálnom čase (WebSockets)
+    // Listen to database changes in real time (WebSockets)
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
@@ -180,26 +180,26 @@ export function AppProvider({ children }) {
 
   const registerFreelancer = async (nick, email = '') => {
     if (!nick || nick.trim().length < 2) {
-      throw new Error('Meno / Nick musí mať aspoň 2 znaky.');
+      throw new Error('Name / Nickname must have at least 2 characters.');
     }
     const cleanNick = nick.trim();
     const cleanEmail = email ? email.trim() : '';
 
-    // 1. Skontrolujeme, či nick už neexistuje v cloude
+    // 1. Check if nickname already exists in cloud
     if (isSupabaseConfigured) {
       try {
         const existing = await getCloudFreelancer(cleanNick);
         if (existing) {
-          throw new Error('Tento nick už existuje. Zvoľte si iné meno alebo sa prihláste.');
+          throw new Error('This nickname already exists. Choose a different name or log in.');
         }
       } catch (err) {
-        if (err.message && err.message.includes('Tento nick už existuje')) {
+        if (err.message && err.message.includes('already exists')) {
           throw err;
         }
       }
     }
 
-    // Vygenerovanie 6-miestneho číselného PIN kódu
+    // Generate 6-digit numeric PIN
     const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
 
     let freelancerRecord = {
@@ -210,7 +210,7 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString(),
     };
 
-    // 2. Uložíme do Supabase cloudu (DB tabuľka + Storage profil)
+    // 2. Save to Supabase cloud (DB table + Storage profile)
     if (isSupabaseConfigured) {
       try {
         freelancerRecord = await saveCloudFreelancer(freelancerRecord);
@@ -219,37 +219,36 @@ export function AppProvider({ children }) {
       }
     }
 
-    // 3. Uložíme do lokálnej pamäte prehliadača – PIN hashovaný, nikdy plain-text
+    // 3. Save to local browser storage - hashed PIN only, never plaintext
     try {
       const pinHash = await hashPin(generatedPin);
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
       const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase());
-      // Ukladáme len hash, nie pôvodný PIN
       filtered.push({ id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt, pinHash });
       localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
     } catch (e) {
       console.error('Failed to save to local accounts:', e);
     }
 
-    // Session nikdy neobsahuje plain-text PIN
+    // Session never stores plaintext PIN
     const sessionRecord = { id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt };
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(sessionRecord));
     setCurrentFreelancer(sessionRecord);
-    setAuthRegisteredData(freelancerRecord); // authRegisteredData drží PIN len pre pin_reveal obrazovku
+    setAuthRegisteredData(freelancerRecord); // holds PIN only for the pin_reveal screen
     setAuthModalMode('pin_reveal');
 
-    addToast(`Účet ${cleanNick} pripravený! Váš PIN kód je ${generatedPin}`, 'success', 'Registrácia úspešná');
+    addToast(`Account ${cleanNick} ready! Your PIN is ${generatedPin}`, 'success', 'Registration Successful');
     return freelancerRecord;
   };
 
   const loginFreelancer = async (nick, pin) => {
     if (!nick || !pin) {
-      throw new Error('Zadajte prosím nick aj 6-miestny PIN kód.');
+      throw new Error('Please enter both your nickname and 6-digit PIN code.');
     }
     const cleanNick = nick.trim().toLowerCase();
     const cleanPin = pin.trim();
 
-    // 🛡️ Ochrana pred brute-force – max 5 pokusov za 60 sekúnd
+    // 🛡️ Brute-force protection - max 5 attempts per 60 seconds
     const RATE_KEY = 'dropbrief_login_attempts';
     try {
       const rateData = JSON.parse(localStorage.getItem(RATE_KEY) || '{"count":0,"since":0}');
@@ -257,7 +256,7 @@ export function AppProvider({ children }) {
       if (now - rateData.since < 60_000) {
         if (rateData.count >= 5) {
           const waitSec = Math.ceil((60_000 - (now - rateData.since)) / 1000);
-          throw new Error(`Príliš veľa neúspešných pokusov. Skúste znova o ${waitSec} sekúnd.`);
+          throw new Error(`Too many failed attempts. Try again in ${waitSec} seconds.`);
         }
         rateData.count += 1;
       } else {
@@ -266,19 +265,18 @@ export function AppProvider({ children }) {
       }
       localStorage.setItem(RATE_KEY, JSON.stringify(rateData));
     } catch (rateErr) {
-      if (rateErr.message && rateErr.message.includes('Príliš veľa')) throw rateErr;
+      if (rateErr.message && rateErr.message.includes('Too many')) throw rateErr;
     }
 
     let matchedUser = null;
 
-    // 1. Hľadáme v Supabase cloude (DB alebo Storage profil)
+    // 1. Check Supabase cloud (DB or Storage profile)
     if (!matchedUser && isSupabaseConfigured) {
       try {
         const cloudUser = await getCloudFreelancer(cleanNick);
         if (cloudUser) {
           const isValid = await verifyCloudPin(cleanPin, cloudUser);
           if (isValid) {
-            // ✅ Session bez PINu
             matchedUser = {
               id: cloudUser.id,
               nick: cloudUser.nick,
@@ -286,16 +284,16 @@ export function AppProvider({ children }) {
               createdAt: cloudUser.createdAt,
             };
           } else {
-            throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
+            throw new Error('Incorrect 6-digit PIN code for this nickname.');
           }
         }
       } catch (err) {
-        if (err.message && err.message.includes('Nesprávny 6-miestny PIN kód')) throw err;
+        if (err.message && err.message.includes('Incorrect 6-digit PIN code')) throw err;
         console.warn('Cloud login check warning:', err);
       }
     }
 
-    // 2. Fallback na lokálnu pamäť prehliadača
+    // 2. Fallback to local storage
     if (!matchedUser) {
       try {
         const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
@@ -305,37 +303,35 @@ export function AppProvider({ children }) {
           if (found.pinHash) {
             isValid = (await hashPin(cleanPin, true)) === found.pinHash || (await hashPin(cleanPin, false)) === found.pinHash;
           } else if (found.pin) {
-            // Starší fallback pre existujúce lokálne účty (pred migráciou)
             isValid = String(found.pin).trim() === cleanPin;
           }
           if (isValid) {
             matchedUser = { id: found.id, nick: found.nick, email: found.email || '', createdAt: found.createdAt };
           } else {
-            throw new Error('Nesprávny 6-miestny PIN kód pre tento nick.');
+            throw new Error('Incorrect 6-digit PIN code for this nickname.');
           }
         }
       } catch (e) {
-        if (e.message && e.message.includes('Nesprávny 6-miestny PIN kód')) throw e;
+        if (e.message && e.message.includes('Incorrect 6-digit PIN code')) throw e;
       }
     }
 
     if (!matchedUser) {
-      throw new Error(`Účet s nickom „${nick.trim()}" nebol nájdený. Skontrolujte zadané meno alebo si vytvorte nový účet.`);
+      throw new Error(`Account with nickname "${nick.trim()}" was not found. Please verify the name or register a new account.`);
     }
 
-    // ✅ Reset rate-limitu po úspechu
+    // Reset rate-limit after success
     try { localStorage.removeItem(RATE_KEY); } catch(e) {}
 
-    // ✅ Session nikdy neobsahuje plain-text PIN
+    // Session never stores plaintext PIN
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
     setCurrentFreelancer(matchedUser);
     closeAuthModal();
-    addToast(`Vitajte späť, ${matchedUser.nick}!`, 'success', 'Prihlásený');
+    addToast(`Welcome back, ${matchedUser.nick}!`, 'success', 'Logged In');
     return matchedUser;
   };
 
   const loginAsDemo = async () => {
-    // Demo účet je len pre lokálnu demó verziu – prihlási cez štandardný flow
     return loginFreelancer('Marko', '123456');
   };
 
@@ -343,28 +339,28 @@ export function AppProvider({ children }) {
     localStorage.removeItem('dropbrief_freelancer_session');
     setCurrentFreelancer(null);
     setCurrentView('dashboard');
-    addToast('Boli ste úspešne odhlásený z dashboardu.', 'info', 'Odhlásený');
+    addToast('You have been successfully logged out from the dashboard.', 'info', 'Logged Out');
   };
 
   const seedDemoProjectForFreelancer = async () => {
     if (!currentFreelancer) return;
     return createProject({
-      title: 'Tvorba webu a podklady - Kaviareň Modrá',
-      clientName: 'Martin Ševčík',
-      clientEmail: 'martin@kaviaren-modra.sk',
+      title: 'Website Build & Assets – Blue Cafe',
+      clientName: 'Martin Vance',
+      clientEmail: 'martin@bluecafe.com',
       deadline: '2026-10-30',
       reminderFrequency: 3,
       items: [
-        { title: 'Vektorové logo (SVG alebo AI)', description: 'Potrebujeme logo na priehľadnom pozadí', type: 'file', required: true },
-        { title: 'Texty o kaviarni a ponuke', description: 'Krátky príbeh kaviarne a zoznam špecialít', type: 'text', required: true },
-        { title: 'Fotografie interiéru a kávy (5-10 ks)', description: 'Vysoké rozlíšenie pre hlavičku webu', type: 'file', required: true },
+        { title: 'Vector logo (SVG or AI)', description: 'We need the logo with a transparent background', type: 'file', required: true },
+        { title: 'Story about the cafe and menu highlights', description: 'Short story of the cafe and signature items', type: 'text', required: true },
+        { title: 'Photos of the interior and specialty coffee (5-10)', description: 'High-res photos for the website hero', type: 'file', required: true },
       ]
     });
   };
 
   const createProject = async (newProjData) => {
     const randomSlug =
-      (newProjData.clientName || 'klient')
+      (newProjData.clientName || 'client')
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '-')
         .replace(/-+/g, '-') +
@@ -401,10 +397,10 @@ export function AppProvider({ children }) {
       })),
     };
 
-    // Okamžitá optimistická aktualizácia UI
+    // Optimistic UI update
     setProjects((prev) => [newProject, ...prev]);
 
-    // Uloženie do Supabase (ak je k dispozícii)
+    // Save to Supabase (if configured)
     if (isSupabaseConfigured && supabase) {
       try {
         const insertPayload = {
@@ -446,12 +442,12 @@ export function AppProvider({ children }) {
         }
       } catch (err) {
         console.error('Failed to create project in Supabase:', err);
-        addToast('Projekt bol vytvorený lokálne, uloženie do cloudu zlyhalo.', 'warning', 'Upozornenie');
+        addToast('Project was created locally, cloud sync failed.', 'warning', 'Warning');
         return newProject;
       }
     }
 
-    addToast('Nový projekt bol úspešne vytvorený!', 'success', 'Projekt pripravený');
+    addToast('New project created successfully!', 'success', 'Project Ready');
     return newProject;
   };
 
@@ -466,11 +462,11 @@ export function AppProvider({ children }) {
       }
     }
 
-    addToast('Projekt bol vymazaný zo systému.', 'info', 'Projekt odstránený');
+    addToast('Project deleted from system.', 'info', 'Project Removed');
   };
 
   const updateItemValue = async (projectSlug, itemId, value, isCompleted = true) => {
-    // Optimistická zmena v lokálnom stave
+    // Optimistic update in local state
     setProjects((prevProjects) =>
       prevProjects.map((proj) => {
         if (proj.slug !== projectSlug) return proj;
@@ -497,7 +493,7 @@ export function AppProvider({ children }) {
       })
     );
 
-    // Synchronizácia do Supabase
+    // Sync to Supabase
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase
@@ -509,7 +505,6 @@ export function AppProvider({ children }) {
           })
           .eq('id', itemId);
 
-        // Skontrolovať celkový stav projektu
         const currentProj = projects.find((p) => p.slug === projectSlug);
         if (currentProj) {
           const reqDone = currentProj.items
@@ -535,7 +530,7 @@ export function AppProvider({ children }) {
 
   const sendActualReminder = async (projectId, options = {}) => {
     const proj = projects.find((p) => p.id === projectId);
-    if (!proj) throw new Error('Projekt nebol nájdený.');
+    if (!proj) throw new Error('Project not found.');
 
     const missingItems = proj.items.filter((i) => !i.isCompleted);
     const today = new Date().toISOString().split('T')[0];
@@ -569,7 +564,7 @@ export function AppProvider({ children }) {
     const resData = await response.json().catch(() => ({}));
 
     if (!response.ok || !resData.success) {
-      const errMsg = resData.error || `Chyba pri odosielaní (${response.status})`;
+      const errMsg = resData.error || `Error sending email (${response.status})`;
       throw new Error(errMsg);
     }
 
@@ -589,9 +584,9 @@ export function AppProvider({ children }) {
     }
 
     addToast(
-      `Pripomienka bola úspešne odoslaná na ${proj.clientEmail}!`,
+      `Reminder was successfully sent to ${proj.clientEmail}!`,
       'success',
-      'E-mail odoslaný'
+      'Email Sent'
     );
 
     return resData;

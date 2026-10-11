@@ -49,10 +49,10 @@ export default function LegalModal() {
             </div>
             <div>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Bezpečnosť dát, GDPR a Právna ochrana
+                Data Security, GDPR & Legal Privacy
               </h2>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Ako DropBrief chráni používateľov a zabezpečuje dáta v EÚ
+                How DropBrief protects users and secures cloud data in the European Union
               </span>
             </div>
           </div>
@@ -72,37 +72,37 @@ export default function LegalModal() {
           
           <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid var(--success-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <Lock size={17} /> 1. Šifrovanie dát a servery v Európe (GDPR)
+              <Lock size={17} /> 1. Data Encryption & EU Hosting (GDPR)
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-primary)', lineHeight: 1.55 }}>
-              Všetky prenosy sú šifrované moderným certifikátom TLS 1.3. Súbory sa ukladajú v certifikovanom dátovom centre vo Frankfurte (Nemecko) so štandardom AES-256 v pokoji. Žiadne dáta neopúšťajú územie Európskej únie.
+              All data in transit is encrypted using modern TLS 1.3 certificates. Files at rest are stored in certified data centers in the European Union (Frankfurt / Ireland) with AES-256 encryption. No data leaves EU territory.
             </p>
           </div>
 
           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
-              2. Rola Sprostredkovateľa (Data Processor)
+              2. Data Processor Role (GDPR Compliance)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
-              V zmysle Nariadenia GDPR vystupuje DropBrief výhradne ako <strong>Technický sprostredkovateľ</strong>. Prevádzkovateľom dát (Data Controller) je samotný zadávateľ (freelancer alebo agentúra), ktorý zodpovedá za oprávnenosť vyžiadania konkrétnych podkladov od svojich klientov.
+              Under the GDPR, DropBrief acts strictly as a <strong>Technical Data Processor</strong>. The Data Controller is the freelancer or agency creating the collection, who maintains lawful responsibility for requesting specific assets from their clients.
             </p>
           </div>
 
           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
-              3. Automatické premazávanie (Auto-Purge po 30 dňoch)
+              3. Automated Storage Purge (30-day Retention)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
-              Na rozdiel od bežných cloudových úložísk, kde súbory zostávajú roky, DropBrief automaticky označí a po 30 dňoch od dokončenia zákazky trvalo odstráni všetky nahrané súbory. Tým sa minimalizuje akékoľvek riziko úniku archívnych dát.
+              Unlike open cloud drives where files linger for years, DropBrief marks and permanently removes uploaded files 30 days following project completion, strictly minimizing long-term data breach exposure.
             </p>
           </div>
 
           <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid var(--warning-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <AlertTriangle size={17} /> 4. Vylúčenie zodpovednosti (Terms of Service)
+              <AlertTriangle size={17} /> 4. Terms of Service & Liability
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              Služba je poskytovaná na báze „tak, ako stojí a leží“ (as-is). Prevádzkovateľ nenesie zodpovednosť za obsah súborov nahrávaných klientmi, ani za prípadné straty dát spôsobené vyššou mocou alebo zásahom tretích strán. Používateľom je odporúčané po odovzdaní podklady stiahnuť do lokálneho archívu.
+              The software is provided on an "as-is" basis. DropBrief assumes no liability for the content of files uploaded by clients or unexpected third-party interruptions. Freelancers are advised to download completed asset packages to their local archives upon completion.
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export default function LegalModal() {
         {/* Footer */}
         <div style={{ padding: '18px 26px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end', background: 'rgba(7, 9, 14, 0.95)' }}>
           <button onClick={() => setIsLegalModalOpen(false)} className="btn btn-primary btn-sm btn-pill">
-            Rozumiem, zatvoriť
+            Understood, close
           </button>
         </div>
 

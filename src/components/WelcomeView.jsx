@@ -36,7 +36,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
     e.stopPropagation();
     navigator.clipboard.writeText('https://usedropbrief.xyz/?p=restauracia-alfa');
     setCopiedDemoLink(true);
-    addToast('Ukážkový odkaz pre klienta skopírovaný!', 'success', 'Demo odkaz');
+    addToast('Sample client portal link copied!', 'success', 'Demo Link');
     setTimeout(() => setCopiedDemoLink(false), 2000);
   };
 
@@ -64,8 +64,8 @@ export default function WelcomeView({ onOpenCreateModal }) {
             }}>
               <span className="status-dot status-dot-live" />
               <Sparkles size={13} color="#a5b4fc" />
-              <span>Micro-SaaS pre freelancerov a digitálne agentúry</span>
-              <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px' }}>ZADARMO</span>
+              <span>Micro-SaaS for Freelancers & Creative Agencies</span>
+              <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px' }}>FREE</span>
             </div>
           </div>
 
@@ -78,14 +78,14 @@ export default function WelcomeView({ onOpenCreateModal }) {
             marginBottom: '20px',
             color: 'var(--text-primary)'
           }}>
-            Zbierajte podklady od klientov{' '}
+            Collect client assets & briefs{' '}
             <span style={{
               background: 'var(--gradient-brand)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               filter: 'drop-shadow(0 2px 12px rgba(99, 102, 241, 0.3))'
             }}>
-              bez hesiel a chaosu
+              without passwords or chaos
             </span>
           </h1>
 
@@ -98,7 +98,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             margin: '0 auto 36px',
             fontWeight: 400
           }}>
-            Žiadne nekonečné dopisovanie cez WhatsApp a stratené prílohy. Vytvorte si bezplatný účet za 5 sekúnd a pošlite klientovi priamy odkaz na bleskové nahrávanie.
+            No more endless WhatsApp messages and lost attachments. Create a free account in 5 seconds and send your client a friction-free link for instant uploads.
           </p>
 
           {/* CTA Buttons */}
@@ -117,7 +117,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               style={{ boxShadow: 'var(--glow-accent)', fontSize: '0.975rem', padding: '13px 28px' }}
             >
               <UserPlus size={18} />
-              Vytvoriť bezplatný účet
+              Create Free Account
               <ArrowRight size={16} />
             </button>
 
@@ -128,7 +128,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               style={{ fontSize: '0.95rem', padding: '13px 24px' }}
             >
               <KeyRound size={17} />
-              Prihlásiť sa cez PIN
+              Log in with PIN
             </button>
 
             <button
@@ -142,10 +142,10 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 color: '#a5b4fc',
                 background: 'rgba(99, 102, 241, 0.07)'
               }}
-              title="Vstúpiť do predpripraveného demo účtu s reálnymi dátami"
+              title="Explore ready-made demo account with live data"
             >
               <Sparkles size={15} color="var(--accent-primary)" />
-              Demo účet (Marko)
+              Demo Account (Marko)
             </button>
           </div>
 
@@ -160,9 +160,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
             color: 'var(--text-tertiary)'
           }}>
             {[
-              'Registrácia za 5 sekúnd bez hesla',
-              'Klient nahráva bez prihlasovania',
-              '100 % GDPR v súlade (EÚ)'
+              '5-second signup without passwords',
+              'Clients upload with zero login friction',
+              '100% GDPR compliant (EU hosted)'
             ].map((text, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                 <CheckCircle2 size={15} color="var(--success)" />
@@ -203,13 +203,13 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                 <span style={{ marginLeft: '10px', fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                  usedropbrief.xyz/?p=restauracia-alfa
+                  usedropbrief.xyz/?p=alpha-bistro
                 </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="badge badge-accent" style={{ fontSize: '0.68rem' }}>
-                  <Sparkles size={10} /> Živý náhľad portálu
+                  <Sparkles size={10} /> Live Portal Preview
                 </span>
                 <button
                   type="button"
@@ -218,7 +218,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   style={{ fontSize: '0.74rem', padding: '4px 10px' }}
                 >
                   {copiedDemoLink ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
-                  {copiedDemoLink ? 'Skopírované!' : 'Kopírovať odkaz'}
+                  {copiedDemoLink ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
             </div>
@@ -234,19 +234,19 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 padding: '18px'
               }}>
                 <div style={{ marginBottom: '12px' }}>
-                  <span className="badge badge-warning" style={{ fontSize: '0.65rem', marginBottom: '7px' }}>Čaká sa na klienta</span>
+                  <span className="badge badge-warning" style={{ fontSize: '0.65rem', marginBottom: '7px' }}>Waiting for client</span>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                    Tvorba webu – Reštaurácia Alfa
+                    Website Build – Alpha Bistro
                   </h3>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                    Klient: <strong style={{ color: 'var(--text-secondary)' }}>Peter Kováč</strong> · Freelancer: <strong style={{ color: 'var(--text-secondary)' }}>Marko</strong>
+                    Client: <strong style={{ color: 'var(--text-secondary)' }}>Peter Novak</strong> &bull; Freelancer: <strong style={{ color: 'var(--text-secondary)' }}>Marko</strong>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '5px' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Stav dodania:</span>
-                    <strong style={{ color: 'var(--accent-primary)' }}>3 zo 4 (75 %)</strong>
+                    <span style={{ color: 'var(--text-tertiary)' }}>Assets delivered:</span>
+                    <strong style={{ color: 'var(--accent-primary)' }}>3 of 4 (75%)</strong>
                   </div>
                   <div className="progress-track">
                     <div className="progress-fill" style={{ width: '75%' }} />
@@ -255,7 +255,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <div className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem', pointerEvents: 'none' }}>
-                    <Send size={12} color="var(--warning)" /> Odoslať pripomienku
+                    <Send size={12} color="var(--warning)" /> Send Reminder
                   </div>
                   <div className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem', pointerEvents: 'none' }}>
                     <Upload size={12} /> Export JSON
@@ -267,11 +267,11 @@ export default function WelcomeView({ onOpenCreateModal }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
                   { icon: CheckCircle2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-                    title: 'Logo reštaurácie (SVG / PDF)', sub: '✓ logo_alfa_vector.svg · 1.4 MB', badge: 'Hotovo', badgeClass: 'badge-success' },
+                    title: 'Restaurant Logo (SVG / PDF)', sub: '✓ alpha_bistro_logo.svg · 1.4 MB', badge: 'Done', badgeClass: 'badge-success' },
                   { icon: FileCheck2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-                    title: 'Fotografie interiéru a jedálneho lístka', sub: '✓ 8 fotografií · Originálna kvalita', badge: '8 fotiek', badgeClass: 'badge-success' },
+                    title: 'Atmosphere & Food Photography', sub: '✓ 8 photos · Original quality preserved', badge: '8 photos', badgeClass: 'badge-success' },
                   { icon: CheckCircle2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-                    title: 'Text "Náš príbeh a filozofia"', sub: '✓ Text zadaný klientom priamo v prehliadači', badge: 'Zadané', badgeClass: 'badge-success' },
+                    title: 'Copy: "Our Story & Philosophy"', sub: '✓ Completed by client in browser', badge: 'Submitted', badgeClass: 'badge-success' },
                 ].map(({ icon: Icon, done, color, bg, border, title, sub, badge, badgeClass }) => (
                   <div key={title} style={{
                     background: bg,
@@ -304,10 +304,10 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 }}>
                   <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 4px' }} />
                   <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)', display: 'block' }}>
-                    Nápojový lístok a cenník (PDF)
+                    Food & Drinks Menu (PDF)
                   </strong>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
-                    Klient potiahne sem · Žiadne prihlasovanie
+                    Client drags file here &bull; No login required
                   </span>
                 </div>
               </div>
@@ -325,12 +325,12 @@ export default function WelcomeView({ onOpenCreateModal }) {
       }}>
         <div className="container" style={{ maxWidth: '960px' }}>
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 40px' }}>
-            <span className="badge badge-accent" style={{ marginBottom: '12px' }}>Prečo DropBrief?</span>
+            <span className="badge badge-accent" style={{ marginBottom: '12px' }}>Why DropBrief?</span>
             <h2 style={{ fontSize: 'clamp(1.7rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
-              Prestaňte sa topiť v chaose podkladov
+              Stop drowning in client asset chaos
             </h2>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginTop: '8px' }}>
-              Pozrite sa na rozdiel medzi tradičnou komunikáciou a moderným workflow.
+              See the difference between messy communication and a streamlined workflow.
             </p>
           </div>
 
@@ -348,18 +348,18 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fca5a5', letterSpacing: '-0.02em' }}>
-                    Tradičný zber (WhatsApp, Email)
+                    Old Way (WhatsApp, Email Chains)
                   </h3>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Neefektívne a zdĺhavé</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Slow, messy, and unprofessional</span>
                 </div>
               </div>
 
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '11px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 {[
-                  'Fotky poslané cez WhatsApp sú zmenšené a strácajú kvalitu.',
-                  'Odkazy z Úschovne po 7 dňoch expirujú — musíte pýtať znova.',
-                  'Klient zabúda heslo do Google Drive a odkladá na "zajtra".',
-                  'Trávite hodiny písaním trápnych pripomienok.'
+                  'Photos sent over WhatsApp are heavily compressed and lose quality.',
+                  'WeTransfer links expire after 7 days — you have to ask all over again.',
+                  'Clients forget Google Drive passwords and postpone until "tomorrow".',
+                  'You waste hours writing awkward follow-up reminder messages.'
                 ].map((text, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
                     <AlertTriangle size={15} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -382,18 +382,18 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#86efac', letterSpacing: '-0.02em' }}>
-                    S DropBrief (Zero-Friction)
+                    With DropBrief (Zero-Friction)
                   </h3>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Rýchle, bezpečné, profesionálne</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Fast, secure, and modern</span>
                 </div>
               </div>
 
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '11px', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
                 {[
-                  { strong: '1 stály odkaz:', rest: 'Klient klikne a okamžite nahráva bez prihlasovania.' },
-                  { strong: 'Nekomprimované originály:', rest: 'Súbory zostávajú v 100 % rozlíšení v cloude.' },
-                  { strong: 'Živé náhľady fotiek:', rest: 'Okamžitá kontrola dodaných obrázkov v prehliadači.' },
-                  { strong: 'Automatické pripomienky:', rest: 'Systém zdvorilo dohliada na termíny za vás.' }
+                  { strong: '1 permanent link:', rest: 'Clients click and upload instantly with zero login.' },
+                  { strong: 'Uncompressed originals:', rest: 'Files retain 100% original quality in cloud storage.' },
+                  { strong: 'Live image previews:', rest: 'Instant browser verification of submitted photos.' },
+                  { strong: 'Automated reminders:', rest: 'Polite email notifications keep deadlines on track.' }
                 ].map(({ strong, rest }, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
                     <Check size={15} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -410,20 +410,20 @@ export default function WelcomeView({ onOpenCreateModal }) {
       <section style={{ padding: '64px 20px 72px' }}>
         <div className="container" style={{ maxWidth: '960px' }}>
           <div style={{ textAlign: 'center', maxWidth: '560px', margin: '0 auto 44px' }}>
-            <span className="badge badge-accent" style={{ marginBottom: '12px' }}>Jednoduchý proces</span>
+            <span className="badge badge-accent" style={{ marginBottom: '12px' }}>Simple Flow</span>
             <h2 style={{ fontSize: 'clamp(1.7rem, 3vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.03em' }}>
-              Ako to funguje v 3 krokoch
+              How it works in 3 easy steps
             </h2>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '20px' }}>
             {[
               { num: '01', icon: Layers, color: 'var(--accent-primary)', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.22)', glow: '0 0 14px rgba(99,102,241,0.28)',
-                title: '1. Zákazku z šablóny', body: 'Vyberiete odvetvie (Webdizajn, Branding, Účtovníctvo, Social Media) alebo pridáte vlastné položky. Nastavenie trvá pod 30 sekúnd.' },
+                title: '1. Pick a template', body: 'Choose an industry template (Web Design, Branding, Accounting, Social Media) or customize your items. Setup takes under 30 seconds.' },
               { num: '02', icon: Send, color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.22)', glow: '0 0 14px rgba(245,158,11,0.28)',
-                title: '2. Pošlete odkaz klientovi', body: 'Pošlite odkaz cez WhatsApp, Slack alebo e-mail. Klient klikne a okamžite vidí zoznam bez nutnosti vytvárať heslo.' },
+                title: '2. Send link to client', body: 'Send the direct link via WhatsApp, Slack, or email. The client opens the link and sees their checklist immediately with zero login friction.' },
               { num: '03', icon: CheckCircle2, color: 'var(--success)', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.22)', glow: '0 0 14px rgba(16,185,129,0.28)',
-                title: '3. Sledujete a exportujete', body: 'Pri každom nahratí vidíte zelený progress bar. Po dokončení si stiahnete všetky podklady a môžete pracovať.' }
+                title: '3. Track & export assets', body: 'Watch the realtime progress bar update as assets arrive. Download everything in one clean package and get straight to work.' }
             ].map(({ num, icon: Icon, color, bg, border, glow, title, body }) => (
               <div key={num} className="glass-card glass-card-interactive" style={{ padding: '26px', position: 'relative' }}>
                 <div style={{
@@ -473,14 +473,14 @@ export default function WelcomeView({ onOpenCreateModal }) {
               pointerEvents: 'none', filter: 'blur(32px)'
             }} />
 
-            <span className="badge badge-accent" style={{ marginBottom: '18px' }}>Začnite okamžite</span>
+            <span className="badge badge-accent" style={{ marginBottom: '18px' }}>Start Instantly</span>
 
             <h3 style={{ fontSize: 'clamp(1.7rem, 3.5vw, 2.4rem)', fontWeight: 800, letterSpacing: '-0.035em', marginBottom: '12px', lineHeight: 1.15 }}>
-              Ušetrite hodiny zbytočného<br />naháňania klientov
+              Save hours of endless<br />client follow-ups
             </h3>
             
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', maxWidth: '520px', margin: '0 auto 28px', lineHeight: 1.65 }}>
-              Zaregistrujte si profil za 5 sekúnd. Získate vlastný PIN kód a neobmedzený zber podkladov navždy zadarmo.
+              Set up your profile in 5 seconds. Get your personal PIN code and unlimited client asset collections free forever.
             </p>
 
             <button
@@ -489,7 +489,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               style={{ margin: '0 auto', boxShadow: 'var(--glow-accent)', padding: '14px 34px', fontSize: '1rem' }}
             >
               <UserPlus size={19} />
-              Založiť bezplatný účet s PIN kódom
+              Create Free Account with PIN
             </button>
 
           </div>

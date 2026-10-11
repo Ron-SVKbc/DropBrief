@@ -78,14 +78,14 @@ export default function Dashboard({ onOpenCreateModal }) {
     const url = `${baseUrl}/?p=${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
-    addToast('Unikátny odkaz pre klienta bol skopírovaný do schránky!', 'success', 'Odkaz skopírovaný');
+    addToast('Unique client portal link copied to clipboard!', 'success', 'Link Copied');
     setTimeout(() => setCopiedSlug(null), 2500);
   };
 
   const handleDownloadAll = (proj) => {
     const completedItems = proj.items.filter((i) => i.isCompleted);
     if (completedItems.length === 0) {
-      addToast('Klient zatiaľ nenahral žiadne podklady.', 'warning', 'Žiadne súbory');
+      addToast('The client has not uploaded any assets yet.', 'warning', 'No Assets');
       return;
     }
 
@@ -100,11 +100,11 @@ export default function Dashboard({ onOpenCreateModal }) {
           : (item.value?.fileName ? [item.value] : null);
 
         return {
-          nazov: item.title,
-          typ: item.type,
-          pocetSuborov: fileList ? fileList.length : undefined,
-          subory: fileList || item.value,
-          dokonceneDna: item.completedAt
+          itemTitle: item.title,
+          type: item.type,
+          fileCount: fileList ? fileList.length : undefined,
+          files: fileList || item.value,
+          completedAt: item.completedAt
         };
       })
     };
@@ -113,13 +113,13 @@ export default function Dashboard({ onOpenCreateModal }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${proj.slug}-podklady.json`;
+    a.download = `${proj.slug}-assets.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    addToast(`Pripravený export pre projekt "${proj.title}" bol stiahnutý.`, 'success', 'Súbory stiahnuté');
+    addToast(`Export package for "${proj.title}" downloaded.`, 'success', 'Files Exported');
   };
 
   return (
@@ -150,10 +150,10 @@ export default function Dashboard({ onOpenCreateModal }) {
             color: 'var(--text-primary)',
             lineHeight: 1.2
           }}>
-            Moje projekty
+            My Projects
           </h1>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', maxWidth: '560px', lineHeight: 1.5 }}>
-            Prehľad aktívnych zberov. Klienti nahrávajú cez svoj odkaz — systém dohliada na termíny.
+            Overview of active collections. Clients upload via their private link — automated system tracks deadlines.
           </p>
         </div>
 
@@ -164,17 +164,17 @@ export default function Dashboard({ onOpenCreateModal }) {
           style={{ boxShadow: 'var(--glow-accent)', alignSelf: 'flex-start' }}
         >
           <Plus size={17} />
-          Nový projekt
+          New Project
         </button>
       </div>
 
       {/* ── Bento Metrics Grid ────────────────────────────────── */}
       <div className="bento-grid bento-grid-4 stagger-children" style={{ marginBottom: '28px' }}>
 
-        {/* Metric 1 — Aktívne */}
+        {/* Metric 1 — Active */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <span className="metric-label">Aktívne projekty</span>
+            <span className="metric-label">Active Projects</span>
             <div style={{
               width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
@@ -188,13 +188,13 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--text-primary)' }}>{totalProjects}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Všetky sledované zákazky</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Total tracked collections</div>
         </div>
 
-        {/* Metric 2 — Čakajúce položky */}
+        {/* Metric 2 — Pending Items */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <span className="metric-label">Chýbajúce položky</span>
+            <span className="metric-label">Pending Items</span>
             <div style={{
               width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
@@ -208,13 +208,13 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--warning-light)' }}>{totalMissingItems}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Čakajú na klientov</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>Awaiting client submission</div>
         </div>
 
-        {/* Metric 3 — Hotové */}
+        {/* Metric 3 — Completed */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <span className="metric-label">Kompletne dodané</span>
+            <span className="metric-label">Completed Briefs</span>
             <div style={{
               width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
@@ -228,13 +228,13 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--success-light)' }}>{completedProjects}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>100 % pripravené na prácu</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>100% ready for kickoff</div>
         </div>
 
-        {/* Metric 4 — Úspešnosť */}
+        {/* Metric 4 — Completion Rate */}
         <div className="glass-card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <span className="metric-label">Miera dokončenia</span>
+            <span className="metric-label">Completion Rate</span>
             <div style={{
               width: '34px', height: '34px',
               borderRadius: 'var(--radius-md)',
@@ -248,7 +248,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: '#f472b6' }}>{completionRate}%</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>~{totalProjects * 4} hodín ušetrených</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>~{totalProjects * 4} hours saved</div>
         </div>
 
       </div>
@@ -269,7 +269,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             id="search-projects-input"
             type="text"
             className="input"
-            placeholder="Hľadať projekt, klienta alebo email..."
+            placeholder="Search projects, clients or emails..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '36px', paddingRight: searchTerm ? '36px' : '12px', fontSize: 'var(--text-sm)' }}
@@ -292,21 +292,21 @@ export default function Dashboard({ onOpenCreateModal }) {
             className={`btn btn-sm btn-pill ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Všetky · {totalProjects}
+            All &bull; {totalProjects}
           </button>
           <button
             onClick={() => setFilterStatus('pending')}
             className={`btn btn-sm btn-pill ${filterStatus === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Čakajúce · {pendingProjects}
+            Pending &bull; {pendingProjects}
           </button>
           <button
             onClick={() => setFilterStatus('completed')}
             className={`btn btn-sm btn-pill ${filterStatus === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
-            Hotové · {completedProjects}
+            Completed &bull; {completedProjects}
           </button>
         </div>
       </div>
@@ -326,26 +326,26 @@ export default function Dashboard({ onOpenCreateModal }) {
           </div>
           <div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.02em' }}>
-              {searchTerm ? 'Nenašli sa žiadne výsledky' : `Zatiaľ žiadne projekty, ${currentFreelancer?.nick || ''}`}
+              {searchTerm ? 'No matching projects found' : `No projects yet, ${currentFreelancer?.nick || ''}`}
             </h3>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', maxWidth: '440px', lineHeight: 1.55 }}>
               {searchTerm 
-                ? 'Skúste upraviť hľadaný výraz alebo zrušiť filtre.' 
-                : 'Vytvorte prvý projekt a pošlite klientovi odkaz, alebo si vložte ukážkovú zákazku.'}
+                ? 'Try adjusting your search query or clear active filters.' 
+                : 'Create your first project and send the link to your client, or seed a sample demo project.'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button id="btn-empty-create" onClick={onOpenCreateModal} className="btn btn-primary btn-sm btn-pill">
-              <Plus size={15} /> Vytvoriť projekt
+              <Plus size={15} /> Create Project
             </button>
             {!searchTerm && (
               <button 
                 id="btn-empty-seed-demo"
                 onClick={seedDemoProjectForFreelancer} 
                 className="btn btn-secondary btn-sm btn-pill"
-                title="Vložiť testovaciu zákazku pre vyskúšanie"
+                title="Seed sample test project to explore"
               >
-                <Sparkles size={14} color="var(--accent-primary)" /> Ukážková zákazka
+                <Sparkles size={14} color="var(--accent-primary)" /> Sample Project
               </button>
             )}
           </div>
@@ -385,11 +385,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                       </h2>
                       {isCompleted ? (
                         <span className="badge badge-success">
-                          <CheckCircle2 size={11} /> Dodané
+                          <CheckCircle2 size={11} /> Completed
                         </span>
                       ) : (
                         <span className="badge badge-warning">
-                          <Clock size={11} /> Čaká na klienta
+                          <Clock size={11} /> Waiting for client
                         </span>
                       )}
                       <span className="badge badge-neutral" style={{ gap: '4px' }}>
@@ -405,11 +405,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <Calendar size={13} />
-                        <span>Termín: <strong style={{ color: 'var(--text-secondary)' }}>{proj.deadline}</strong></span>
+                        <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{proj.deadline}</strong></span>
                       </span>
                       {proj.lastReminderSent && (
                         <span style={{ color: 'var(--text-quaternary)', fontSize: '0.76rem' }}>
-                          Posledná pripomienka: {proj.lastReminderSent}
+                          Last reminder: {proj.lastReminderSent}
                         </span>
                       )}
                     </div>
@@ -421,31 +421,31 @@ export default function Dashboard({ onOpenCreateModal }) {
                       id={`btn-copy-link-${proj.id}`}
                       onClick={() => copyClientLink(proj.slug)}
                       className="btn btn-secondary btn-sm btn-pill"
-                      title="Skopírovať odkaz pre klienta"
+                      title="Copy private link for client"
                     >
                       {isLinkCopied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
-                      {isLinkCopied ? 'Skopírované!' : 'Kopírovať link'}
+                      {isLinkCopied ? 'Copied!' : 'Copy Link'}
                     </button>
 
                     <button
                       id={`btn-open-client-${proj.id}`}
                       onClick={() => openClientPortal(proj.slug)}
                       className="btn btn-primary btn-sm btn-pill"
-                      title="Otvoriť portál tak, ako ho vidí klient"
+                      title="Open portal as viewed by client"
                     >
                       <ExternalLink size={13} />
-                      Portál
+                      Portal
                     </button>
 
                     <button
                       onClick={() => {
-                        if (confirm(`Naozaj chcete vymazať projekt "${proj.title}"?`)) {
+                        if (confirm(`Are you sure you want to delete project "${proj.title}"?`)) {
                           deleteProject(proj.id);
                         }
                       }}
                       className="btn btn-secondary btn-sm"
                       style={{ color: 'var(--danger)', padding: '6px 8px', borderRadius: 'var(--radius-full)' }}
-                      title="Odstrániť projekt"
+                      title="Delete project"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -456,7 +456,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '5px' }}>
                     <span style={{ color: 'var(--text-tertiary)' }}>
-                      Stav podkladov: <strong style={{ color: 'var(--text-secondary)' }}>{completedCount}/{totalCount}</strong>
+                      Asset progress: <strong style={{ color: 'var(--text-secondary)' }}>{completedCount}/{totalCount}</strong>
                     </span>
                     <span style={{ fontWeight: 800, color: isCompleted ? 'var(--success)' : 'var(--accent-primary)', letterSpacing: '-0.02em' }}>
                       {progressPercent}%
@@ -536,14 +536,14 @@ export default function Dashboard({ onOpenCreateModal }) {
                         onClick={() => openReminderModal(proj.id)}
                         className="btn btn-secondary btn-sm btn-pill"
                         style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem' }}
-                        title="Otvoriť náhľad a odoslať pripomienku"
+                        title="Preview and send follow-up reminder"
                       >
                         <Send size={13} />
-                        {proj.lastReminderSent ? `Poslať znova (${proj.lastReminderSent})` : 'Odoslať pripomienku'}
+                        {proj.lastReminderSent ? `Send Again (${proj.lastReminderSent})` : 'Send Reminder'}
                       </button>
                     ) : (
                       <span style={{ fontSize: '0.8rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                        <CheckCircle2 size={14} /> Všetky podklady pripravené
+                        <CheckCircle2 size={14} /> All assets delivered
                       </span>
                     )}
                   </div>
@@ -555,7 +555,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                     style={{ fontSize: '0.8rem' }}
                   >
                     <Download size={13} />
-                    Export ({completedCount} položiek)
+                    Export ({completedCount} items)
                   </button>
                 </div>
 
@@ -575,24 +575,24 @@ export default function Dashboard({ onOpenCreateModal }) {
       }}>
         <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 24px' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.025em' }}>
-            Prečo klienti radi odovzdávajú cez DropBrief?
+            Why clients love submitting via DropBrief
           </h3>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem' }}>
-            Odstránili sme všetky prekážky, kvôli ktorým klienti odkladajú dodanie materiálov.
+            We eliminated all friction and roadblocks that cause clients to delay deliverables.
           </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
           {[
             { icon: Sparkles, color: 'var(--accent-primary)', bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.2)',
-              title: 'Bez hesiel a prihlasovania',
-              desc: 'Klient otvorí odkaz a okamžite nahráva. Žiadne zabudnuté heslá ani registrácie.' },
+              title: 'Zero Passwords & No Signups',
+              desc: 'Clients click the link and upload immediately. No forgotten passwords, accounts, or friction.' },
             { icon: BellRing, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)',
-              title: 'Automatické pripomienky',
-              desc: 'Systém sám zdvorilo pripomenie chýbajúce položky cez Resend. Nemusíte klientov naháňať.' },
+              title: 'Automated Friendly Reminders',
+              desc: 'The system gently follows up on missing items via Resend. No more awkward manual follow-ups.' },
             { icon: Shield, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-              title: 'Bankové šifrovanie + GDPR',
-              desc: 'Súbory sú šifrované AES-256, uložené v EÚ (Írsko) a po 30 dňoch sa automaticky mažú.' }
+              title: 'Bank-Grade Encryption + GDPR',
+              desc: 'Files are encrypted AES-256, hosted in the EU (Ireland/Frankfurt) with automated 30-day purge.' }
           ].map(({ icon: Icon, color, bg, border, title, desc }) => (
             <div key={title} style={{
               padding: '18px',

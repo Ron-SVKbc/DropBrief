@@ -75,7 +75,7 @@ export default function ToastContainer() {
                 justifyContent: 'center',
                 flexShrink: 0
               }}
-              title="Zavrieť notifikáciu"
+              title="Close notification"
             >
               <X size={15} />
             </button>

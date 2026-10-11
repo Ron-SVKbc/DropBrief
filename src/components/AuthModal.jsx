@@ -65,7 +65,7 @@ export default function AuthModal() {
       setNick('');
       setPin('');
     } catch (err) {
-      setErrorMessage(err.message || 'Prihlásenie zlyhalo. Skontrolujte nick a PIN.');
+      setErrorMessage(err.message || 'Login failed. Please verify your nickname and PIN.');
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +80,7 @@ export default function AuthModal() {
       setNick('');
       setEmail('');
     } catch (err) {
-      setErrorMessage(err.message || 'Registrácia zlyhala.');
+      setErrorMessage(err.message || 'Registration failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +89,7 @@ export default function AuthModal() {
   const handleCopyPin = (pinToCopy) => {
     navigator.clipboard.writeText(pinToCopy);
     setCopiedPin(true);
-    addToast('PIN kód bol skopírovaný do schránky!', 'success', 'Skopírované');
+    addToast('PIN code copied to clipboard!', 'success', 'Copied');
     setTimeout(() => setCopiedPin(false), 3000);
   };
 
@@ -99,7 +99,7 @@ export default function AuthModal() {
     try {
       await loginAsDemo();
     } catch (err) {
-      setErrorMessage(err.message || 'Demo prihlásenie zlyhalo.');
+      setErrorMessage(err.message || 'Demo login failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -155,12 +155,12 @@ export default function AuthModal() {
             </div>
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-                {authModalMode === 'pin_reveal' ? '🎉 Váš účet je pripravený!' : 
-                 authModalMode === 'register' ? 'Nový účet freelancera' : 'Prihlásenie do Dashboardu'}
+                {authModalMode === 'pin_reveal' ? '🎉 Your Account is Ready!' : 
+                 authModalMode === 'register' ? 'New Freelancer Account' : 'Dashboard Login'}
               </h3>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                {authModalMode === 'pin_reveal' ? 'Uložte si prístupový PIN kód' :
-                 authModalMode === 'register' ? 'Vytvorenie profilu za 5 sekúnd bez hesiel' : 'Zadajte svoj Nick a 6-miestny PIN'}
+                {authModalMode === 'pin_reveal' ? 'Save your access PIN code' :
+                 authModalMode === 'register' ? 'Create profile in 5 seconds without passwords' : 'Enter your Nickname and 6-digit PIN'}
               </span>
             </div>
           </div>
@@ -194,10 +194,10 @@ export default function AuthModal() {
             </div>
 
             <h4 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '6px' }}>
-              Vitajte v DropBrief, {authRegisteredData.nick}!
+              Welcome to DropBrief, {authRegisteredData.nick}!
             </h4>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-              Váš účet bol úspešne vytvorený. Tu je váš unikátny 6-miestny kód na prihlásenie:
+              Your account has been created. Here is your unique 6-digit PIN code for simple, passwordless login:
             </p>
 
             {/* Glowing PIN Display Box */}
@@ -210,7 +210,7 @@ export default function AuthModal() {
               boxShadow: 'var(--accent-glow)'
             }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px', letterSpacing: '0.08em', fontWeight: 700 }}>
-                VÁŠ PRÍSTUPOVÝ PIN KÓD
+                YOUR ACCESS PIN CODE
               </span>
               <div style={{
                 fontFamily: 'var(--font-mono)',
@@ -232,7 +232,7 @@ export default function AuthModal() {
                 style={{ margin: '0 auto', fontSize: '0.85rem', padding: '7px 18px' }}
               >
                 {copiedPin ? <Check size={15} /> : <Copy size={15} />}
-                {copiedPin ? 'Skopírované do schránky!' : 'Kopírovať PIN kód'}
+                {copiedPin ? 'Copied to clipboard!' : 'Copy PIN Code'}
               </button>
             </div>
 
@@ -251,7 +251,7 @@ export default function AuthModal() {
             }}>
               <ShieldCheck size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong style={{ color: 'var(--warning)' }}>Dôležité:</strong> Uložte si tento PIN. V kombinácii s nickom <strong>{authRegisteredData.nick}</strong> ho použijete pri prihlasovaní z iných zariadení.
+                <strong style={{ color: 'var(--warning)' }}>Important:</strong> Keep this PIN safe. Paired with your nickname <strong>{authRegisteredData.nick}</strong>, it lets you log into your dashboard from any device.
               </div>
             </div>
 
@@ -262,7 +262,7 @@ export default function AuthModal() {
               className="btn btn-primary btn-lg btn-pill"
               style={{ width: '100%', justifyContent: 'center' }}
             >
-              Vstúpiť do môjho Dashboardu <ArrowRight size={18} />
+              Enter My Dashboard <ArrowRight size={18} />
             </button>
           </div>
         )}
@@ -284,7 +284,7 @@ export default function AuthModal() {
                 className={`btn btn-sm btn-pill ${authModalMode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
               >
-                <LogIn size={15} /> Prihlásenie
+                <LogIn size={15} /> Log In
               </button>
               <button
                 type="button"
@@ -292,7 +292,7 @@ export default function AuthModal() {
                 className={`btn btn-sm btn-pill ${authModalMode === 'register' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
               >
-                <UserPlus size={15} /> Nový účet (Zadarmo)
+                <UserPlus size={15} /> New Account (Free)
               </button>
             </div>
 
@@ -320,13 +320,13 @@ export default function AuthModal() {
               <form onSubmit={handleLoginSubmit} style={{ padding: '26px' }}>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Váš Nick / Meno ateliéru
+                    Your Nickname / Studio Name
                   </label>
                   <input
                     id="login-nick-input"
                     type="text"
                     className="input"
-                    placeholder="Napr. Marko alebo StudioAlfa"
+                    placeholder="e.g. Marko or StudioAlfa"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
                     required
@@ -337,7 +337,7 @@ export default function AuthModal() {
                 <div style={{ marginBottom: '26px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                      6-miestny číselný PIN
+                      6-digit numeric PIN
                     </label>
                     <button
                       type="button"
@@ -345,7 +345,7 @@ export default function AuthModal() {
                       style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
                       {showPin ? <EyeOff size={13} /> : <Eye size={13} />}
-                      {showPin ? 'Skryť' : 'Zobraziť'}
+                      {showPin ? 'Hide' : 'Show'}
                     </button>
                   </div>
                   <input
@@ -375,7 +375,7 @@ export default function AuthModal() {
                   className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center', marginBottom: '18px' }}
                 >
-                  {isSubmitting ? 'Overujem...' : 'Prihlásiť sa do Dashboardu'}
+                  {isSubmitting ? 'Verifying...' : 'Log In to Dashboard'}
                 </button>
 
                 {/* Demo Quick Log in */}
@@ -387,7 +387,7 @@ export default function AuthModal() {
                   textAlign: 'center'
                 }}>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                    Chcete si to len rýchlo vyskúšať?
+                    Just want to test it quickly?
                   </span>
                   <button
                     type="button"
@@ -396,7 +396,7 @@ export default function AuthModal() {
                     style={{ margin: '0 auto', fontSize: '0.825rem' }}
                   >
                     <Sparkles size={14} color="var(--accent-primary)" />
-                    Vstúpiť ako Demo Freelancer (Marko / 123456)
+                    Enter as Demo Freelancer (Marko / 123456)
                   </button>
                 </div>
               </form>
@@ -407,37 +407,37 @@ export default function AuthModal() {
               <form onSubmit={handleRegisterSubmit} style={{ padding: '26px' }}>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Váš Nick alebo názov ateliéru <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                    Your Nickname or Studio Name <span style={{ color: 'var(--accent-primary)' }}>*</span>
                   </label>
                   <input
                     id="register-nick-input"
                     type="text"
                     className="input"
-                    placeholder="Napr. TomasGrafik alebo StudioAlfa"
+                    placeholder="e.g. AlexDesign or StudioAlfa"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
                     required
                     autoFocus
                   />
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Tento názov uvidia vaši klienti v hlavičke portálu.
+                    This name will appear on the portal header for your clients.
                   </span>
                 </div>
 
                 <div style={{ marginBottom: '22px' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Kontaktný e-mail <span style={{ color: 'var(--text-muted)' }}>(voliteľné)</span>
+                    Contact Email <span style={{ color: 'var(--text-muted)' }}>(optional)</span>
                   </label>
                   <input
                     id="register-email-input"
                     type="email"
                     className="input"
-                    placeholder="vas@email.sk"
+                    placeholder="you@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Slúži na zasielanie notifikácií, keď klient nahrá podklady.
+                    Used for notifications when clients upload assets.
                   </span>
                 </div>
 
@@ -451,9 +451,9 @@ export default function AuthModal() {
                   color: 'var(--text-secondary)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '2px' }}>
-                    <KeyRound size={15} /> 100 % bez hesiel
+                    <KeyRound size={15} /> 100% Passwordless
                   </div>
-                  Systém vám okamžite vygeneruje bezpečný 6-miestny PIN kód, ktorým sa kedykoľvek prihlásite.
+                  The system will automatically generate a secure 6-digit numeric PIN for instant, easy access.
                 </div>
 
                 <button
@@ -463,7 +463,7 @@ export default function AuthModal() {
                   className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  {isSubmitting ? 'Vytváram účet...' : 'Vytvoriť účet a vygenerovať PIN'}
+                  {isSubmitting ? 'Creating account...' : 'Create Account & Generate PIN'}
                 </button>
               </form>
             )}

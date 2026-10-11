@@ -108,14 +108,14 @@ export default function App() {
               <FolderSync size={16} />
             </div>
             <div>
-              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Micro-SaaS na zber podkladov od klientov
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Client Asset & Brief Collection Micro-SaaS
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="status-dot status-dot-live"></span>
-              <span>Systémy funkčné (Frankfurt EÚ)</span>
+              <span>All systems operational (Frankfurt EU)</span>
             </span>
 
             <button 
@@ -133,11 +133,11 @@ export default function App() {
               }}
             >
               <ShieldCheck size={14} color="var(--success)" />
-              GDPR & Bezpečnosť
+              GDPR & Security
             </button>
 
             <span>256-bit SSL</span>
-            <span>0 € prevádzkový stack</span>
+            <span>$0 operational stack</span>
           </div>
         </div>
       </footer>

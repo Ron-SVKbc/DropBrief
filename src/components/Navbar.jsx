@@ -35,7 +35,7 @@ export default function Navbar({ onOpenCreateModal }) {
     if (!currentFreelancer?.pin) return;
     navigator.clipboard.writeText(currentFreelancer.pin);
     setCopiedPin(true);
-    addToast(`Váš PIN (${currentFreelancer.pin}) bol skopírovaný!`, 'success', 'PIN skopírovaný');
+    addToast(`Your PIN (${currentFreelancer.pin}) has been copied!`, 'success', 'PIN Copied');
     setTimeout(() => setCopiedPin(false), 2500);
   };
 
@@ -83,7 +83,7 @@ export default function Navbar({ onOpenCreateModal }) {
             flexShrink: 0
           }} 
           onClick={openDashboard}
-          title="Prejsť na hlavný prehľad"
+          title="Go to main dashboard"
         >
           {/* Logo mark */}
           <div style={{
@@ -121,12 +121,12 @@ export default function Navbar({ onOpenCreateModal }) {
                 </span>
               ) : (
                 <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px', gap: '3px' }}>
-                  <Zap size={9} /> 0 €
+                  <Zap size={9} /> Free
                 </span>
               )}
             </div>
             <p style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', lineHeight: 1, marginTop: '1px' }}>
-              Automatizovaný zber podkladov
+              Automated client asset collection
             </p>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function Navbar({ onOpenCreateModal }) {
             }}
           >
             <LayoutDashboard size={13} />
-            {currentFreelancer ? 'Dashboard' : 'Pre freelancera'}
+            {currentFreelancer ? 'Dashboard' : 'For Freelancers'}
           </button>
           <button
             id="nav-client-portal-tab"
@@ -155,7 +155,7 @@ export default function Navbar({ onOpenCreateModal }) {
             }}
           >
             <ExternalLink size={13} />
-            Pohľad klienta
+            Client View
           </button>
         </div>
 
@@ -166,7 +166,7 @@ export default function Navbar({ onOpenCreateModal }) {
             id="btn-security-info"
             onClick={() => setIsLegalModalOpen(true)}
             className="btn btn-secondary btn-sm btn-pill"
-            title="Bezpečnosť dát a GDPR informácie"
+            title="Data security & GDPR information"
             style={{ gap: '5px' }}
           >
             <ShieldCheck size={14} color="var(--success)" />
@@ -206,7 +206,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   <button
                     type="button"
                     onClick={handleCopyMyPin}
-                    title="Kliknite pre skopírovanie PIN kódu"
+                    title="Click to copy PIN code"
                     style={{
                       background: 'rgba(99, 102, 241, 0.14)',
                       border: '1px solid var(--border-accent)',
@@ -234,7 +234,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 className="btn btn-primary btn-sm btn-pill"
               >
                 <Plus size={14} />
-                Nový projekt
+                New Project
               </button>
 
               {/* Logout */}
@@ -242,7 +242,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 id="btn-nav-logout"
                 onClick={logoutFreelancer}
                 className="btn btn-secondary btn-sm"
-                title="Odhlásiť sa"
+                title="Log out"
                 style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)' }}
               >
                 <LogOut size={14} />
@@ -257,7 +257,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 className="btn btn-secondary btn-sm btn-pill"
               >
                 <KeyRound size={13} />
-                Prihlásiť sa
+                Log In
               </button>
 
               <button
@@ -267,7 +267,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 style={{ boxShadow: 'var(--glow-accent)' }}
               >
                 <Plus size={13} />
-                Registrácia
+                Sign Up Free
               </button>
             </div>
           )}

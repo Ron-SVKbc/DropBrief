@@ -30,7 +30,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   const { createProject, openClientPortal, currentFreelancer } = useApp();
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
-  const [title, setTitle] = useState('Tvorba webstránky pre klienta');
+  const [title, setTitle] = useState('Website Design & Build');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [freelancerName, setFreelancerName] = useState(() => currentFreelancer?.nick || 'Freelancer');
@@ -52,7 +52,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   const handleSelectTemplate = (tpl) => {
     setSelectedTemplateId(tpl.id);
-    setTitle(`${tpl.name} pre klienta`);
+    setTitle(`${tpl.name} for Client`);
     setItems(tpl.items.map((i) => ({ ...i })));
   };
 
@@ -61,8 +61,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       ...items,
       {
         id: 'new-' + Date.now(),
-        title: type === 'file' ? 'Nový požadovaný súbor' : 'Nový požadovaný text',
-        description: 'Vysvetlite klientovi, čo presne potrebujete.',
+        title: type === 'file' ? 'New requested file' : 'New requested text/copy',
+        description: 'Explain to the client what you need here.',
         type: type,
         required: true,
       }
@@ -82,14 +82,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!clientName.trim()) {
-      alert('Prosím zadajte meno klienta.');
+      alert('Please enter client name.');
       return;
     }
 
     createProject({
       title,
       clientName,
-      clientEmail: clientEmail || `${clientName.toLowerCase().replace(/\s+/g, '')}@klient.sk`,
+      clientEmail: clientEmail || `${clientName.toLowerCase().replace(/\s+/g, '')}@client.com`,
       freelancerName,
       deadline,
       reminderFrequency,
@@ -150,10 +150,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Vytvoriť nový zber podkladov
+                Create New Asset Collection
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Vyberte šablónu a systém pripraví bezpečný odkaz pre vášho klienta.
+                Choose a template and the system generates a secure link for your client.
               </p>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           {/* Step 1: Template Selection */}
           <div style={{ marginBottom: '26px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
-              1. Vyberte šablónu odboru
+              1. Choose Industry Template
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
               {PROJECT_TEMPLATES.map((tpl) => {
@@ -210,7 +210,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '26px' }}>
             <div>
               <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Názov zákazky / projektu *
+                Project / Commission Title *
               </label>
               <input
                 id="input-project-title"
@@ -219,13 +219,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="napr. Redizajn e-shopu"
+                placeholder="e.g. E-Commerce Store Redesign"
               />
             </div>
 
             <div>
               <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Meno a priezvisko klienta *
+                Client Full Name *
               </label>
               <input
                 id="input-client-name"
@@ -234,13 +234,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 required
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                placeholder="napr. Martin Horváth"
+                placeholder="e.g. Martin Vance"
               />
             </div>
 
             <div>
               <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                E-mail klienta (pre pripomienky)
+                Client Email (for reminders)
               </label>
               <input
                 id="input-client-email"
@@ -248,13 +248,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 className="input"
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
-                placeholder="klient@firma.sk"
+                placeholder="client@company.com"
               />
             </div>
 
             <div>
               <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Požadovaný termín dodania podkladov
+                Target Delivery Deadline
               </label>
               <input
                 id="input-project-deadline"
@@ -277,14 +277,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <BellRing size={16} color="var(--warning)" />
               <strong style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                Automatický e-mailový robot (Resend API)
+                Automated Email Follow-up (Resend API)
               </strong>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Ak klient podklady neodošle, systém mu automaticky pošle priateľskú pripomienku s priamym odkazom na dohranie.
+              If the client has pending items, the system can send polite automated reminders with a direct upload link.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>Pripomenúť každé:</span>
+              <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>Remind every:</span>
               <select
                 id="select-reminder-frequency"
                 className="select"
@@ -292,10 +292,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 value={reminderFrequency}
                 onChange={(e) => setReminderFrequency(e.target.value)}
               >
-                <option value="2">2 dni</option>
-                <option value="3">3 dni (Odporúčané)</option>
-                <option value="5">5 dní</option>
-                <option value="7">7 dní (Týždenne)</option>
+                <option value="2">2 days</option>
+                <option value="3">3 days (Recommended)</option>
+                <option value="5">5 days</option>
+                <option value="7">7 days (Weekly)</option>
               </select>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                2. Položky checklistu ({items.length})
+                2. Checklist Items ({items.length})
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button 
@@ -313,7 +313,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   className="btn btn-secondary btn-sm btn-pill"
                   style={{ fontSize: '0.78rem', padding: '5px 12px' }}
                 >
-                  <Upload size={13} /> + Súbor
+                  <Upload size={13} /> + File
                 </button>
                 <button 
                   type="button" 
@@ -355,7 +355,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     <input
                       type="text"
                       className="input"
-                      placeholder="Inštrukcia pre klienta..."
+                      placeholder="Instructions for client..."
                       style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'transparent', borderColor: 'transparent' }}
                       value={item.description || ''}
                       onChange={(e) => handleUpdateItem(idx, 'description', e.target.value)}
@@ -366,7 +366,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
-                    title="Odstrániť položku"
+                    title="Remove item"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -385,14 +385,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             borderTop: '1px solid var(--border-subtle)'
           }}>
             <button type="button" onClick={onClose} className="btn btn-secondary btn-pill">
-              Zrušiť
+              Cancel
             </button>
             <button 
               id="btn-submit-create-project"
               type="submit" 
               className="btn btn-primary btn-pill"
             >
-              <Check size={16} /> Vytvoriť a získať odkaz
+              <Check size={16} /> Create & Get Link
             </button>
           </div>
 

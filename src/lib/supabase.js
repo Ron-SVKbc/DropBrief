@@ -172,17 +172,17 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export async function uploadClientFile(file, projectSlug, itemId) {
-  if (!supabase) throw new Error('Supabase nie je nakonfigurovaný');
+  if (!supabase) throw new Error('Supabase is not configured');
 
-  // ✅ Validácia veľkosti súboru
+  // File size validation
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error(`Súbor je príliš veľký. Maximálna povolená veľkosť je 50 MB (aktuálna veľkosť: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+    throw new Error(`File is too large. Maximum allowed size is 50 MB (current size: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
   }
 
-  // ✅ Validácia typu súboru (whitelist)
+  // File type validation (whitelist)
   const mimeType = file.type || 'application/octet-stream';
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-    throw new Error(`Typ súboru "${mimeType}" nie je povolený. Akceptujeme obrázky, videá, PDF, dokumenty Office a archívy.`);
+    throw new Error(`File type "${mimeType}" is not allowed. We accept images, videos, PDFs, Office documents, and archives.`);
   }
 
   // ✅ Sanitizácia názvu súboru
