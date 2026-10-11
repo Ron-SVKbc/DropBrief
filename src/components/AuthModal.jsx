@@ -27,7 +27,6 @@ export default function AuthModal() {
     authRegisteredData,
     loginFreelancer, 
     registerFreelancer, 
-    loginAsDemo,
     addToast
   } = useApp();
 
@@ -92,18 +91,6 @@ export default function AuthModal() {
     setCopiedPin(true);
     addToast('PIN code copied to clipboard!', 'success', 'Copied');
     setTimeout(() => setCopiedPin(false), 3000);
-  };
-
-  const handleQuickDemo = async () => {
-    setErrorMessage('');
-    setIsSubmitting(true);
-    try {
-      await loginAsDemo();
-    } catch (err) {
-      setErrorMessage(err.message || 'Demo login failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -370,32 +357,10 @@ export default function AuthModal() {
                   type="submit"
                   disabled={isSubmitting}
                   className="btn btn-primary btn-lg btn-pill"
-                  style={{ width: '100%', justifyContent: 'center', marginBottom: '18px' }}
+                  style={{ width: '100%', justifyContent: 'center' }}
                 >
                   {isSubmitting ? 'Verifying...' : 'Log In to Dashboard'}
                 </button>
-
-                {/* Demo Quick Log in */}
-                <div style={{
-                  padding: '16px',
-                  borderRadius: 'var(--radius-lg)',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid var(--border-subtle)',
-                  textAlign: 'center'
-                }}>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                    Just want to test it quickly?
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleQuickDemo}
-                    className="btn btn-secondary btn-sm btn-pill"
-                    style={{ margin: '0 auto', fontSize: '0.825rem' }}
-                  >
-                    <Sparkles size={14} color="var(--accent-primary)" />
-                    Enter as Demo Freelancer (123456)
-                  </button>
-                </div>
               </form>
             )}
 

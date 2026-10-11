@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 export default function WelcomeView({ onOpenCreateModal }) {
-  const { openAuthModal, loginAsDemo, addToast } = useApp();
+  const { openAuthModal, addToast } = useApp();
   const [copiedDemoLink, setCopiedDemoLink] = useState(false);
 
   const handleCopyDemoLink = (e) => {
@@ -129,23 +129,6 @@ export default function WelcomeView({ onOpenCreateModal }) {
             >
               <KeyRound size={17} />
               Log in with PIN
-            </button>
-
-            <button
-              id="hero-btn-demo"
-              onClick={loginAsDemo}
-              className="btn btn-secondary btn-lg btn-pill"
-              style={{
-                fontSize: '0.9rem',
-                padding: '13px 20px',
-                borderColor: 'var(--border-accent)',
-                color: '#a5b4fc',
-                background: 'rgba(99, 102, 241, 0.07)'
-              }}
-              title="Explore ready-made demo account with live data"
-            >
-              <Sparkles size={15} color="var(--accent-primary)" />
-              Demo Account
             </button>
           </div>
 
