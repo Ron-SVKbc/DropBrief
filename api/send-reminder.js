@@ -4,6 +4,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    let payload = req.body;
+    if (typeof payload === 'string') {
+      try {
+        payload = JSON.parse(payload);
+      } catch (e) {
+        payload = {};
+      }
+    }
+
     const { 
       projectId,
       projectTitle,
@@ -17,7 +26,7 @@ export default async function handler(req, res) {
       customMessage = '',
       customSubject = '',
       emailStyle = 'personal'
-    } = req.body || {};
+    } = payload || {};
 
     if (!clientEmail || !clientEmail.includes('@')) {
       return res.status(400).json({ success: false, error: 'Invalid or missing client email address.' });
