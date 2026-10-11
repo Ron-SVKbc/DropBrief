@@ -34,7 +34,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
   const handleCopyDemoLink = (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText('https://usedropbrief.xyz/?p=restauracia-alfa');
+    navigator.clipboard.writeText('https://usedropbrief.xyz/?p=brand-identity');
     setCopiedDemoLink(true);
     addToast('Sample client portal link copied!', 'success', 'Demo Link');
     setTimeout(() => setCopiedDemoLink(false), 2000);
@@ -145,7 +145,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               title="Explore ready-made demo account with live data"
             >
               <Sparkles size={15} color="var(--accent-primary)" />
-              Demo Account (Marko)
+              Demo Account
             </button>
           </div>
 
@@ -203,7 +203,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                 <span style={{ marginLeft: '10px', fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                  usedropbrief.xyz/?p=alpha-bistro
+                  usedropbrief.xyz/?p=brand-identity
                 </span>
               </div>
 
@@ -236,10 +236,10 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 <div style={{ marginBottom: '12px' }}>
                   <span className="badge badge-warning" style={{ fontSize: '0.65rem', marginBottom: '7px' }}>Waiting for client</span>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                    Website Build – Alpha Bistro
+                    Website Build & Brand Assets
                   </h3>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                    Client: <strong style={{ color: 'var(--text-secondary)' }}>Peter Novak</strong> &bull; Freelancer: <strong style={{ color: 'var(--text-secondary)' }}>Marko</strong>
+                    Client: <strong style={{ color: 'var(--text-secondary)' }}>Peter Novak</strong> &bull; Freelancer: <strong style={{ color: 'var(--text-secondary)' }}>Creative Studio</strong>
                   </div>
                 </div>
 
@@ -267,7 +267,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
                   { icon: CheckCircle2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-                    title: 'Restaurant Logo (SVG / PDF)', sub: '✓ alpha_bistro_logo.svg · 1.4 MB', badge: 'Done', badgeClass: 'badge-success' },
+                    title: 'Company Vector Logo (SVG / PDF)', sub: '✓ brand_logo_vector.svg · 1.4 MB', badge: 'Done', badgeClass: 'badge-success' },
                   { icon: FileCheck2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
                     title: 'Atmosphere & Food Photography', sub: '✓ 8 photos · Original quality preserved', badge: '8 photos', badgeClass: 'badge-success' },
                   { icon: CheckCircle2, done: true, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
@@ -304,7 +304,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 }}>
                   <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 4px' }} />
                   <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)', display: 'block' }}>
-                    Food & Drinks Menu (PDF)
+                    Brand Guidelines & Copy (PDF)
                   </strong>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
                     Client drags file here &bull; No login required

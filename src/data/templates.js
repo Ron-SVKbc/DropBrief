@@ -138,12 +138,12 @@ export const PROJECT_TEMPLATES = [
 export const INITIAL_DEMO_PROJECTS = [
   {
     id: 'proj-alfa',
-    slug: 'restauracia-alfa',
-    title: 'New Website & Visual Identity – Alpha Bistro',
+    slug: 'brand-identity',
+    title: 'New Website & Visual Identity',
     clientName: 'Peter Novak',
-    clientEmail: 'peter.novak@alpha-bistro.com',
-    freelancerName: 'Marko (SplitAI Studio)',
-    freelancerEmail: 'marko@splitai.sk',
+    clientEmail: 'peter.novak@example.com',
+    freelancerName: 'Creative Studio',
+    freelancerEmail: 'hello@creativestudio.com',
     deadline: '2026-10-25',
     reminderFrequency: 3,
     lastReminderSent: '2026-10-01',
@@ -159,7 +159,7 @@ export const INITIAL_DEMO_PROJECTS = [
         isCompleted: true,
         completedAt: '2026-09-29',
         value: {
-          fileName: 'alpha_bistro_logo_final_vector.svg',
+          fileName: 'brand_logo_final_vector.svg',
           fileSize: '420 KB',
           fileType: 'image/svg+xml'
         }
@@ -172,7 +172,7 @@ export const INITIAL_DEMO_PROJECTS = [
         required: true,
         isCompleted: true,
         completedAt: '2026-09-30',
-        value: 'We are an artisanal family bistro in the city center established in 2012. Our kitchen sources fresh organic produce from regional farms. Seasonal specials rotate weekly.'
+        value: 'We are an artisanal creative studio established in 2018. We craft bespoke digital experiences and brand identities with focus on quality and innovation.'
       },
       {
         id: 'item-3',
@@ -185,8 +185,8 @@ export const INITIAL_DEMO_PROJECTS = [
       },
       {
         id: 'item-4',
-        title: 'Food & drinks menu (PDF)',
-        description: 'Current menu with pricing to publish on the website.',
+        title: 'Brand guidelines & style guide (PDF)',
+        description: 'Current brand guidelines and visual assets.',
         type: 'file',
         required: false,
         isCompleted: false,
@@ -200,8 +200,8 @@ export const INITIAL_DEMO_PROJECTS = [
     title: 'Brand Kit & Social Assets – Dental Care Clinic',
     clientName: 'Dr. Susan Miller',
     clientEmail: 'info@dentalcare-clinic.com',
-    freelancerName: 'Marko (SplitAI Studio)',
-    freelancerEmail: 'marko@splitai.sk',
+    freelancerName: 'Creative Studio',
+    freelancerEmail: 'hello@creativestudio.com',
     deadline: '2026-10-18',
     reminderFrequency: 2,
     lastReminderSent: null,

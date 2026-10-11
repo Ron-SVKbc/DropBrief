@@ -47,7 +47,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
-    if (currentFreelancer.nick.toLowerCase() === 'marko') return true;
+    if (['marko', 'demo', 'creativestudio', 'studio'].includes(currentFreelancer.nick.toLowerCase())) return true;
     return false;
   });
 

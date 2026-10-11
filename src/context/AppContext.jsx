@@ -61,7 +61,7 @@ export function AppProvider({ children }) {
   });
 
   const [currentView, setCurrentView] = useState('dashboard');
-  const [activeProjectSlug, setActiveProjectSlug] = useState('restauracia-alfa');
+  const [activeProjectSlug, setActiveProjectSlug] = useState('brand-identity');
   const [toasts, setToasts] = useState([]);
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);

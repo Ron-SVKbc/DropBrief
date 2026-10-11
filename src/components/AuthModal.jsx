@@ -326,7 +326,7 @@ export default function AuthModal() {
                     id="login-nick-input"
                     type="text"
                     className="input"
-                    placeholder="e.g. Marko or StudioAlfa"
+                    placeholder="e.g. AlexDesign or StudioAlfa"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
                     required
@@ -396,7 +396,7 @@ export default function AuthModal() {
                     style={{ margin: '0 auto', fontSize: '0.825rem' }}
                   >
                     <Sparkles size={14} color="var(--accent-primary)" />
-                    Enter as Demo Freelancer (Marko / 123456)
+                    Enter as Demo Freelancer (123456)
                   </button>
                 </div>
               </form>

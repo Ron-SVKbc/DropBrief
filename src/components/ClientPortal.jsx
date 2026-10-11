@@ -35,12 +35,12 @@ const isImageFile = (fileName, mimeType) => {
 // Initial state for sandbox interactive preview (1 item completed, 3 pending)
 const createInitialDemoProject = () => ({
   id: 'demo-sandbox-project',
-  slug: 'restauracia-alfa',
-  title: 'New Website & Brand Identity – Alpha Bistro',
+  slug: 'brand-identity',
+  title: 'New Website & Brand Identity',
   clientName: 'Peter Novak',
-  clientEmail: 'peter.novak@alpha-bistro.com',
-  freelancerName: 'Marko (SplitAI Studio)',
-  freelancerEmail: 'marko@splitai.sk',
+  clientEmail: 'peter.novak@example.com',
+  freelancerName: 'Creative Studio',
+  freelancerEmail: 'hello@creativestudio.com',
   deadline: '2026-10-25',
   reminderFrequency: 3,
   lastReminderSent: null,
@@ -57,7 +57,7 @@ const createInitialDemoProject = () => ({
       isCompleted: true, // Completed item in preview
       completedAt: '2026-10-02T10:30:00Z',
       value: {
-        fileName: 'alpha_bistro_logo_final_vector.svg',
+        fileName: 'company_logo_vector.svg',
         fileSize: '420 KB',
         fileType: 'image/svg+xml',
         url: null,
@@ -86,8 +86,8 @@ const createInitialDemoProject = () => ({
     },
     {
       id: 'demo-item-4',
-      title: 'Food & drinks menu (PDF)',
-      description: 'Current menu with pricing to publish on the website.',
+      title: 'Brand Guidelines & Typography (PDF)',
+      description: 'Brand manual, color codes, or typography guidelines.',
       type: 'file',
       required: false,
       isCompleted: false, // Optional item
@@ -111,8 +111,9 @@ export default function ClientPortal() {
 
   // Determine if this is an interactive sandbox preview
   const isDemoMode = Boolean(
-    (!currentFreelancer && (!activeProjectSlug || activeProjectSlug === 'restauracia-alfa' || activeProjectSlug === 'demo-preview')) ||
+    (!currentFreelancer && (!activeProjectSlug || activeProjectSlug === 'restauracia-alfa' || activeProjectSlug === 'brand-identity' || activeProjectSlug === 'demo-preview')) ||
     activeProjectSlug === 'restauracia-alfa' ||
+    activeProjectSlug === 'brand-identity' ||
     activeProjectSlug === 'demo-preview'
   );
 

@@ -147,7 +147,7 @@ export default function Navbar({ onOpenCreateModal }) {
           </button>
           <button
             id="nav-client-portal-tab"
-            onClick={() => openClientPortal(activeProjectSlug || 'restauracia-alfa')}
+            onClick={() => openClientPortal(activeProjectSlug || 'brand-identity')}
             className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ 
               border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
