@@ -53,6 +53,8 @@ create table if not exists public.project_items (
 
 -- 3. Indexy pre bleskové vyhľadávanie
 create index if not exists idx_projects_slug on public.projects(slug);
+create index if not exists idx_projects_freelancer_id on public.projects(freelancer_id);
+create index if not exists idx_projects_freelancer_name on public.projects(lower(freelancer_name));
 create index if not exists idx_project_items_project_id on public.project_items(project_id);
 
 -- 4. Row Level Security (RLS) & Policies
@@ -100,6 +102,7 @@ create policy "Verejné čítanie a sťahovanie podkladov"
   on storage.objects for select
   using (bucket_id = 'client-uploads');
 
-create policy "Odstránenie podkladov"
-  on storage.objects for delete
-  using (bucket_id = 'client-uploads');
+-- ZAKÁZANÉ: Verejné anonymné mazanie súborov z bucketu.
+-- Mazanie z cloudu je vyhradené výhradne pre autorizovaný cleanup / service role.
+-- (Ak existuje stará politika, zrušte ju: drop policy if exists "Odstránenie podkladov" on storage.objects;)
+drop policy if exists "Odstránenie podkladov" on storage.objects;

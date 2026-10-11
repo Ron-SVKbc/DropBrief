@@ -62,7 +62,8 @@ export default function Navbar({ onOpenCreateModal }) {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
-    if (['marko', 'demo', 'creativestudio', 'studio'].includes(currentFreelancer.nick.toLowerCase())) return true;
+    // Iba zabudovaný demo účet Marko má prístup k lokálnym ukážkovým demo projektom
+    if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;
   });
 

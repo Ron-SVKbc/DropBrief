@@ -96,14 +96,27 @@ export default function ProjectDetailView() {
   const [editItemType, setEditItemType] = useState('file');
   const [editItemRequired, setEditItemRequired] = useState(true);
 
-  if (!project) {
+  const isOwner = Boolean(
+    project &&
+    currentFreelancer && (
+      (project.freelancerId && project.freelancerId === currentFreelancer.id) ||
+      (project.freelancerName && project.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) ||
+      (currentFreelancer.id === 'fl-demo-marko' && (project.id === 'proj-alfa' || project.id === 'proj-dental'))
+    )
+  );
+
+  if (!project || !isOwner) {
     return (
       <div className="container" style={{ padding: '48px 24px', flex: 1 }}>
         <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
           <AlertCircle size={40} color="var(--warning)" style={{ marginBottom: '12px' }} />
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>Zákazka sa nenašla</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>
+            {!project ? 'Zákazka sa nenašla' : 'Prístup odmietnutý'}
+          </h2>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: '20px' }}>
-            Zvolená zákazka neexistuje alebo bola odstránená.
+            {!project 
+              ? 'Zvolená zákazka neexistuje alebo bola odstránená.' 
+              : 'Nemáte oprávnenie spravovať túto zákazku. Táto zákazka patrí inému účtu.'}
           </p>
           <button onClick={openDashboard} className="btn btn-primary btn-pill">
             <ArrowLeft size={16} /> Späť na Nástěnku

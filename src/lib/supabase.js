@@ -112,15 +112,23 @@ export async function saveCloudFreelancer(freelancer) {
   // 1. Uložiť do SQL tabuľky – výhradne hashed PIN, nikdy plain-text
   let dbSaved = false;
   try {
-    const { error: insertErr } = await supabase.from('freelancers').insert({
-      nick: freelancer.nick.trim(),
-      pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
-      email: freelancer.email || '',
-    });
-    if (!insertErr) {
+    const { data: insertedUser, error: insertErr } = await supabase
+      .from('freelancers')
+      .insert({
+        nick: freelancer.nick.trim(),
+        pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
+        email: freelancer.email || '',
+      })
+      .select()
+      .single();
+
+    if (!insertErr && insertedUser) {
       dbSaved = true;
-      // Bleskový návrat – dáta sú v DB, netreba brzdiť UI storage operáciou
-      return freelancer;
+      return {
+        ...freelancer,
+        id: insertedUser.id,
+        createdAt: insertedUser.created_at || freelancer.createdAt,
+      };
     }
   } catch (e) {}
 

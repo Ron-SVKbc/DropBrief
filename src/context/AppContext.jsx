@@ -84,8 +84,11 @@ export function AppProvider({ children }) {
 
   const [projects, setProjects] = useState(() => {
     try {
-      const saved = localStorage.getItem('dropbrief_projects_v1');
-      const initial = saved ? JSON.parse(saved) : INITIAL_DEMO_PROJECTS;
+      const savedUserStr = localStorage.getItem('dropbrief_freelancer_session');
+      const savedUser = savedUserStr ? JSON.parse(savedUserStr) : null;
+      const userKey = savedUser?.nick ? `dropbrief_projects_${savedUser.nick.toLowerCase()}` : null;
+      const saved = (userKey && localStorage.getItem(userKey)) || localStorage.getItem('dropbrief_projects_v1');
+      const initial = saved ? JSON.parse(saved) : (savedUser ? [] : INITIAL_DEMO_PROJECTS);
       const storedTypes = getStoredProjectTypes();
       return initial.map((p) => {
         const explicit = p.projectType || p.project_type || storedTypes[p.slug] || storedTypes[p.id];
@@ -141,9 +144,13 @@ export function AppProvider({ children }) {
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
 
-  // Sync to localStorage as backup/cache
+  // Sync to localStorage as backup/cache (scoped per freelancer)
   useEffect(() => {
     try {
+      if (currentFreelancer?.nick) {
+        const userKey = `dropbrief_projects_${currentFreelancer.nick.toLowerCase()}`;
+        localStorage.setItem(userKey, JSON.stringify(projects));
+      }
       localStorage.setItem('dropbrief_projects_v1', JSON.stringify(projects));
       // Also sync projectTypes registry
       const storedTypes = getStoredProjectTypes();
@@ -157,7 +164,7 @@ export function AppProvider({ children }) {
     } catch (e) {
       console.error('Failed to save to localStorage:', e);
     }
-  }, [projects]);
+  }, [projects, currentFreelancer]);
 
   const addToast = useCallback((message, type = 'info', title = '') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
@@ -171,23 +178,35 @@ export function AppProvider({ children }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Načítanie projektov zo Supabase (ak je nakonfigurovaný)
+  // Načítanie projektov zo Supabase (výhradne pre prihláseného freelancera)
   const fetchSupabaseProjects = useCallback(async () => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase || !currentFreelancer) return;
 
     try {
       setIsLoadingDb(true);
-      const { data, error } = await supabase
+      const cleanNick = (currentFreelancer.nick || '').trim();
+      const flId = currentFreelancer.id || '';
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(flId);
+
+      let query = supabase
         .from('projects')
         .select('*, project_items(*)')
         .order('created_at', { ascending: false });
 
+      if (isUuid) {
+        query = query.or(`freelancer_id.eq.${flId},freelancer_name.ilike.${cleanNick}`);
+      } else {
+        query = query.ilike('freelancer_name', cleanNick);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (data) {
         setProjects((prev) => {
           const storedTypes = getStoredProjectTypes();
-          return data.map((d) => {
+          const mappedRemote = data.map((d) => {
             const mapped = mapDbToProject(d);
             const prevProj = prev.find((p) => p.slug === d.slug || p.id === d.id);
             const preservedType = storedTypes[d.slug] || storedTypes[d.id] || prevProj?.projectType || mapped.projectType;
@@ -202,6 +221,15 @@ export function AppProvider({ children }) {
             }
             return mapped;
           });
+
+          // Pre zabudovaný demo účet ('fl-demo-marko') zachovať v pamäti aj ukážkové demo projekty
+          if (flId === 'fl-demo-marko' || cleanNick.toLowerCase() === 'marko') {
+            const remoteSlugs = mappedRemote.map((rp) => rp.slug);
+            const missingDemos = INITIAL_DEMO_PROJECTS.filter((dp) => !remoteSlugs.includes(dp.slug));
+            return [...mappedRemote, ...missingDemos];
+          }
+
+          return mappedRemote;
         });
       }
     } catch (err) {
@@ -210,7 +238,7 @@ export function AppProvider({ children }) {
     } finally {
       setIsLoadingDb(false);
     }
-  }, []);
+  }, [currentFreelancer, addToast]);
 
   // Fetch specific project by slug (ideal for client on remote device)
   // Uses functional setState to avoid stale closure on `projects`
@@ -891,7 +919,13 @@ export function AppProvider({ children }) {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('projects').delete().eq('id', projectId);
+        let q = supabase.from('projects').delete().eq('id', projectId);
+        if (currentFreelancer?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentFreelancer.id)) {
+          q = q.or(`freelancer_id.eq.${currentFreelancer.id},freelancer_name.ilike.${currentFreelancer.nick}`);
+        } else if (currentFreelancer?.nick) {
+          q = q.ilike('freelancer_name', currentFreelancer.nick);
+        }
+        await q;
       } catch (err) {
         console.error('Failed to delete project from Supabase:', err);
       }
