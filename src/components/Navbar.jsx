@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   FolderSync, 
@@ -12,11 +12,14 @@ import {
   User,
   Copy,
   Check,
-  Zap
+  Zap,
+  Eye,
+  ChevronDown
 } from 'lucide-react';
 
 export default function Navbar({ onOpenCreateModal }) {
   const { 
+    projects,
     currentView, 
     openDashboard, 
     openClientPortal, 
@@ -30,6 +33,41 @@ export default function Navbar({ onOpenCreateModal }) {
   } = useApp();
 
   const [copiedPin, setCopiedPin] = useState(false);
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsClientDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsClientDropdownOpen(false);
+      }
+    };
+    if (isClientDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isClientDropdownOpen]);
+
+  const availableProjects = (projects || []).filter((p) => {
+    if (!currentFreelancer) return true;
+    if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
+    if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
+    if (['marko', 'demo', 'creativestudio', 'studio'].includes(currentFreelancer.nick.toLowerCase())) return true;
+    return false;
+  });
+
+  const projectList = availableProjects.length > 0 ? availableProjects : (projects || []);
+  const currentPortalProject = (projects || []).find((p) => p.slug === activeProjectSlug);
 
   const handleCopyMyPin = () => {
     if (!currentFreelancer?.pin) return;
@@ -145,18 +183,177 @@ export default function Navbar({ onOpenCreateModal }) {
             <LayoutDashboard size={13} />
             {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Späť' : 'Dashboard') : 'For Freelancers'}
           </button>
-          <button
-            id="nav-client-portal-tab"
-            onClick={() => openClientPortal(activeProjectSlug || 'brand-identity')}
-            className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ 
-              border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
-              padding: '5px 13px', fontSize: '0.8rem'
-            }}
-          >
-            <ExternalLink size={13} />
-            Client View
-          </button>
+          <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <button
+              id="nav-client-portal-tab"
+              type="button"
+              onClick={() => setIsClientDropdownOpen((prev) => !prev)}
+              className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
+              style={{ 
+                border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
+                padding: '5px 12px', 
+                fontSize: '0.8rem',
+                gap: '6px'
+              }}
+              title="Rozkliknúť a vybrať zákazku pre klientsky náhľad"
+            >
+              <Eye size={13} />
+              <span>
+                {currentView === 'client-portal' && currentPortalProject 
+                  ? `Náhľad: ${currentPortalProject.title.length > 16 ? currentPortalProject.title.slice(0, 15) + '...' : currentPortalProject.title}` 
+                  : 'Client View'}
+              </span>
+              <ChevronDown 
+                size={12} 
+                style={{ 
+                  transform: isClientDropdownOpen ? 'rotate(180deg)' : 'none', 
+                  transition: 'transform 0.2s ease',
+                  opacity: 0.8
+                }} 
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isClientDropdownOpen && (
+              <div 
+                className="animate-fade-in"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  width: '320px',
+                  maxWidth: '90vw',
+                  background: '#0a0e19',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: 'var(--radius-lg)',
+                  boxShadow: '0 20px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(99, 102, 241, 0.22)',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)'
+                }}
+              >
+                {/* Dropdown Header */}
+                <div style={{
+                  padding: '10px 14px',
+                  borderBottom: '1px solid var(--border-hairline)',
+                  background: 'rgba(99, 102, 241, 0.08)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Eye size={13} color="var(--accent-primary)" />
+                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Vybrať zákazku na náhľad
+                    </span>
+                  </div>
+                  <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
+                    {projectList.length} {projectList.length === 1 ? 'zákazka' : 'zákaziek'}
+                  </span>
+                </div>
+
+                {/* Projects list */}
+                <div style={{ maxHeight: '260px', overflowY: 'auto', padding: '6px' }}>
+                  {projectList.map((p) => {
+                    const isSelected = activeProjectSlug === p.slug && currentView === 'client-portal';
+                    const completedCount = (p.items || []).filter(i => i.isCompleted).length;
+                    const totalItems = (p.items || []).length;
+                    const isCompleted = p.status === 'completed';
+
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          openClientPortal(p.slug);
+                          setIsClientDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'transparent',
+                          border: isSelected ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid transparent',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                          transition: 'background 0.15s ease',
+                          marginBottom: '2px'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#a5b4fc' : '#fff' }} className="truncate">
+                            {p.title}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                            <span className="truncate">{p.clientName}</span>
+                            <span>&bull;</span>
+                            <span style={{ color: isCompleted ? 'var(--success-light)' : 'var(--warning-light)', flexShrink: 0 }}>
+                              {completedCount}/{totalItems} podkladov
+                            </span>
+                          </div>
+                        </div>
+                        {isSelected ? (
+                          <Check size={14} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                        ) : (
+                          <ExternalLink size={12} color="var(--text-tertiary)" style={{ flexShrink: 0, opacity: 0.7 }} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Footer with Demo Sandbox option */}
+                <div style={{
+                  padding: '8px 12px',
+                  borderTop: '1px solid var(--border-hairline)',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openClientPortal('brand-identity');
+                      setIsClientDropdownOpen(false);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-tertiary)',
+                      fontSize: '0.74rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '2px 0'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                  >
+                    <Sparkles size={11} color="var(--accent-primary)" />
+                    <span>Demo Sandbox portál</span>
+                  </button>
+
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-quaternary)' }}>
+                    Bez hesiel
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ── Right Actions ──────────────────────────────────── */}
