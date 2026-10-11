@@ -123,7 +123,7 @@ export default function Dashboard({ onOpenCreateModal }) {
   };
 
   return (
-    <div className="container" style={{ padding: '32px 24px 72px', flex: 1 }}>
+    <div className="container" style={{ padding: 'clamp(16px, 3vw, 32px) clamp(12px, 2vw, 24px) 72px', flex: 1 }}>
 
       {/* ── Page Header ───────────────────────────────────────── */}
       <div style={{
@@ -254,7 +254,7 @@ export default function Dashboard({ onOpenCreateModal }) {
       </div>
 
       {/* ── Filter & Search ───────────────────────────────────── */}
-      <div style={{
+      <div className="filter-row" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',

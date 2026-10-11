@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
 import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, verifyCloudPin, hashPin } from '../lib/supabase';
 
@@ -76,17 +76,17 @@ export function AppProvider({ children }) {
     }
   }, [projects]);
 
-  const addToast = (message, type = 'info', title = '') => {
+  const addToast = useCallback((message, type = 'info', title = '') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
     setToasts((prev) => [...prev, { id, message, type, title }]);
     setTimeout(() => {
-      removeToast(id);
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4500);
-  };
+  }, []);
 
-  const removeToast = (id) => {
+  const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   // Načítanie projektov zo Supabase (ak je nakonfigurovaný)
   const fetchSupabaseProjects = useCallback(async () => {
@@ -114,12 +114,9 @@ export function AppProvider({ children }) {
   }, []);
 
   // Fetch specific project by slug (ideal for client on remote device)
+  // Uses functional setState to avoid stale closure on `projects`
   const fetchProjectBySlug = useCallback(async (slug) => {
     if (!slug) return null;
-
-    // Check local state first
-    const local = projects.find((p) => p.slug === slug);
-    if (local && !isSupabaseConfigured) return local;
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -144,8 +141,15 @@ export function AppProvider({ children }) {
       }
     }
 
-    return local || null;
-  }, [projects]);
+    // Return from local state via functional check
+    return new Promise((resolve) => {
+      setProjects((prev) => {
+        const local = prev.find((p) => p.slug === slug);
+        resolve(local || null);
+        return prev; // no mutation
+      });
+    });
+  }, []); // stable — no dependency on projects
 
   // Realtime synchronization on live connection
   useEffect(() => {

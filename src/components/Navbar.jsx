@@ -54,13 +54,13 @@ export default function Navbar({ onOpenCreateModal }) {
   return (
     <header style={{
       borderBottom: '1px solid var(--border-hairline)',
-      background: 'rgba(7, 9, 14, 0.84)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
+      background: 'rgba(7, 9, 14, 0.9)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: '0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.45)',
+      boxShadow: '0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.4)',
     }}>
       <div className="container" style={{
         display: 'flex',
@@ -125,14 +125,14 @@ export default function Navbar({ onOpenCreateModal }) {
                 </span>
               )}
             </div>
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', lineHeight: 1, marginTop: '1px' }}>
+            <p className="navbar-subtitle" style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', lineHeight: 1, marginTop: '1px' }}>
               Automated client asset collection
             </p>
           </div>
         </div>
 
         {/* ── View Switcher ──────────────────────────────────── */}
-        <div className="segmented-control">
+        <div className="segmented-control navbar-segmented">
           <button
             id="nav-dashboard-tab"
             onClick={handleDashboardClick}
@@ -170,7 +170,7 @@ export default function Navbar({ onOpenCreateModal }) {
             style={{ gap: '5px' }}
           >
             <ShieldCheck size={14} color="var(--success)" />
-            <span style={{ fontSize: '0.78rem' }}>GDPR</span>
+            <span className="navbar-gdpr-label" style={{ fontSize: '0.78rem' }}>GDPR</span>
           </button>
 
           {currentFreelancer ? (

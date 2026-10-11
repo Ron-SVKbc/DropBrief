@@ -44,7 +44,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section style={{ padding: '80px 20px 56px', textAlign: 'center', position: 'relative' }}>
+      <section style={{ padding: 'clamp(40px, 7vw, 80px) 20px clamp(32px, 5vw, 56px)', textAlign: 'center', position: 'relative' }}>
         <div className="container" style={{ maxWidth: '920px', margin: '0 auto' }}>
 
           {/* Announcement Badge */}
@@ -106,7 +106,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '12px',
+            gap: '10px',
             flexWrap: 'wrap',
             marginBottom: '36px'
           }}>
@@ -175,7 +175,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
       </section>
 
       {/* ── LIVE PRODUCT PREVIEW ──────────────────────────────── */}
-      <section style={{ padding: '0 20px 64px' }}>
+      <section style={{ padding: '0 20px clamp(32px, 5vw, 64px)' }}>
         <div className="container" style={{ maxWidth: '980px' }}>
           <div className="glass-card" style={{
             padding: '22px',
