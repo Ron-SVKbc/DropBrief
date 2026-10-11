@@ -105,7 +105,7 @@ export function AppProvider({ children }) {
   });
 
   const [currentView, setCurrentView] = useState('dashboard');
-  const [activeProjectSlug, setActiveProjectSlug] = useState('brand-identity');
+  const [activeProjectSlug, setActiveProjectSlug] = useState('demo-preview');
   const [toasts, setToasts] = useState([]);
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
@@ -222,9 +222,10 @@ export function AppProvider({ children }) {
     });
   }, []); // stable — no dependency on projects
 
-  // Realtime synchronization on live connection
+  // Realtime synchronization on live connection (only when freelancer is logged in)
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
+    if (!currentFreelancer) return;
 
     fetchSupabaseProjects();
 
@@ -242,7 +243,7 @@ export function AppProvider({ children }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchSupabaseProjects]);
+  }, [fetchSupabaseProjects, currentFreelancer]);
 
   const openAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
@@ -438,6 +439,8 @@ export function AppProvider({ children }) {
     localStorage.removeItem('dropbrief_freelancer_session');
     setCurrentFreelancer(null);
     setCurrentView('dashboard');
+    setActiveProjectSlug('demo-preview');
+    setProjects(INITIAL_DEMO_PROJECTS);
     addToast('You have been successfully logged out from the dashboard.', 'info', 'Logged Out');
   };
 

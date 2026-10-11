@@ -38,14 +38,14 @@ const isImageFile = (fileName, mimeType) => {
 // Initial state for sandbox interactive preview (1 item completed, 3 pending)
 const createInitialDemoProject = () => ({
   id: 'demo-sandbox-project',
-  slug: 'brand-identity',
-  title: 'New Website & Brand Identity',
+  slug: 'demo-preview',
+  title: 'Tvorba webstránky & Vizuálna identita – Kaviareň Aurora',
   projectType: 'one-off',
-  clientName: 'Peter Novak',
-  clientEmail: 'peter.novak@example.com',
-  freelancerName: 'Creative Studio',
-  freelancerEmail: 'hello@creativestudio.com',
-  deadline: '2026-10-25',
+  clientName: 'Peter Novák (Bistro & Café Aurora)',
+  clientEmail: 'peter.novak@auroracafe.sk',
+  freelancerName: 'Štúdio Creative / Marko',
+  freelancerEmail: 'kontakt@studio-creative.sk',
+  deadline: '2026-10-30',
   reminderFrequency: 3,
   lastReminderSent: null,
   createdAt: '2026-10-01',
@@ -54,47 +54,47 @@ const createInitialDemoProject = () => ({
   items: [
     {
       id: 'demo-item-1',
-      title: 'Company vector logo (SVG / AI / PDF)',
-      description: 'Vector format preferred or high-resolution file with a transparent background (.PNG).',
+      title: 'Vektorové logo firmy (SVG / AI / PDF)',
+      description: 'Preferovaný vektorový formát (.SVG, .AI) alebo grafika vo vysokom rozlíšení s priehľadným pozadím (.PNG).',
       type: 'file',
       required: true,
-      isCompleted: true, // Completed item in preview
+      isCompleted: true, // Ukážkovo nahratá položka, aby návštevník videl stav hotového súboru
       completedAt: '2026-10-02T10:30:00Z',
       value: {
-        fileName: 'company_logo_vector.svg',
+        fileName: 'aurora_logo_vector_final.svg',
         fileSize: '420 KB',
         fileType: 'image/svg+xml',
         url: null,
-        uploadedAt: '10/02/2026 10:30',
+        uploadedAt: '02.10.2026 10:30',
       },
     },
     {
       id: 'demo-item-2',
-      title: 'Homepage copy (About us, Services, Hero)',
-      description: 'Paste final website copy or outline your core messaging and bullet points.',
+      title: 'Texty pre web (O nás, Príbeh kaviarne a ponuka špecialít)',
+      description: 'Vložte texty pre novú webstránku, popis ponuky alebo kľúčové body vášho podnikania.',
       type: 'text',
       required: true,
-      isCompleted: false, // Awaiting text
+      isCompleted: false, // Čaká na zadanie textu
       completedAt: null,
       value: null,
     },
     {
       id: 'demo-item-3',
-      title: 'Atmosphere & food photography (5 to 10 photos)',
-      description: 'Upload representative high-resolution photos of food, drinks, and the interior.',
+      title: 'Fotografie priestorov a kávy (5 až 10 fotiek)',
+      description: 'Nahrajte reprezentatívne fotografie interiéru, kávy a dezertov vo vysokej kvalite.',
       type: 'file',
       required: true,
-      isCompleted: false, // Awaiting photos
+      isCompleted: false, // Čaká na nahratie fotografií
       completedAt: null,
       value: null,
     },
     {
       id: 'demo-item-4',
-      title: 'Brand Guidelines & Typography (PDF)',
-      description: 'Brand manual, color codes, or typography guidelines.',
+      title: 'Dizajnový manuál & Farebná paleta (PDF)',
+      description: 'Firemné farby (HEX kódy) alebo existujúci brand manuál, ak ho máte k dispozícii.',
       type: 'file',
       required: false,
-      isCompleted: false, // Optional item
+      isCompleted: false, // Voliteľná položka
       completedAt: null,
       value: null,
     },
@@ -106,7 +106,7 @@ export default function ClientPortal() {
     projects, 
     activeProjectSlug, 
     openDashboard, 
-    openProjectDetail,
+    openProjectDetail, 
     updateItemValue, 
     addToast,
     fetchProjectBySlug,
@@ -116,10 +116,10 @@ export default function ClientPortal() {
 
   // Determine if this is an interactive sandbox preview
   const isDemoMode = Boolean(
-    (!currentFreelancer && (!activeProjectSlug || activeProjectSlug === 'restauracia-alfa' || activeProjectSlug === 'brand-identity' || activeProjectSlug === 'demo-preview')) ||
-    activeProjectSlug === 'restauracia-alfa' ||
+    activeProjectSlug === 'demo-preview' ||
     activeProjectSlug === 'brand-identity' ||
-    activeProjectSlug === 'demo-preview'
+    activeProjectSlug === 'restauracia-alfa' ||
+    (!currentFreelancer && (!activeProjectSlug || !projects.some((p) => p.slug === activeProjectSlug)))
   );
 
   // Freelancer cannot upload files or submit text on behalf of clients in real projects
@@ -171,13 +171,13 @@ export default function ClientPortal() {
 
   const project = isDemoMode 
     ? demoProject 
-    : (projects.find((p) => p.slug === activeProjectSlug) || projects[0]);
+    : (projects.find((p) => p.slug === activeProjectSlug) || demoProject);
 
   const handleResetDemo = () => {
     setDemoProject(createInitialDemoProject());
     setTextInputs({});
     setStagedFiles({});
-    addToast('Sample preview reset to initial state.', 'info', 'Reset Complete');
+    addToast('Skúšobný náhľad bol obnovený do východzieho stavu.', 'info', 'Obnovené');
   };
 
   useEffect(() => {
@@ -560,38 +560,38 @@ export default function ClientPortal() {
       {/* Simulation / Sandbox Banner */}
       {isDemoMode ? (
         <div style={{
-          background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.14) 100%)',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.35)',
+          background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.18) 100%)',
+          borderBottom: '1px solid rgba(139, 92, 246, 0.4)',
           padding: '12px 0',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)'
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.35)'
         }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span className="badge" style={{
-                background: 'rgba(99, 102, 241, 0.28)',
-                border: '1px solid rgba(129, 140, 248, 0.5)',
+                background: 'rgba(99, 102, 241, 0.32)',
+                border: '1px solid rgba(129, 140, 248, 0.6)',
                 color: '#e0e7ff',
                 padding: '4px 10px',
                 fontWeight: 700,
-                fontSize: '0.72rem',
+                fontSize: '0.74rem',
                 letterSpacing: '0.04em',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px'
+                gap: '6px'
               }}>
-                <FlaskConical size={13} color="#a5b4fc" />
-                SANDBOX PREVIEW
+                <FlaskConical size={14} color="#a5b4fc" />
+                SKÚŠOBNÝ INTERAKTÍVNY NÁHĽAD (DEMO)
               </span>
               
               <div style={{ fontSize: '0.86rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#fff' }}>This is exactly how your client experiences the portal without signing up.</strong>
-                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
-                  • Try uploading files — they stay in local memory and reset when you exit.
+                <strong style={{ color: '#fff' }}>Presne takto vidí klientsky portál váš zákazník — bez prihlasovania a bez hesiel.</strong>
+                <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.8rem' }}>
+                  • Vyskúšajte nahrávať súbory a meniť položky. Všetko funguje interaktívne v pamäti prehliadača a neodosiela sa na server.
                 </span>
               </div>
             </div>
@@ -602,10 +602,10 @@ export default function ClientPortal() {
                 onClick={handleResetDemo}
                 className="btn btn-secondary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
-                title="Reset preview to initial state"
+                title="Obnoviť skúšobný náhľad do východzieho stavu"
               >
                 <RotateCcw size={13} />
-                Reset Preview
+                Obnoviť demo
               </button>
               <button 
                 id="btn-back-to-dashboard"
@@ -613,7 +613,7 @@ export default function ClientPortal() {
                 className="btn btn-primary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
               >
-                <ArrowLeft size={13} /> {currentFreelancer ? 'Back to Dashboard' : 'Back to Home'}
+                <ArrowLeft size={13} /> {currentFreelancer ? 'Návrat na nástenku' : 'Späť na úvod'}
               </button>
             </div>
           </div>
@@ -712,14 +712,15 @@ export default function ClientPortal() {
                 )}
                 {isDemoMode && (
                   <span className="badge" style={{
-                    background: 'rgba(245, 158, 11, 0.14)',
+                    background: 'rgba(245, 158, 11, 0.16)',
                     color: '#fbbf24',
-                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                    border: '1px solid rgba(245, 158, 11, 0.45)',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px'
+                    gap: '5px',
+                    fontWeight: 700
                   }}>
-                    <FlaskConical size={11} /> Sandbox Mode (Interactive Simulation)
+                    <FlaskConical size={11} /> Skúšobný náhľad (Zmeny sa neukladajú na server)
                   </span>
                 )}
               </div>
@@ -727,7 +728,11 @@ export default function ClientPortal() {
                 {project.title}
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', lineHeight: 1.55, maxWidth: '520px' }}>
-                Hello <strong>{project.clientName}</strong>, here is the structured checklist of assets and details needed to kick off and complete your project.
+                {isDemoMode ? (
+                  <>Vítajte v ukážke, <strong>{project.clientName}</strong>! Toto je interaktívny zoznam podkladov, ktoré požaduje freelancer pre realizáciu projektu. Vyskúšajte do neho nahrať súbory alebo vpísať texty.</>
+                ) : (
+                  <>Dobrý deň <strong>{project.clientName}</strong>, tu je prehľadný kontrolný zoznam podkladov a informácií potrebných pre úspešné dokončenie vašej zákazky.</>
+                )}
               </p>
             </div>
 
