@@ -109,8 +109,32 @@ export function AppProvider({ children }) {
     }
   });
 
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [activeProjectSlug, setActiveProjectSlug] = useState('demo-preview');
+  const [currentView, setCurrentView] = useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const querySlug = searchParams.get('p') || searchParams.get('project');
+      if (querySlug) return 'client-portal';
+      const hash = window.location.hash;
+      if (hash.startsWith('#client-portal') || hash.startsWith('#p=')) return 'client-portal';
+    } catch (e) {}
+    return 'dashboard';
+  });
+
+  const [activeProjectSlug, setActiveProjectSlug] = useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const querySlug = searchParams.get('p') || searchParams.get('project');
+      if (querySlug) return querySlug.trim();
+      const hash = window.location.hash;
+      if (hash.startsWith('#client-portal') || hash.startsWith('#p=')) {
+        const queryString = hash.includes('?') ? hash.split('?')[1] : hash.replace(/^#/, '');
+        const hashParams = new URLSearchParams(queryString);
+        const hashSlug = hashParams.get('p') || hashParams.get('project');
+        if (hashSlug) return hashSlug.trim();
+      }
+    } catch (e) {}
+    return 'demo-preview';
+  });
   const [toasts, setToasts] = useState([]);
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
   const [exportModalProject, setExportModalProject] = useState(null);
@@ -186,33 +210,60 @@ export function AppProvider({ children }) {
   // Uses functional setState to avoid stale closure on `projects`
   const fetchProjectBySlug = useCallback(async (slug) => {
     if (!slug) return null;
+    const cleanSlug = String(slug).trim();
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*, project_items(*)')
-          .eq('slug', slug)
-          .single();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
+        let query = supabase.from('projects').select('*, project_items(*)');
+        if (isUuid) {
+          query = query.or(`slug.ilike.${cleanSlug},id.eq.${cleanSlug}`);
+        } else {
+          query = query.ilike('slug', cleanSlug);
+        }
 
-        if (error) throw error;
+        const { data, error } = await query.maybeSingle();
+
+        if (error) {
+          console.warn('Supabase query error for slug:', cleanSlug, error);
+        }
+
         if (data) {
           const mapped = mapDbToProject(data);
           const storedTypes = getStoredProjectTypes();
-          if (storedTypes[slug]) {
-            mapped.projectType = storedTypes[slug];
+          if (storedTypes[cleanSlug]) {
+            mapped.projectType = storedTypes[cleanSlug];
           }
           setProjects((prev) => {
-            const exists = prev.some((p) => p.slug === slug);
-            const prevProj = prev.find((p) => p.slug === slug);
+            const exists = prev.some((p) => p.slug === data.slug || p.id === data.id);
+            const prevProj = prev.find((p) => p.slug === data.slug || p.id === data.id);
             if (prevProj?.projectType) {
               mapped.projectType = prevProj.projectType;
             }
-            if (exists) return prev.map((p) => (p.slug === slug ? mapped : p));
+            if (exists) return prev.map((p) => (p.slug === data.slug || p.id === data.id ? mapped : p));
             return [mapped, ...prev];
           });
           return mapped;
         }
+
+        // Storage fallback if row is not in table directly
+        try {
+          const { data: storageBlob, error: sErr } = await supabase.storage
+            .from('client-uploads')
+            .download(`_meta/proj_${cleanSlug}.json`);
+          if (!sErr && storageBlob) {
+            const text = await storageBlob.text();
+            const parsed = JSON.parse(text);
+            if (parsed && parsed.slug) {
+              setProjects((prev) => {
+                const exists = prev.some((p) => p.slug === parsed.slug || p.id === parsed.id);
+                if (exists) return prev.map((p) => (p.slug === parsed.slug || p.id === parsed.id ? parsed : p));
+                return [parsed, ...prev];
+              });
+              return parsed;
+            }
+          }
+        } catch (storageErr) {}
       } catch (err) {
         console.error('Failed to load project by slug:', err);
       }
@@ -221,7 +272,7 @@ export function AppProvider({ children }) {
     // Return from local state via functional check
     return new Promise((resolve) => {
       setProjects((prev) => {
-        const local = prev.find((p) => p.slug === slug);
+        const local = prev.find((p) => (p.slug && p.slug.toLowerCase() === cleanSlug.toLowerCase()) || p.id === cleanSlug);
         resolve(local || null);
         return prev; // no mutation
       });
@@ -524,6 +575,10 @@ export function AppProvider({ children }) {
             .from('client-uploads')
             .upload(`_meta/pt_${randomSlug}.json`, new Blob([JSON.stringify({ projectType, cadenceDays: newProject.cadenceDays })], { type: 'application/json' }), { upsert: true })
             .catch(() => {});
+          supabase.storage
+            .from('client-uploads')
+            .upload(`_meta/proj_${randomSlug}.json`, new Blob([JSON.stringify(newProject)], { type: 'application/json' }), { upsert: true })
+            .catch(() => {});
         } catch (e) {}
 
         let insertPayload = {
@@ -779,10 +834,11 @@ export function AppProvider({ children }) {
   };
 
   const updateItemValue = async (projectSlug, itemId, value, isCompleted = true) => {
+    const cleanSlug = String(projectSlug || '').trim();
     // Optimistic update in local state
     setProjects((prevProjects) =>
       prevProjects.map((proj) => {
-        if (proj.slug !== projectSlug) return proj;
+        if (proj.slug?.toLowerCase() !== cleanSlug.toLowerCase() && proj.id !== cleanSlug) return proj;
 
         const updatedItems = proj.items.map((item) => {
           if (item.id !== itemId) return item;
@@ -818,7 +874,7 @@ export function AppProvider({ children }) {
           })
           .eq('id', itemId);
 
-        const currentProj = projects.find((p) => p.slug === projectSlug);
+        const currentProj = projects.find((p) => p.slug?.toLowerCase() === cleanSlug.toLowerCase() || p.id === cleanSlug);
         if (currentProj) {
           const reqDone = currentProj.items
             .filter((i) => i.required)
@@ -827,7 +883,7 @@ export function AppProvider({ children }) {
           await supabase
             .from('projects')
             .update({ status: reqDone ? 'completed' : 'pending' })
-            .eq('slug', projectSlug);
+            .ilike('slug', currentProj.slug);
         }
       } catch (err) {
         console.error('Failed to update item in Supabase:', err);

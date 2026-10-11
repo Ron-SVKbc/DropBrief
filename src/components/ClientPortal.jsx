@@ -124,13 +124,8 @@ export default function ClientPortal() {
     currentFreelancer
   } = useApp();
 
-  // Determine if this is an interactive sandbox preview
-  const isDemoMode = Boolean(
-    activeProjectSlug === 'demo-preview' ||
-    activeProjectSlug === 'brand-identity' ||
-    activeProjectSlug === 'restauracia-alfa' ||
-    (!currentFreelancer && (!activeProjectSlug || !projects.some((p) => p.slug === activeProjectSlug)))
-  );
+  // Demo mode is ONLY active if activeProjectSlug is explicitly 'demo-preview'
+  const isDemoMode = Boolean(activeProjectSlug === 'demo-preview');
 
   // Freelancer cannot upload files or submit text on behalf of clients in real projects
   const isFreelancerReadOnly = Boolean(currentFreelancer && !isDemoMode);
@@ -139,6 +134,7 @@ export default function ClientPortal() {
   const [demoProject, setDemoProject] = useState(createInitialDemoProject);
 
   const [loadingInitial, setLoadingInitial] = useState(false);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const [uploadingItemId, setUploadingItemId] = useState(null);
   const [textInputs, setTextInputs] = useState({});
   const [dragActiveId, setDragActiveId] = useState(null);
@@ -179,9 +175,12 @@ export default function ClientPortal() {
     };
   }, [stagedFiles]);
 
-  const project = isDemoMode 
-    ? demoProject 
-    : (projects.find((p) => p.slug === activeProjectSlug) || demoProject);
+  const cleanActiveSlug = (activeProjectSlug || '').trim().toLowerCase();
+  const realProject = projects.find(
+    (p) => (p.slug && p.slug.trim().toLowerCase() === cleanActiveSlug) || p.id === activeProjectSlug
+  );
+
+  const project = isDemoMode ? demoProject : realProject;
 
   const handleResetDemo = () => {
     setDemoProject(createInitialDemoProject());
@@ -191,12 +190,30 @@ export default function ClientPortal() {
   };
 
   useEffect(() => {
-    if (isDemoMode) return;
-    if (activeProjectSlug && !projects.some((p) => p.slug === activeProjectSlug)) {
-      setLoadingInitial(true);
-      fetchProjectBySlug(activeProjectSlug).finally(() => setLoadingInitial(false));
+    if (isDemoMode) {
+      setHasAttemptedFetch(true);
+      return;
     }
-  }, [activeProjectSlug, projects, fetchProjectBySlug, isDemoMode]);
+    if (!activeProjectSlug) return;
+
+    const existsInMemory = projects.some(
+      (p) => (p.slug && p.slug.trim().toLowerCase() === cleanActiveSlug) || p.id === activeProjectSlug
+    );
+
+    if (!existsInMemory) {
+      setLoadingInitial(true);
+      fetchProjectBySlug(activeProjectSlug)
+        .catch((err) => {
+          console.error('Failed to fetch project by slug:', err);
+        })
+        .finally(() => {
+          setLoadingInitial(false);
+          setHasAttemptedFetch(true);
+        });
+    } else {
+      setHasAttemptedFetch(true);
+    }
+  }, [activeProjectSlug, projects, fetchProjectBySlug, isDemoMode, cleanActiveSlug]);
 
   useEffect(() => {
     if (project) {
@@ -210,13 +227,13 @@ export default function ClientPortal() {
     }
   }, [project]);
 
-  if (!isDemoMode && (loadingInitial || (isLoadingDb && !project))) {
+  if (!isDemoMode && (!project && (loadingInitial || isLoadingDb || !hasAttemptedFetch))) {
     return (
       <div className="container" style={{ padding: '120px 20px', textAlign: 'center' }}>
         <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 18px' }} />
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Preparing client portal...</h2>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Pripravujem klientsky portál...</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', marginTop: '6px' }}>
-          Loading asset requirements in real time
+          Zabezpečené načítanie požiadaviek na podklady
         </p>
       </div>
     );
@@ -225,12 +242,12 @@ export default function ClientPortal() {
   if (!project) {
     return (
       <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Project Not Found</h2>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Zákazka sa nenašla</h2>
         <p style={{ color: 'var(--text-muted)', margin: '14px 0 24px', fontSize: '0.95rem' }}>
-          This project link may have expired or was removed by the creator.
+          Tento odkaz na zákazku mohol expirovať alebo bol presunutý. Skontrolujte prosím skopírovanú adresu.
         </p>
         <button onClick={openDashboard} className="btn btn-primary btn-pill">
-          Back to Dashboard
+          Späť na DropBrief
         </button>
       </div>
     );
