@@ -48,6 +48,9 @@ function mapDbToProject(proj) {
     lastReminderSent: proj.last_reminder_sent,
     createdAt: proj.created_at ? proj.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
     status: proj.status || 'pending',
+    completedAt: proj.completed_at || (proj.status === 'completed' ? (proj.created_at ? proj.created_at.split('T')[0] : null) : null),
+    purgedAt: proj.purged_at || null,
+    filesPurged: Boolean(proj.files_purged),
     projectType: inferredType,
     cadenceDays: Number(proj.cadence_days || proj.cadenceDays) || (inferredType === 'ongoing' ? 1 : null),
     batches: Array.isArray(proj.batches) ? proj.batches : [],
@@ -61,6 +64,7 @@ function mapDbToProject(proj) {
         required: item.required !== false,
         isCompleted: Boolean(item.is_completed),
         completedAt: item.completed_at,
+        purged: Boolean(item.purged || item.value?.purged),
         value: item.value,
       })),
   };
@@ -945,6 +949,42 @@ export function AppProvider({ children }) {
     return targetProj;
   };
 
+  const purgeProjectFilesNow = async (projectSlug) => {
+    try {
+      const resp = await fetch('/api/cron-purge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: projectSlug, force: true }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        setProjects((prev) =>
+          prev.map((p) => {
+            if (p.slug !== projectSlug && p.id !== projectSlug) return p;
+            return {
+              ...p,
+              filesPurged: true,
+              purgedAt: new Date().toISOString(),
+              items: (p.items || []).map((it) => ({
+                ...it,
+                purged: it.type === 'file' ? true : it.purged,
+                value: it.value && typeof it.value === 'object' ? { ...it.value, purged: true, url: null } : it.value,
+              })),
+            };
+          })
+        );
+        addToast('Súbory projektu boli úspešne skartované z cloudu v súlade s GDPR.', 'success', 'GDPR Skartácia');
+        return { success: true, filesPurgedCount: data.results?.[0]?.filesPurgedCount || 0 };
+      } else {
+        throw new Error(data.error || 'Chyba pri skartácii súborov');
+      }
+    } catch (err) {
+      console.error('purgeProjectFilesNow error:', err);
+      addToast(err.message, 'error', 'Chyba skartácie');
+      return { success: false, error: err.message };
+    }
+  };
+
   const deleteProject = async (projectId) => {
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
 
@@ -994,6 +1034,7 @@ export function AppProvider({ children }) {
           ...proj,
           items: updatedItems,
           status: requiredCompleted ? 'completed' : 'pending',
+          completedAt: requiredCompleted ? (proj.completedAt || new Date().toISOString()) : null,
         };
       })
     );
@@ -1018,7 +1059,10 @@ export function AppProvider({ children }) {
           
           await supabase
             .from('projects')
-            .update({ status: reqDone ? 'completed' : 'pending' })
+            .update({ 
+              status: reqDone ? 'completed' : 'pending',
+              completed_at: reqDone ? (currentProj.completedAt || new Date().toISOString()) : null,
+            })
             .ilike('slug', currentProj.slug);
         }
       } catch (err) {
@@ -1346,6 +1390,7 @@ export function AppProvider({ children }) {
         updateProjectCadence,
         submitOngoingBatch,
         seedDemoProjectForFreelancer,
+        purgeProjectFilesNow,
       }}
     >
       {children}

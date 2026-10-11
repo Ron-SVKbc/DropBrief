@@ -11,7 +11,7 @@ export default defineConfig(({ command, mode }) => {
   if (env.RESEND_FROM_EMAIL)       process.env.RESEND_FROM_EMAIL       = env.RESEND_FROM_EMAIL;
   if (env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
   // VITE_ premenné sú v process.env dostupné len pre klientský kód;
-  // pre verify-pin.js (server) ich explicitne skopírujeme:
+  // pre verify-pin.js a cron-purge.js (server) ich explicitne skopírujeme:
   if (env.VITE_SUPABASE_URL)      process.env.VITE_SUPABASE_URL      = env.VITE_SUPABASE_URL;
   if (env.VITE_SUPABASE_ANON_KEY) process.env.VITE_SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY;
 
@@ -28,6 +28,9 @@ export default defineConfig(({ command, mode }) => {
           // ── Spoločný body parser ───────────────────────────────────────
           const parseBody = () =>
             new Promise((resolve) => {
+              if (req.method === 'GET' || req.method === 'HEAD') {
+                return resolve({});
+              }
               let raw = '';
               req.on('data', (chunk) => { raw += chunk; });
               req.on('end', () => {
@@ -67,6 +70,11 @@ export default defineConfig(({ command, mode }) => {
           if (req.method === 'POST' && req.url === '/api/verify-pin') {
             const { default: verifyPinHandler } = await import('./api/verify-pin.js');
             return runHandler(verifyPinHandler);
+          }
+
+          if (req.url?.startsWith('/api/cron-purge')) {
+            const { default: cronPurgeHandler } = await import('./api/cron-purge.js');
+            return runHandler(cronPurgeHandler);
           }
 
           next();

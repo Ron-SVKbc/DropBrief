@@ -88,7 +88,7 @@ export default function LegalModal() {
               3. Automated Storage Purge (30-day Retention)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
-              Unlike open cloud drives where files linger for years, DropBrief marks and permanently removes uploaded files 30 days following project completion, strictly minimizing long-term data breach exposure.
+              Unlike open cloud drives where client files linger indefinitely, DropBrief runs an automated daily cron job that permanently deletes all uploaded files from cloud storage 30 days following project completion (or immediately on-demand by the freelancer), strictly complying with GDPR Art. 5(1)(e) storage limitation.
             </p>
           </div>
 

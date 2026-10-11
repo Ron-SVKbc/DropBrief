@@ -7,7 +7,8 @@ import {
   formatCadenceBadge, 
   getCurrentBatch, 
   isTodaySubmitted, 
-  getProjectBatches 
+  getProjectBatches,
+  getRetentionStatus 
 } from '../utils/cadenceUtils';
 import { 
   ArrowLeft, 
@@ -70,7 +71,8 @@ export default function ProjectDetailView() {
     toggleProjectType,
     updateProjectCadence,
     addToast,
-    currentFreelancer 
+    currentFreelancer,
+    purgeProjectFilesNow
   } = useApp();
 
   const project = projects.find((p) => p.slug === activeProjectSlug || p.id === activeProjectSlug);
@@ -327,6 +329,54 @@ export default function ProjectDetailView() {
             <BellRing size={11} />
             Reminder: every {project.reminderFrequency || 3} days
           </span>
+
+          {/* Retention / Purge badge */}
+          {(() => {
+            const retention = getRetentionStatus(project);
+            if (!retention) return null;
+            return (
+              <span 
+                className="badge" 
+                style={{ 
+                  padding: '4px 10px', 
+                  gap: '5px',
+                  background: retention.isPurged ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.12)',
+                  color: retention.isPurged ? '#f87171' : 'var(--success)',
+                  border: retention.isPurged ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--success-border)',
+                  fontWeight: 600,
+                  fontSize: '0.74rem'
+                }}
+                title={retention.isPurged ? 'Files were permanently purged in compliance with 30-day GDPR policy' : 'Automated 30-day retention purge'}
+              >
+                <ShieldCheck size={11} />
+                {retention.badgeText}
+              </span>
+            );
+          })()}
+
+          {/* Purge now button if completed and not yet purged */}
+          {isCompleted && !project.filesPurged && !project.purgedAt && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to permanently purge all uploaded files for this project from cloud storage now? (Ensure you have downloaded the ZIP archive first)')) {
+                  await purgeProjectFilesNow(project.slug);
+                }
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{
+                padding: '3px 8px',
+                fontSize: '0.72rem',
+                gap: '4px',
+                color: 'var(--text-muted)',
+                borderColor: 'rgba(239, 68, 68, 0.25)'
+              }}
+              title="Immediately purge project files from cloud storage (GDPR)"
+            >
+              <Trash2 size={11} color="var(--danger)" />
+              Purge files now
+            </button>
+          )}
         </div>
       </div>
 
@@ -1025,7 +1075,11 @@ export default function ProjectDetailView() {
                           </span>
                         )}
 
-                        {isItemDone ? (
+                        {item.purged || project.filesPurged ? (
+                          <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '2px 7px', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                            <Trash2 size={10} /> Purged (GDPR 30d)
+                          </span>
+                        ) : isItemDone ? (
                           <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
                             <Check size={10} /> Submitted by client
                           </span>
@@ -1154,7 +1208,11 @@ export default function ProjectDetailView() {
                                       </div>
 
                                       {/* Download Link */}
-                                      {f.url ? (
+                                      {project.filesPurged || f.purged ? (
+                                        <span style={{ fontSize: '0.74rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(239,68,68,0.1)', padding: '4px 8px', borderRadius: 'var(--radius-xs)' }}>
+                                          <Trash2 size={11} /> Purged (GDPR 30d)
+                                        </span>
+                                      ) : f.url ? (
                                         <a 
                                           href={f.url} 
                                           target="_blank" 

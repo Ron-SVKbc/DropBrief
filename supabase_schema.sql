@@ -37,6 +37,11 @@ alter table public.projects add column if not exists freelancer_id uuid;
 alter table public.projects add column if not exists project_type text default 'one-off';
 alter table public.projects add column if not exists cadence_days integer default 1;
 alter table public.projects add column if not exists batches jsonb default '[]'::jsonb;
+-- 30-dňová retencia a automatická GDPR skartácia:
+alter table public.projects add column if not exists completed_at timestamp with time zone;
+alter table public.projects add column if not exists purged_at timestamp with time zone;
+alter table public.projects add column if not exists files_purged boolean default false;
+alter table public.project_items add column if not exists purged boolean default false;
 
 -- 2. Tabuľka položiek checklistu
 create table if not exists public.project_items (

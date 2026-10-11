@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { formatCadenceBadge, isTodaySubmitted } from '../utils/cadenceUtils';
+import { formatCadenceBadge, isTodaySubmitted, getRetentionStatus } from '../utils/cadenceUtils';
 import { 
   FolderSync, 
   Copy, 
@@ -18,6 +18,7 @@ import {
   FileX,
   Send,
   Shield,
+  ShieldCheck,
   Layers,
   Calendar,
   User,
@@ -443,6 +444,26 @@ export default function Dashboard({ onOpenCreateModal }) {
                       <span className="badge badge-neutral" style={{ gap: '4px' }}>
                         <BellRing size={10} /> {proj.reminderFrequency}d
                       </span>
+                      {(() => {
+                        const retention = getRetentionStatus(proj);
+                        if (!retention || proj.status !== 'completed') return null;
+                        return (
+                          <span 
+                            className="badge" 
+                            style={{ 
+                              gap: '4px',
+                              background: retention.isPurged ? 'rgba(239, 68, 68, 0.14)' : 'rgba(16, 185, 129, 0.1)',
+                              color: retention.isPurged ? '#f87171' : 'var(--success)',
+                              border: retention.isPurged ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid var(--success-border)',
+                              fontSize: '0.7rem',
+                              padding: '2px 7px'
+                            }}
+                            title="Automated 30-day retention purge (GDPR Art. 5)"
+                          >
+                            <ShieldCheck size={10} /> {retention.badgeText}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>

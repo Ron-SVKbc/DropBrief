@@ -95,3 +95,49 @@ export function isTodaySubmitted(project) {
   const todayBatch = getCurrentBatch(project, getTodayDateString());
   return isBatchSubmitted(todayBatch);
 }
+
+/**
+ * Vypočíta stav 30-dňovej retencie a GDPR auto-purge pre projekt
+ */
+export function getRetentionStatus(project) {
+  if (!project) return null;
+
+  if (project.filesPurged || project.purgedAt) {
+    return {
+      isPurged: true,
+      badgeText: 'Files purged (GDPR 30d)',
+      daysLeft: 0,
+      purgedAt: project.purgedAt,
+    };
+  }
+
+  if (project.status !== 'completed') {
+    return {
+      isPurged: false,
+      badgeText: 'Auto-purge 30d after completion',
+      daysLeft: null,
+    };
+  }
+
+  const completionDate = project.completedAt || project.createdAt;
+  const completionMs = new Date(completionDate).getTime();
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const deadlineMs = completionMs + THIRTY_DAYS_MS;
+  const now = Date.now();
+  const diffMs = deadlineMs - now;
+  const daysLeft = Math.max(0, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
+
+  if (daysLeft === 0) {
+    return {
+      isPurged: false,
+      badgeText: 'Scheduled for purge today',
+      daysLeft: 0,
+    };
+  }
+
+  return {
+    isPurged: false,
+    badgeText: `Auto-purge in ${daysLeft}d`,
+    daysLeft,
+  };
+}
