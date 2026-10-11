@@ -1,0 +1,14 @@
+# DropBrief robots.txt
+# Allow indexing of public landing page, block confidential client portals and API endpoints
+
+User-agent: *
+Allow: /
+
+# Disallow client portals containing private project briefs and uploads
+Disallow: /?p=
+Disallow: /?project=
+Disallow: /*?p=*
+Disallow: /*?project=*
+
+# Disallow serverless API endpoints
+Disallow: /api/
