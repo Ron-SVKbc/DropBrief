@@ -37,7 +37,8 @@ export default function Dashboard({ onOpenCreateModal }) {
     openClientPortal, 
     addToast,
     currentFreelancer,
-    seedDemoProjectForFreelancer
+    seedDemoProjectForFreelancer,
+    toggleProjectType
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -392,37 +393,53 @@ export default function Dashboard({ onOpenCreateModal }) {
                         {proj.title}
                       </h2>
                       {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
-                        <span 
+                        <button 
+                          type="button"
+                          id={`btn-toggle-type-${proj.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleProjectType(proj.id);
+                          }}
                           className="badge" 
                           style={{ 
-                            background: 'rgba(168, 85, 247, 0.14)', 
+                            background: 'rgba(168, 85, 247, 0.16)', 
                             color: '#c084fc', 
-                            border: '1px solid rgba(168, 85, 247, 0.3)',
-                            gap: '4px',
+                            border: '1px solid rgba(168, 85, 247, 0.35)',
+                            gap: '5px',
                             fontWeight: 700,
                             fontSize: '0.73rem',
-                            padding: '2px 8px'
+                            padding: '3px 9px',
+                            cursor: 'pointer',
+                            transition: 'all 0.18s ease'
                           }}
-                          title="Ongoing / Recurring Retainer"
+                          title="Click to switch to One-off Project"
                         >
                           <RefreshCw size={10} /> Ongoing
-                        </span>
+                        </button>
                       ) : (
-                        <span 
+                        <button 
+                          type="button"
+                          id={`btn-toggle-type-${proj.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleProjectType(proj.id);
+                          }}
                           className="badge" 
                           style={{ 
-                            background: 'rgba(56, 189, 248, 0.14)', 
+                            background: 'rgba(56, 189, 248, 0.16)', 
                             color: '#38bdf8', 
-                            border: '1px solid rgba(56, 189, 248, 0.3)',
-                            gap: '4px',
+                            border: '1px solid rgba(56, 189, 248, 0.35)',
+                            gap: '5px',
                             fontWeight: 700,
                             fontSize: '0.73rem',
-                            padding: '2px 8px'
+                            padding: '3px 9px',
+                            cursor: 'pointer',
+                            transition: 'all 0.18s ease'
                           }}
-                          title="One-off Project"
+                          title="Click to switch to Ongoing / Retainer"
                         >
                           <Zap size={10} /> One-off
-                        </span>
+                        </button>
                       )}
                       {isCompleted ? (
                         <span className="badge badge-success">

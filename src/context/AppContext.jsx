@@ -4,8 +4,28 @@ import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer
 
 const AppContext = createContext();
 
+function getStoredProjectTypes() {
+  try {
+    return JSON.parse(localStorage.getItem('dropbrief_project_types_v1') || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function setStoredProjectType(key, type) {
+  if (!key || !type) return;
+  try {
+    const existing = getStoredProjectTypes();
+    existing[key] = type;
+    localStorage.setItem('dropbrief_project_types_v1', JSON.stringify(existing));
+  } catch (e) {}
+}
+
 function mapDbToProject(proj) {
-  const inferredType = proj.project_type || proj.projectType || (
+  const storedTypes = getStoredProjectTypes();
+  const explicitType = proj.project_type || proj.projectType || storedTypes[proj.slug] || storedTypes[proj.id];
+
+  const inferredType = explicitType || (
     (proj.title && (
       proj.title.toLowerCase().includes('social') || 
       proj.title.toLowerCase().includes('monthly') || 
@@ -63,7 +83,21 @@ export function AppProvider({ children }) {
   const [projects, setProjects] = useState(() => {
     try {
       const saved = localStorage.getItem('dropbrief_projects_v1');
-      return saved ? JSON.parse(saved) : INITIAL_DEMO_PROJECTS;
+      const initial = saved ? JSON.parse(saved) : INITIAL_DEMO_PROJECTS;
+      const storedTypes = getStoredProjectTypes();
+      return initial.map((p) => {
+        const explicit = p.projectType || p.project_type || storedTypes[p.slug] || storedTypes[p.id];
+        return {
+          ...p,
+          projectType: explicit || (
+            (p.title && (
+              p.title.toLowerCase().includes('social') || 
+              p.title.toLowerCase().includes('monthly') || 
+              p.title.toLowerCase().includes('retainer')
+            )) ? 'ongoing' : 'one-off'
+          )
+        };
+      });
     } catch (e) {
       console.error('Failed to parse localStorage:', e);
       return INITIAL_DEMO_PROJECTS;
@@ -81,6 +115,15 @@ export function AppProvider({ children }) {
   useEffect(() => {
     try {
       localStorage.setItem('dropbrief_projects_v1', JSON.stringify(projects));
+      // Also sync projectTypes registry
+      const storedTypes = getStoredProjectTypes();
+      projects.forEach((p) => {
+        if (p.projectType) {
+          storedTypes[p.slug] = p.projectType;
+          storedTypes[p.id] = p.projectType;
+        }
+      });
+      localStorage.setItem('dropbrief_project_types_v1', JSON.stringify(storedTypes));
     } catch (e) {
       console.error('Failed to save to localStorage:', e);
     }
@@ -112,8 +155,18 @@ export function AppProvider({ children }) {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const mapped = data.map(mapDbToProject);
-        setProjects(mapped);
+        setProjects((prev) => {
+          const storedTypes = getStoredProjectTypes();
+          return data.map((d) => {
+            const mapped = mapDbToProject(d);
+            const prevProj = prev.find((p) => p.slug === d.slug || p.id === d.id);
+            const preservedType = storedTypes[d.slug] || storedTypes[d.id] || prevProj?.projectType || mapped.projectType;
+            if (preservedType) {
+              mapped.projectType = preservedType;
+            }
+            return mapped;
+          });
+        });
       }
     } catch (err) {
       console.error('Supabase fetch error:', err);
@@ -139,8 +192,16 @@ export function AppProvider({ children }) {
         if (error) throw error;
         if (data) {
           const mapped = mapDbToProject(data);
+          const storedTypes = getStoredProjectTypes();
+          if (storedTypes[slug]) {
+            mapped.projectType = storedTypes[slug];
+          }
           setProjects((prev) => {
             const exists = prev.some((p) => p.slug === slug);
+            const prevProj = prev.find((p) => p.slug === slug);
+            if (prevProj?.projectType) {
+              mapped.projectType = prevProj.projectType;
+            }
             if (exists) return prev.map((p) => (p.slug === slug ? mapped : p));
             return [mapped, ...prev];
           });
@@ -411,6 +472,8 @@ export function AppProvider({ children }) {
     const flEmail = currentFreelancer?.email || newProjData.freelancerEmail || '';
 
     const projectType = newProjData.projectType || 'one-off';
+    setStoredProjectType(randomSlug, projectType);
+    setStoredProjectType(tempId, projectType);
 
     const newProject = {
       id: tempId,
@@ -444,6 +507,14 @@ export function AppProvider({ children }) {
     // Save to Supabase (if configured)
     if (isSupabaseConfigured && supabase) {
       try {
+        // Also save to Storage for cross-device persistence
+        try {
+          supabase.storage
+            .from('client-uploads')
+            .upload(`_meta/pt_${randomSlug}.json`, new Blob([JSON.stringify({ projectType })], { type: 'application/json' }), { upsert: true })
+            .catch(() => {});
+        } catch (e) {}
+
         let insertPayload = {
           slug: randomSlug,
           title: newProjData.title,
@@ -478,6 +549,9 @@ export function AppProvider({ children }) {
         if (pErr) throw pErr;
 
         if (insertedProj) {
+          setStoredProjectType(insertedProj.id, projectType);
+          setStoredProjectType(insertedProj.slug, projectType);
+
           const itemsToInsert = newProjData.items.map((item, idx) => ({
             project_id: insertedProj.id,
             title: item.title,
@@ -503,6 +577,49 @@ export function AppProvider({ children }) {
 
     addToast('New project created successfully!', 'success', 'Project Ready');
     return newProject;
+  };
+
+  const updateProjectType = async (projectIdOrSlug, newType) => {
+    if (!projectIdOrSlug || !newType) return;
+
+    setStoredProjectType(projectIdOrSlug, newType);
+
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === projectIdOrSlug || p.slug === projectIdOrSlug) {
+          setStoredProjectType(p.slug, newType);
+          setStoredProjectType(p.id, newType);
+          return { ...p, projectType: newType };
+        }
+        return p;
+      })
+    );
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase
+          .from('projects')
+          .update({ project_type: newType })
+          .or(`id.eq.${projectIdOrSlug},slug.eq.${projectIdOrSlug}`);
+      } catch (e) {}
+
+      try {
+        const target = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+        const targetSlug = target?.slug || projectIdOrSlug;
+        await supabase.storage
+          .from('client-uploads')
+          .upload(`_meta/pt_${targetSlug}.json`, new Blob([JSON.stringify({ projectType: newType })], { type: 'application/json' }), { upsert: true });
+      } catch (e) {}
+    }
+
+    addToast(`Project engagement set to ${newType === 'ongoing' ? 'Ongoing / Retainer' : 'One-off Project'}.`, 'success', 'Engagement Updated');
+  };
+
+  const toggleProjectType = (projectIdOrSlug) => {
+    const target = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+    const current = target?.projectType || 'one-off';
+    const nextType = current === 'ongoing' ? 'one-off' : 'ongoing';
+    return updateProjectType(projectIdOrSlug, nextType);
   };
 
   const deleteProject = async (projectId) => {
@@ -703,6 +820,8 @@ export function AppProvider({ children }) {
         loginFreelancer,
         loginAsDemo,
         logoutFreelancer,
+        updateProjectType,
+        toggleProjectType,
         seedDemoProjectForFreelancer,
       }}
     >
