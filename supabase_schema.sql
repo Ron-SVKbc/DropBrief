@@ -77,17 +77,64 @@ create policy "Freelancer si môže vytvoriť účet"
 -- ZAKAZÁNÉ: Anonymný update/delete freelancerích účtov
 -- (chybá RLS pre update/delete = implicitne zakázané bez explicitnej politiky)
 
--- Politiky pre projekty
-create policy "Anonymný prístup k projektom"
-  on public.projects for all
+-- ─── Politiky pre projekty (granulárne) ───────────────────────────────────────
+-- Stará blanket politika odstránená: nahradená striktnejšími pravidlami
+
+-- SELECT: verejné čítanie – klienti potrebujú načítať projekt podľa slug
+create policy "select_projects_public"
+  on public.projects for select
+  using (true);
+
+-- INSERT: povolené pre anon (freelancer bez Supabase Auth)
+-- Kontrola: povinné polia musia byť vyplnené
+create policy "insert_projects_anon"
+  on public.projects for insert
+  with check (
+    freelancer_name is not null
+    and freelancer_name <> ''
+    and title      is not null
+    and title      <> ''
+    and slug       is not null
+    and slug       <> ''
+  );
+
+-- UPDATE: povolené pre anon (klient odovzdáva podklady, freelancer mení stav)
+create policy "update_projects_anon"
+  on public.projects for update
   using (true)
   with check (true);
 
--- Politiky pre položky projektov
-create policy "Anonymný prístup k položkám projektov"
-  on public.project_items for all
+-- DELETE: ŽIADNA politika → RLS implicitne blokuje anon mazanie projektov.
+-- Mazanie projektu vyžaduje service-role key cez /api/delete-project alebo
+-- priamo cez Supabase dashboard (vyhradené pre administrátora).
+
+-- ─── Politiky pre položky projektov (granulárne) ──────────────────────────────
+
+-- SELECT: voľné – klienti musia vidieť checklist
+create policy "select_items_public"
+  on public.project_items for select
+  using (true);
+
+-- INSERT: povolené pre anon s kontrolou integrity
+create policy "insert_items_anon"
+  on public.project_items for insert
+  with check (
+    project_id is not null
+    and title  is not null
+    and title  <> ''
+  );
+
+-- UPDATE: voľné – klient označuje položku ako splnenú
+create policy "update_items_anon"
+  on public.project_items for update
   using (true)
   with check (true);
+
+-- DELETE: povolené pre anon – freelancer maže jednotlivé položky checklistu
+-- (nižšie riziko ako mazanie celého projektu)
+create policy "delete_items_anon"
+  on public.project_items for delete
+  using (true);
 
 -- 5. Storage Bucket pre klientske súbory
 insert into storage.buckets (id, name, public)

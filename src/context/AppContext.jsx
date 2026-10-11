@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
-import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, verifyCloudPin, hashPin } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, hashPin } from '../lib/supabase';
 
 const AppContext = createContext();
 
@@ -511,33 +511,51 @@ export function AppProvider({ children }) {
       if (e.message && e.message.includes('Incorrect 6-digit PIN code')) throw e;
     }
 
-    // 2. Ak sa nenašiel lokálne, overiť v Supabase cloude (podpora prihlásenia z iného zariadenia)
-    if (!matchedUser && isSupabaseConfigured) {
+    // 2. Ak sa nenašiel lokálne, overiť cez server-side endpoint /api/verify-pin
+    //    → rate limiting sa vykonáva na serveri (podľa IP), nie len v localStorage
+    if (!matchedUser) {
       try {
-        const cloudUser = await getCloudFreelancer(cleanNick);
-        if (cloudUser) {
-          const isValid = await verifyCloudPin(cleanPin, cloudUser);
-          if (isValid) {
-            matchedUser = {
-              id: cloudUser.id,
-              nick: cloudUser.nick,
-              email: cloudUser.email || '',
-              createdAt: cloudUser.createdAt,
-            };
-            // Uložíme do lokálnej pamäte pre budúce bleskové prihlásenia
-            try {
-              const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-              const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick);
-              filtered.push({ id: matchedUser.id, nick: matchedUser.nick, email: matchedUser.email, createdAt: matchedUser.createdAt, pinHash: cloudUser.pinHash });
-              localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
-            } catch (e) {}
-          } else {
-            throw new Error('Incorrect 6-digit PIN code for this nickname.');
-          }
+        const verifyResponse = await fetch('/api/verify-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nick: cleanNick, pin: cleanPin }),
+        });
+
+        const verifyData = await verifyResponse.json().catch(() => ({}));
+
+        if (verifyResponse.status === 429 || verifyData.rateLimited) {
+          // Server-side rate limit zasiahnutý – uprednostniť jeho správu
+          throw new Error(verifyData.error || 'Too many failed attempts. Please wait and try again.');
+        }
+
+        if (verifyResponse.status === 401 || verifyResponse.status === 404) {
+          throw new Error(verifyData.error || 'Incorrect 6-digit PIN code for this nickname.');
+        }
+
+        if (verifyResponse.ok && verifyData.success && verifyData.user) {
+          matchedUser = {
+            id:        verifyData.user.id,
+            nick:      verifyData.user.nick,
+            email:     verifyData.user.email || '',
+            createdAt: verifyData.user.createdAt,
+          };
+          // Uložíme do lokálnej pamäte pre budúce bleskové offline prihlásenia
+          try {
+            const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+            const filtered  = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick);
+            filtered.push({ ...matchedUser, pinHash: verifyData.user.pinHash });
+            localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+          } catch (e) {}
         }
       } catch (err) {
-        if (err.message && err.message.includes('Incorrect 6-digit PIN code')) throw err;
-        console.warn('Cloud login check warning:', err);
+        // Prepustiť chyby autentifikácie a rate-limitingu priamo na UI
+        if (
+          err.message?.includes('Incorrect') ||
+          err.message?.includes('Too many')  ||
+          err.message?.includes('Príliš veľa')
+        ) throw err;
+        // Sieťové chyby (offline, endpoint nedostupný) – tichý fallback
+        console.warn('Cloud login via /api/verify-pin unavailable:', err.message);
       }
     }
 
