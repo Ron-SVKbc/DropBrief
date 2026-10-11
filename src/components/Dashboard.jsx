@@ -403,9 +403,9 @@ export default function Dashboard({ onOpenCreateModal }) {
                             fontSize: '0.73rem',
                             padding: '2px 8px'
                           }}
-                          title="Dlhodobá zákazka / Ongoing Retainer"
+                          title="Ongoing / Recurring Retainer"
                         >
-                          <RefreshCw size={10} /> Dlhodobé • Ongoing
+                          <RefreshCw size={10} /> Ongoing
                         </span>
                       ) : (
                         <span 
@@ -419,9 +419,9 @@ export default function Dashboard({ onOpenCreateModal }) {
                             fontSize: '0.73rem',
                             padding: '2px 8px'
                           }}
-                          title="Jednorázová zákazka / One-off Project"
+                          title="One-off Project"
                         >
-                          <Zap size={10} /> Jednorázové • One-off
+                          <Zap size={10} /> One-off
                         </span>
                       )}
                       {isCompleted ? (

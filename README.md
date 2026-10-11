@@ -53,7 +53,7 @@ DropBrief generates a **frictionless, dedicated client portal** via a secure dir
 - 🌐 **Web Design & Development (One-off):** Vector logos (SVG/AI), homepage copy, team/product photos, hosting & domain credentials.
 - 🎨 **Logo & Visual Identity (One-off):** Brand name, slogan guidelines, inspirational moodboards, color palette preferences.
 - 📱 **Social Media Management (Ongoing):** Monthly promotion priorities, raw video reels, photos, offer updates.
-- ✨ **Custom / Vlastné (Flexible):** Create tailored checklists with custom file types and text requirements for any one-off or long-term engagement.
+- ✨ **Custom Project (Flexible):** Create tailored checklists with custom file types and text requirements for any one-off or long-term engagement.
 
 ### 5. 🛡️ GDPR & European Data Privacy
 - **EU Hosted:** Supabase database and storage hosted in the European Union (Ireland / Frankfurt).

@@ -105,7 +105,7 @@ export const PROJECT_TEMPLATES = [
   },
   {
     id: 'custom',
-    name: 'Custom / Vlastné',
+    name: 'Custom Project',
     icon: 'Sparkles',
     badge: 'Custom',
     projectType: 'one-off',

@@ -653,7 +653,7 @@ export default function ClientPortal() {
                     gap: '4px',
                     fontWeight: 700
                   }}>
-                    <RefreshCw size={11} /> Dlhodobé • Ongoing
+                    <RefreshCw size={11} /> Ongoing
                   </span>
                 ) : (
                   <span className="badge" style={{
@@ -665,7 +665,7 @@ export default function ClientPortal() {
                     gap: '4px',
                     fontWeight: 700
                   }}>
-                    <Zap size={11} /> Jednorázové • One-off
+                    <Zap size={11} /> One-off
                   </span>
                 )}
                 {isDemoMode && (

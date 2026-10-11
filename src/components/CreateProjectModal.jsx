@@ -179,7 +179,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           {/* Step 1: Template Selection */}
           <div style={{ marginBottom: '22px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
-              1. Choose Template / Šablóna
+              1. Choose Industry Template
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
               {PROJECT_TEMPLATES.map((tpl) => {
@@ -212,15 +212,15 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     </div>
                     {tpl.id === 'social-media' ? (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <RefreshCw size={9} /> Dlhodobé
+                        <RefreshCw size={9} /> Ongoing
                       </span>
                     ) : tpl.id === 'custom' ? (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Sparkles size={9} /> Vlastné
+                        <Sparkles size={9} /> Custom
                       </span>
                     ) : (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Zap size={9} /> Jednorázové
+                        <Zap size={9} /> One-off
                       </span>
                     )}
                   </div>
@@ -229,13 +229,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Step 2: Project Type (Jednorázové vs Dlhodobé) */}
+          {/* Step 2: Project Type (One-off vs Ongoing) */}
           <div style={{ marginBottom: '24px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <span>2. Typ zákazky / Engagement Type *</span>
+              <span>2. Engagement Type *</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-              {/* Option 1: Jednorázové */}
+              {/* Option 1: One-off */}
               <div 
                 id="btn-select-one-off"
                 onClick={() => setProjectType('one-off')}
@@ -264,16 +264,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'one-off' ? '#fff' : 'var(--text-primary)' }}>
-                    Jednorázové • One-off
+                    One-off Project
                   </div>
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
-                    Web, logo, identita, jednorazový projekt
+                    Web design, branding, redesign, single delivery
                   </div>
                 </div>
                 {projectType === 'one-off' && <Check size={16} color="#38bdf8" />}
               </div>
 
-              {/* Option 2: Dlhodobé */}
+              {/* Option 2: Ongoing */}
               <div 
                 id="btn-select-ongoing"
                 onClick={() => setProjectType('ongoing')}
@@ -302,10 +302,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'ongoing' ? '#fff' : 'var(--text-primary)' }}>
-                    Dlhodobé • Ongoing
+                    Ongoing / Retainer
                   </div>
                   <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
-                    Social media, správa obsahu, mesačný retainer
+                    Social media, monthly management, recurring retainer
                   </div>
                 </div>
                 {projectType === 'ongoing' && <Check size={16} color="#c084fc" />}
@@ -322,11 +322,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               <div style={{ gridColumn: selectedTemplateId === 'custom' ? '1 / -1' : 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <label style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    {selectedTemplateId === 'custom' ? 'Názov zákazky / O čo ide *' : 'Project / Commission Title *'}
+                    {selectedTemplateId === 'custom' ? 'Project Title & Scope *' : 'Project / Commission Title *'}
                   </label>
                   {selectedTemplateId === 'custom' && (
                     <span style={{ fontSize: '0.72rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                      Vlastné zadanie
+                      Custom Scope
                     </span>
                   )}
                 </div>
@@ -337,7 +337,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder={selectedTemplateId === 'custom' ? "Napr. SEO Audit, Strih videí, Mesačný consulting, Tvorba eshopu..." : "e.g. E-Commerce Store Redesign"}
+                  placeholder={selectedTemplateId === 'custom' ? "e.g. SEO Audit, Video Editing, Monthly Consulting, Web Store Build..." : "e.g. E-Commerce Store Redesign"}
                   autoFocus={selectedTemplateId === 'custom'}
                 />
               </div>
