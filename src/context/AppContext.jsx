@@ -776,6 +776,171 @@ export function AppProvider({ children }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const openProjectDetail = (slug) => {
+    setActiveProjectSlug(slug);
+    fetchProjectBySlug(slug);
+    setCurrentView('project-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const addItemToProject = async (projectIdOrSlug, newItemData) => {
+    const targetProject = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+    if (!targetProject) throw new Error('Project not found');
+
+    const tempItemId = 'item-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+    const newItem = {
+      id: tempItemId,
+      title: (newItemData.title || '').trim(),
+      description: (newItemData.description || '').trim(),
+      type: newItemData.type || 'file',
+      required: newItemData.required !== false,
+      isCompleted: false,
+      completedAt: null,
+      value: null,
+    };
+
+    // Optimistic UI update
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
+        const updatedItems = [...p.items, newItem];
+        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        return {
+          ...p,
+          items: updatedItems,
+          status: reqDone ? 'completed' : 'pending',
+        };
+      })
+    );
+
+    // Save to Supabase (if configured)
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const payload = {
+          project_id: targetProject.id,
+          title: newItem.title,
+          description: newItem.description,
+          type: newItem.type,
+          required: newItem.required,
+          is_completed: false,
+          sort_order: targetProject.items.length,
+          value: null,
+        };
+
+        const { data, error } = await supabase.from('project_items').insert(payload).select().single();
+        if (error) {
+          console.error('Failed to add item to Supabase:', error);
+        } else if (data) {
+          setProjects((prev) =>
+            prev.map((p) => {
+              if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
+              return {
+                ...p,
+                items: p.items.map((i) => (i.id === tempItemId ? { ...i, id: data.id } : i)),
+              };
+            })
+          );
+        }
+
+        const currentReqDone = [...targetProject.items, newItem].filter((i) => i.required).every((i) => i.isCompleted);
+        await supabase
+          .from('projects')
+          .update({ status: currentReqDone ? 'completed' : 'pending' })
+          .eq('id', targetProject.id);
+      } catch (err) {
+        console.error('Failed to sync added item with cloud:', err);
+      }
+    }
+
+    addToast(`Item "${newItem.title}" added to checklist.`, 'success', 'Item Added');
+    return newItem;
+  };
+
+  const updateItemInProject = async (projectIdOrSlug, itemId, updatedFields) => {
+    const targetProject = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+    if (!targetProject) throw new Error('Project not found');
+
+    // Optimistic update
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
+        const updatedItems = p.items.map((i) => {
+          if (i.id !== itemId) return i;
+          return {
+            ...i,
+            title: updatedFields.title !== undefined ? updatedFields.title.trim() : i.title,
+            description: updatedFields.description !== undefined ? updatedFields.description.trim() : i.description,
+            type: updatedFields.type !== undefined ? updatedFields.type : i.type,
+            required: updatedFields.required !== undefined ? updatedFields.required : i.required,
+          };
+        });
+        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        return {
+          ...p,
+          items: updatedItems,
+          status: reqDone ? 'completed' : 'pending',
+        };
+      })
+    );
+
+    // Save to Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const updatePayload = {};
+        if (updatedFields.title !== undefined) updatePayload.title = updatedFields.title.trim();
+        if (updatedFields.description !== undefined) updatePayload.description = updatedFields.description.trim();
+        if (updatedFields.type !== undefined) updatePayload.type = updatedFields.type;
+        if (updatedFields.required !== undefined) updatePayload.required = updatedFields.required;
+
+        await supabase.from('project_items').update(updatePayload).eq('id', itemId);
+
+        const currentItems = targetProject.items.map((i) => (i.id === itemId ? { ...i, ...updatePayload } : i));
+        const reqDone = currentItems.filter((i) => i.required).every((i) => i.isCompleted);
+        await supabase.from('projects').update({ status: reqDone ? 'completed' : 'pending' }).eq('id', targetProject.id);
+      } catch (err) {
+        console.error('Failed to update item in Supabase:', err);
+      }
+    }
+
+    addToast('Checklist requirement updated.', 'success', 'Item Updated');
+  };
+
+  const deleteItemFromProject = async (projectIdOrSlug, itemId) => {
+    const targetProject = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+    if (!targetProject) throw new Error('Project not found');
+
+    const itemToDelete = targetProject.items.find((i) => i.id === itemId);
+
+    // Optimistic update
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
+        const updatedItems = p.items.filter((i) => i.id !== itemId);
+        const reqDone = updatedItems.length > 0 ? updatedItems.filter((i) => i.required).every((i) => i.isCompleted) : false;
+        return {
+          ...p,
+          items: updatedItems,
+          status: reqDone ? 'completed' : 'pending',
+        };
+      })
+    );
+
+    // Save to Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('project_items').delete().eq('id', itemId);
+
+        const remainingItems = targetProject.items.filter((i) => i.id !== itemId);
+        const reqDone = remainingItems.length > 0 ? remainingItems.filter((i) => i.required).every((i) => i.isCompleted) : false;
+        await supabase.from('projects').update({ status: reqDone ? 'completed' : 'pending' }).eq('id', targetProject.id);
+      } catch (err) {
+        console.error('Failed to delete item from Supabase:', err);
+      }
+    }
+
+    addToast(`Item "${itemToDelete?.title || 'Item'}" removed from project.`, 'info', 'Item Removed');
+  };
+
   const openDashboard = () => {
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -792,6 +957,10 @@ export function AppProvider({ children }) {
         createProject,
         deleteProject,
         updateItemValue,
+        addItemToProject,
+        updateItemInProject,
+        deleteItemFromProject,
+        openProjectDetail,
         sendSimulatedReminder,
         sendActualReminder,
         openReminderModal,

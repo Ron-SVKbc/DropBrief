@@ -26,7 +26,8 @@ import {
   FlaskConical,
   RotateCcw,
   Zap,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
@@ -105,6 +106,7 @@ export default function ClientPortal() {
     projects, 
     activeProjectSlug, 
     openDashboard, 
+    openProjectDetail,
     updateItemValue, 
     addToast,
     fetchProjectBySlug,
@@ -119,6 +121,9 @@ export default function ClientPortal() {
     activeProjectSlug === 'brand-identity' ||
     activeProjectSlug === 'demo-preview'
   );
+
+  // Freelancer cannot upload files or submit text on behalf of clients in real projects
+  const isFreelancerReadOnly = Boolean(currentFreelancer && !isDemoMode);
 
   // Isolated demo state - lives in local memory and never sends to remote server
   const [demoProject, setDemoProject] = useState(createInitialDemoProject);
@@ -240,6 +245,10 @@ export default function ClientPortal() {
 
   // 1. Stage local files
   const handleStageFiles = (itemId, filesInput) => {
+    if (isFreelancerReadOnly) {
+      addToast('Ako freelancer si prezeráte náhľad. Súbory a texty nahráva výhradne zákazník.', 'warning', 'Len pre zákazníka');
+      return;
+    }
     if (!filesInput) return;
     const fileArray = Array.from(
       filesInput instanceof FileList ? filesInput : (Array.isArray(filesInput) ? filesInput : [filesInput])
@@ -254,6 +263,7 @@ export default function ClientPortal() {
 
   // 2. Remove staged file
   const handleRemoveStagedFile = (itemId, indexToRemove) => {
+    if (isFreelancerReadOnly) return;
     setStagedFiles((prev) => {
       const current = prev[itemId] || [];
       const updated = current.filter((_, idx) => idx !== indexToRemove);
@@ -277,6 +287,10 @@ export default function ClientPortal() {
 
   // 4. Confirm upload to server
   const handleConfirmUpload = async (itemId) => {
+    if (isFreelancerReadOnly) {
+      addToast('Ako freelancer nemôžete nahrávať súbory za klienta.', 'warning', 'Len pre zákazníka');
+      return;
+    }
     const filesToUpload = stagedFiles[itemId];
     if (!filesToUpload || filesToUpload.length === 0) return;
 
@@ -416,6 +430,11 @@ export default function ClientPortal() {
   };
 
   const handleRemoveSingleFile = async (itemId, fileIdentifier) => {
+    if (isFreelancerReadOnly) {
+      addToast('Ako freelancer nemôžete odstraňovať súbory klienta v klientskom portáli.', 'warning', 'Len pre zákazníka');
+      return;
+    }
+
     const currentItem = project.items.find((i) => i.id === itemId);
     if (!currentItem || !currentItem.value) return;
 
@@ -469,6 +488,11 @@ export default function ClientPortal() {
   };
 
   const handleTextSave = async (itemId) => {
+    if (isFreelancerReadOnly) {
+      addToast('Ako freelancer nemôžete zadávať texty namiesto zákazníka.', 'warning', 'Len pre zákazníka');
+      return;
+    }
+
     const val = textInputs[itemId];
     if (!val || val.trim().length === 0) {
       addToast('Please enter text before saving.', 'warning', 'Missing Text');
@@ -506,6 +530,11 @@ export default function ClientPortal() {
   };
 
   const handleRemoveItemValue = async (itemId) => {
+    if (isFreelancerReadOnly) {
+      addToast('Ako freelancer nemôžete upravovať texty klienta cez klientsky portál.', 'warning', 'Len pre zákazníka');
+      return;
+    }
+
     if (isDemoMode) {
       setDemoProject((prev) => {
         const updatedItems = prev.items.map((item) => {
@@ -591,25 +620,38 @@ export default function ClientPortal() {
         </div>
       ) : currentFreelancer ? (
         <div style={{
-          background: 'rgba(99, 102, 241, 0.12)',
-          borderBottom: '1px solid rgba(99, 102, 241, 0.25)',
-          padding: '10px 0',
+          background: 'rgba(99, 102, 241, 0.14)',
+          borderBottom: '1px solid rgba(99, 102, 241, 0.3)',
+          padding: '12px 0',
           backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)'
+          WebkitBackdropFilter: 'blur(8px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40
         }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <span style={{ color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-              <Eye size={16} color="var(--accent-primary)" />
-              <span><strong>Client View ({project.title}):</strong> This is the link your client visits.</span>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <span style={{ color: '#e0e7ff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <Lock size={16} color="var(--accent-primary)" />
+              <span><strong>Náhľad klientskeho portálu (Režim iba na čítanie):</strong> Ako freelancer si prezeráte rozhranie klienta. Nahrávanie súborov a textov je povolené iba zákazníkovi.</span>
             </span>
-            <button 
-              id="btn-back-to-dashboard"
-              onClick={openDashboard} 
-              className="btn btn-secondary btn-sm btn-pill"
-              style={{ padding: '5px 12px', fontSize: '0.8rem' }}
-            >
-              <ArrowLeft size={14} /> Back to Dashboard
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                id="btn-back-to-project-detail"
+                onClick={() => openProjectDetail(project.slug)} 
+                className="btn btn-primary btn-sm btn-pill"
+                style={{ padding: '6px 14px', fontSize: '0.8rem', gap: '5px' }}
+              >
+                <Layers size={13} /> Správa zákazky
+              </button>
+              <button 
+                id="btn-back-to-dashboard"
+                onClick={openDashboard} 
+                className="btn btn-secondary btn-sm btn-pill"
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <ArrowLeft size={13} /> Nástenka
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -875,73 +917,106 @@ export default function ClientPortal() {
 
                         {/* 2. Empty Dropzone */}
                         {!isUploadingThis && !hasAny && (
-                          <div 
-                            className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
-                            style={{ position: 'relative' }}
-                            onDragEnter={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDragActiveId(item.id);
-                            }}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              e.dataTransfer.dropEffect = 'copy';
-                              if (dragActiveId !== item.id) {
+                          isFreelancerReadOnly ? (
+                            <div 
+                              style={{
+                                border: '1.5px dashed var(--border-subtle)',
+                                borderRadius: 'var(--radius-lg)',
+                                padding: '24px 18px',
+                                textAlign: 'center',
+                                background: 'rgba(255, 255, 255, 0.015)',
+                                position: 'relative'
+                              }}
+                            >
+                              <div style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: 'var(--radius-md)',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                color: 'var(--text-tertiary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 10px'
+                              }}>
+                                <Lock size={20} />
+                              </div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                                Režim náhľadu: Nahrávanie vyhradené pre klienta
+                              </div>
+                              <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+                                Súbory nahráva zákazník priamo cez svoj odkaz. Ako freelancer tu nemôžete odovzdávať súbory za klienta.
+                              </span>
+                            </div>
+                          ) : (
+                            <div 
+                              className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
+                              style={{ position: 'relative' }}
+                              onDragEnter={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setDragActiveId(item.id);
-                              }
-                            }}
-                            onDragLeave={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (!e.currentTarget.contains(e.relatedTarget)) {
-                                setDragActiveId(null);
-                              }
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setDragActiveId(null);
-                              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                handleStageFiles(item.id, e.dataTransfer.files);
-                              }
-                            }}
-                            onClick={() => {
-                              const input = document.getElementById(`file-input-${item.id}`);
-                              if (input) input.click();
-                            }}
-                          >
-                            <input 
-                              id={`file-input-${item.id}`}
-                              type="file" 
-                              multiple
-                              style={{ display: 'none' }}
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files.length > 0) {
-                                  handleStageFiles(item.id, e.target.files);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'copy';
+                                if (dragActiveId !== item.id) {
+                                  setDragActiveId(item.id);
                                 }
                               }}
-                            />
-                            <div style={{
-                              width: '46px',
-                              height: '46px',
-                              borderRadius: 'var(--radius-md)',
-                              background: 'rgba(99, 102, 241, 0.12)',
-                              color: 'var(--accent-primary)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px'
-                            }}>
-                              <Upload size={22} />
+                              onDragLeave={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (!e.currentTarget.contains(e.relatedTarget)) {
+                                  setDragActiveId(null);
+                                }
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDragActiveId(null);
+                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                  handleStageFiles(item.id, e.dataTransfer.files);
+                                }
+                              }}
+                              onClick={() => {
+                                const input = document.getElementById(`file-input-${item.id}`);
+                                if (input) input.click();
+                              }}
+                            >
+                              <input 
+                                id={`file-input-${item.id}`}
+                                type="file" 
+                                multiple
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files.length > 0) {
+                                    handleStageFiles(item.id, e.target.files);
+                                  }
+                                }}
+                              />
+                              <div style={{
+                                width: '46px',
+                                height: '46px',
+                                borderRadius: 'var(--radius-md)',
+                                background: 'rgba(99, 102, 241, 0.12)',
+                                color: 'var(--accent-primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 12px'
+                              }}>
+                                <Upload size={22} />
+                              </div>
+                              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                Drag & drop files here or <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</span>
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                Select multiple files at once &bull; Supports PDF, PNG, JPG, ZIP, and all standard formats
+                              </span>
                             </div>
-                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                              Drag & drop files here or <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</span>
-                            </div>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                              Select multiple files at once &bull; Supports PDF, PNG, JPG, ZIP, and all standard formats
-                            </span>
-                          </div>
+                          )
                         )}
 
                         {/* 3. Unified Container (Uploaded + Staged) */}
@@ -1209,15 +1284,17 @@ export default function ClientPortal() {
                                           <Download size={13} /> View
                                         </a>
                                       )}
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
-                                        className="btn btn-secondary btn-sm"
-                                        style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
-                                        title={isDemoMode ? "Remove this file from preview" : "Remove this file from cloud"}
-                                      >
-                                        <X size={14} />
-                                      </button>
+                                      {!isFreelancerReadOnly && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
+                                          className="btn btn-secondary btn-sm"
+                                          style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
+                                          title={isDemoMode ? "Remove this file from preview" : "Remove this file from cloud"}
+                                        >
+                                          <X size={14} />
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 );
@@ -1340,58 +1417,60 @@ export default function ClientPortal() {
                             </div>
 
                             {/* Mini Dropzone Underneath */}
-                            <div
-                              onClick={() => {
-                                const input = document.getElementById(`file-input-unified-${item.id}`);
-                                if (input) input.click();
-                              }}
-                              onDragEnter={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setDragActiveId(`zone-${item.id}`);
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = 'copy';
-                                setDragActiveId(`zone-${item.id}`);
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setDragActiveId(null);
-                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                  handleStageFiles(item.id, e.dataTransfer.files);
-                                }
-                              }}
-                              style={{
-                                marginTop: '14px',
-                                border: '1px dashed rgba(255, 255, 255, 0.2)',
-                                borderRadius: 'var(--radius-md)',
-                                padding: '12px 16px',
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                transition: 'var(--transition)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px'
-                              }}
-                              onMouseOver={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
-                              }}
-                              onMouseOut={(e) => {
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                              }}
-                            >
-                              <Upload size={16} color="var(--accent-primary)" />
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                Drag & drop more files here or <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</strong>
-                              </span>
-                            </div>
+                            {!isFreelancerReadOnly && (
+                              <div
+                                onClick={() => {
+                                  const input = document.getElementById(`file-input-unified-${item.id}`);
+                                  if (input) input.click();
+                                }}
+                                onDragEnter={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setDragActiveId(`zone-${item.id}`);
+                                }}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.dataTransfer.dropEffect = 'copy';
+                                  setDragActiveId(`zone-${item.id}`);
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setDragActiveId(null);
+                                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                    handleStageFiles(item.id, e.dataTransfer.files);
+                                  }
+                                }}
+                                style={{
+                                  marginTop: '14px',
+                                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                                  borderRadius: 'var(--radius-md)',
+                                  padding: '12px 16px',
+                                  textAlign: 'center',
+                                  cursor: 'pointer',
+                                  background: 'rgba(255, 255, 255, 0.02)',
+                                  transition: 'var(--transition)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px'
+                                }}
+                                onMouseOver={(e) => {
+                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                  e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                }}
+                              >
+                                <Upload size={16} color="var(--accent-primary)" />
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  Drag & drop more files here or <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</strong>
+                                </span>
+                              </div>
+                            )}
 
                             {/* Save Confirmation Button */}
                             {hasStaged && (
@@ -1449,24 +1528,58 @@ export default function ClientPortal() {
                   {item.type === 'text' && (
                     <div>
                       {!isDone ? (
-                        <div>
-                          <textarea
-                            id={`textarea-${item.id}`}
-                            className="textarea"
-                            rows={3}
-                            placeholder="Type requested details, links, or copy here..."
-                            value={textInputs[item.id] || ''}
-                            onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
-                            style={{ marginBottom: '12px', borderRadius: 'var(--radius-lg)' }}
-                          />
-                          <button 
-                            id={`btn-save-text-${item.id}`}
-                            onClick={() => handleTextSave(item.id)}
-                            className="btn btn-primary btn-sm btn-pill"
-                          >
-                            <CheckCircle2 size={15} /> Save & Submit Copy
-                          </button>
-                        </div>
+                        isFreelancerReadOnly ? (
+                          <div style={{
+                            padding: '16px 18px',
+                            background: 'rgba(255, 255, 255, 0.015)',
+                            border: '1.5px dashed var(--border-subtle)',
+                            borderRadius: 'var(--radius-lg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}>
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: 'var(--radius-sm)',
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              color: 'var(--text-tertiary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              <Lock size={18} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '2px' }}>
+                                Režim náhľadu: Text zadáva klient
+                              </div>
+                              <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+                                Textové podklady a odpovede vypĺňa zákazník priamo cez svoj odkaz. Ako freelancer tu nemôžete odosielať text namiesto klienta.
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <textarea
+                              id={`textarea-${item.id}`}
+                              className="textarea"
+                              rows={3}
+                              placeholder="Type requested details, links, or copy here..."
+                              value={textInputs[item.id] || ''}
+                              onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
+                              style={{ marginBottom: '12px', borderRadius: 'var(--radius-lg)' }}
+                            />
+                            <button 
+                              id={`btn-save-text-${item.id}`}
+                              onClick={() => handleTextSave(item.id)}
+                              className="btn btn-primary btn-sm btn-pill"
+                            >
+                              <CheckCircle2 size={15} /> Save & Submit Copy
+                            </button>
+                          </div>
+                        )
                       ) : (
                         <div style={{
                           background: 'rgba(16, 185, 129, 0.08)',
@@ -1478,13 +1591,15 @@ export default function ClientPortal() {
                             <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <CheckCircle2 size={15} /> Submitted copy:
                             </span>
-                            <button 
-                              onClick={() => handleRemoveItemValue(item.id)}
-                              className="btn btn-secondary btn-sm btn-pill"
-                              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                            >
-                              Edit
-                            </button>
+                            {!isFreelancerReadOnly && (
+                              <button 
+                                onClick={() => handleRemoveItemValue(item.id)}
+                                className="btn btn-secondary btn-sm btn-pill"
+                                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                              >
+                                Edit
+                              </button>
+                            )}
                           </div>
                           <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
                             {typeof item.value === 'string' ? item.value : (item.value?.text || '')}

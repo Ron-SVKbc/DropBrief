@@ -25,7 +25,8 @@ import {
   X,
   TrendingUp,
   ArrowUpRight,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 
 export default function Dashboard({ onOpenCreateModal }) {
@@ -35,6 +36,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     sendSimulatedReminder, 
     openReminderModal,
     openClientPortal, 
+    openProjectDetail,
     addToast,
     currentFreelancer,
     seedDemoProjectForFreelancer,
@@ -372,10 +374,13 @@ export default function Dashboard({ onOpenCreateModal }) {
               <div 
                 key={proj.id} 
                 className="glass-card" 
+                onClick={() => openProjectDetail(proj.slug)}
                 style={{
                   padding: '22px 24px',
                   borderLeft: `3px solid ${isCompleted ? 'var(--success)' : 'var(--warning)'}`,
-                  boxShadow: 'var(--shadow-md), var(--shadow-inner-highlight)'
+                  boxShadow: 'var(--shadow-md), var(--shadow-inner-highlight)',
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
                 }}
               >
                 {/* Project Header Row */}
@@ -389,7 +394,13 @@ export default function Dashboard({ onOpenCreateModal }) {
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '5px' }}>
-                      <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em' }}>
+                      <h2 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openProjectDetail(proj.slug);
+                        }}
+                        style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em', cursor: 'pointer' }}
+                      >
                         {proj.title}
                       </h2>
                       {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
@@ -477,7 +488,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
                     <button
                       id={`btn-copy-link-${proj.id}`}
-                      onClick={() => copyClientLink(proj.slug)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyClientLink(proj.slug);
+                      }}
                       className="btn btn-secondary btn-sm btn-pill"
                       title="Copy private link for client"
                     >
@@ -486,17 +500,22 @@ export default function Dashboard({ onOpenCreateModal }) {
                     </button>
 
                     <button
-                      id={`btn-open-client-${proj.id}`}
-                      onClick={() => openClientPortal(proj.slug)}
+                      id={`btn-open-detail-${proj.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProjectDetail(proj.slug);
+                      }}
                       className="btn btn-primary btn-sm btn-pill"
-                      title="Open portal as viewed by client"
+                      title="Otvoriť detailný prehľad zákazky a správu elementov"
+                      style={{ gap: '5px' }}
                     >
-                      <ExternalLink size={13} />
-                      Portal
+                      <Eye size={13} />
+                      Prehľad zákazky
                     </button>
 
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (confirm(`Are you sure you want to delete project "${proj.title}"?`)) {
                           deleteProject(proj.id);
                         }
@@ -591,7 +610,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                     {!isCompleted ? (
                       <button
                         id={`btn-remind-${proj.id}`}
-                        onClick={() => openReminderModal(proj.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openReminderModal(proj.id);
+                        }}
                         className="btn btn-secondary btn-sm btn-pill"
                         style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem' }}
                         title="Preview and send follow-up reminder"
@@ -608,7 +630,10 @@ export default function Dashboard({ onOpenCreateModal }) {
 
                   <button
                     id={`btn-download-${proj.id}`}
-                    onClick={() => handleDownloadAll(proj)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownloadAll(proj);
+                    }}
                     className="btn btn-secondary btn-sm btn-pill"
                     style={{ fontSize: '0.8rem' }}
                   >

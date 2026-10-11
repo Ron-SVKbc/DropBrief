@@ -40,7 +40,7 @@ export default function Navbar({ onOpenCreateModal }) {
   };
 
   const handleDashboardClick = () => {
-    if (currentView === 'client-portal') {
+    if (currentView === 'client-portal' || currentView === 'project-detail') {
       openDashboard();
       return;
     }
@@ -136,14 +136,14 @@ export default function Navbar({ onOpenCreateModal }) {
           <button
             id="nav-dashboard-tab"
             onClick={handleDashboardClick}
-            className={`btn btn-sm btn-pill ${currentView === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm btn-pill ${(currentView === 'dashboard' || currentView === 'project-detail') ? 'btn-primary' : 'btn-secondary'}`}
             style={{ 
-              border: currentView === 'dashboard' ? '1px solid rgba(255,255,255,0.18)' : 'none',
+              border: (currentView === 'dashboard' || currentView === 'project-detail') ? '1px solid rgba(255,255,255,0.18)' : 'none',
               padding: '5px 13px', fontSize: '0.8rem'
             }}
           >
             <LayoutDashboard size={13} />
-            {currentFreelancer ? 'Dashboard' : 'For Freelancers'}
+            {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Späť' : 'Dashboard') : 'For Freelancers'}
           </button>
           <button
             id="nav-client-portal-tab"

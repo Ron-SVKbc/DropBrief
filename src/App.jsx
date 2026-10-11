@@ -3,6 +3,7 @@ import { useApp } from './context/AppContext';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import ClientPortal from './components/ClientPortal';
+import ProjectDetailView from './components/ProjectDetailView';
 import WelcomeView from './components/WelcomeView';
 import CreateProjectModal from './components/CreateProjectModal';
 import EmailPreviewModal from './components/EmailPreviewModal';
@@ -66,6 +67,9 @@ export default function App() {
         {currentView === 'client-portal' ? (
           /* Client portal is 100% accessible to anyone with the link - Zero friction */
           <ClientPortal />
+        ) : currentView === 'project-detail' ? (
+          /* Dedicated freelancer view: Project overview, delivered assets & element management */
+          <ProjectDetailView />
         ) : currentFreelancer ? (
           /* Logged in freelancer sees their private Dashboard */
           <Dashboard onOpenCreateModal={() => setIsCreateModalOpen(true)} />
