@@ -294,6 +294,11 @@ export function AppProvider({ children }) {
     if (!slug) return null;
     const cleanSlug = String(slug).trim();
 
+    // Lokálne demo náhľady sa neťahajú zo vzdialenej DB – ušetrí sa zbytočný sieťový dotaz
+    if (cleanSlug.toLowerCase() === 'demo-preview') {
+      return null;
+    }
+
     if (isSupabaseConfigured && supabase) {
       try {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
