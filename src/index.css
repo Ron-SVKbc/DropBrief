@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    DropBrief — Design System v3.0
    Estetika: Linear + Raycast + Vercel (Obsidian Dark)
    Token Architecture: Primitive -> Semantic -> Component
@@ -122,11 +122,11 @@
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-instant: all 0.1s var(--ease-spring);
-  --transition-fast: all 0.16s var(--ease-spring);
-  --transition: all 0.22s var(--ease-spring);
-  --transition-smooth: all 0.32s var(--ease-spring);
-  --transition-slow: all 0.48s var(--ease-out);
+  --transition-instant: transform 0.1s var(--ease-spring), border-color 0.1s ease, background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease, box-shadow 0.1s ease;
+  --transition-fast: transform 0.16s var(--ease-spring), border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease, opacity 0.16s ease, box-shadow 0.16s ease;
+  --transition: transform 0.22s var(--ease-spring), border-color 0.22s ease, background-color 0.22s ease, color 0.22s ease, opacity 0.22s ease, box-shadow 0.22s ease;
+  --transition-smooth: transform 0.32s var(--ease-spring), border-color 0.32s ease, background-color 0.32s ease, color 0.32s ease, opacity 0.32s ease, box-shadow 0.32s ease;
+  --transition-slow: transform 0.48s var(--ease-out), border-color 0.48s ease, background-color 0.48s ease, color 0.48s ease, opacity 0.48s ease, box-shadow 0.48s ease;
 
   /* Legacy aliases for backward compat */
   --bg-primary: var(--bg-base);
@@ -146,7 +146,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   color-scheme: dark;
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
@@ -177,13 +176,14 @@ body::before {
   position: fixed;
   top: -160px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate3d(-50%, 0, 0);
   width: 1000px;
   height: 580px;
-  background: radial-gradient(ellipse, rgba(99, 102, 241, 0.17) 0%, rgba(139, 92, 246, 0.07) 40%, transparent 68%);
+  background: radial-gradient(ellipse 65% 55% at 50% 40%, rgba(99, 102, 241, 0.16) 0%, rgba(139, 92, 246, 0.08) 35%, rgba(99, 102, 241, 0.02) 65%, transparent 75%);
   pointer-events: none;
   z-index: 0;
-  filter: blur(48px);
+  contain: strict;
+  will-change: transform;
 }
 
 body::after {
@@ -191,12 +191,14 @@ body::after {
   position: fixed;
   bottom: -160px;
   right: 5%;
+  transform: translate3d(0, 0, 0);
   width: 680px;
   height: 440px;
-  background: radial-gradient(ellipse, rgba(236, 72, 153, 0.07) 0%, rgba(99, 102, 241, 0.04) 50%, transparent 68%);
+  background: radial-gradient(ellipse 65% 55% at 50% 50%, rgba(236, 72, 153, 0.07) 0%, rgba(99, 102, 241, 0.04) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
-  filter: blur(56px);
+  contain: strict;
+  will-change: transform;
 }
 
 #root {
@@ -210,14 +212,15 @@ body::after {
 /* ── Glass Card System ────────────────────────────────────── */
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md), var(--shadow-inner-highlight);
   transition: var(--transition);
   position: relative;
   isolation: isolate;
+  contain: layout style;
 }
 
 .glass-card::before {
@@ -236,6 +239,7 @@ body::after {
 
 .glass-card-interactive {
   cursor: pointer;
+  will-change: transform;
 }
 
 .glass-card-interactive:hover {
@@ -252,11 +256,12 @@ body::after {
 
 .glass-panel {
   background: rgba(11, 15, 26, 0.96);
-  backdrop-filter: blur(28px) saturate(1.4);
-  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl), var(--shadow-inner-highlight);
+  contain: layout style;
 }
 
 /* ── Button System ────────────────────────────────────────── */
@@ -310,8 +315,8 @@ body::after {
   background: var(--bg-glass);
   color: var(--text-primary);
   border-color: var(--border-subtle);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow: var(--shadow-sm), var(--shadow-inner-highlight);
 }
 
@@ -548,6 +553,7 @@ select.select {
   border: 1.5px solid var(--success);
   opacity: 0.55;
   animation: pulseDot 2.2s infinite ease-out;
+  will-change: transform, opacity;
 }
 
 /* ── Skeleton Loader ──────────────────────────────────────── */

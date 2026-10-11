@@ -30,8 +30,8 @@ export default function ToastContainer() {
             className="animate-fade-in"
             style={{
               background: 'rgba(13, 18, 30, 0.95)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               border: `1px solid ${isSuccess ? 'var(--success-border)' : isWarning ? 'var(--warning-border)' : 'var(--border-active)'}`,
               borderRadius: 'var(--radius-lg)',
               padding: '14px 18px',

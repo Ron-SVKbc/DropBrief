@@ -530,8 +530,8 @@ export default function ClientPortal() {
           background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.14) 100%)',
           borderBottom: '1px solid rgba(139, 92, 246, 0.35)',
           padding: '12px 0',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           position: 'sticky',
           top: 0,
           zIndex: 40,
@@ -590,7 +590,8 @@ export default function ClientPortal() {
           background: 'rgba(99, 102, 241, 0.12)',
           borderBottom: '1px solid rgba(99, 102, 241, 0.25)',
           padding: '10px 0',
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
         }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <span style={{ color: '#c7d2fe', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
@@ -626,9 +627,9 @@ export default function ClientPortal() {
             right: 0,
             width: '260px',
             height: '260px',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 45%, transparent 70%)',
             pointerEvents: 'none',
-            filter: 'blur(20px)'
+            contain: 'strict'
           }} />
 
           {/* Header Row */}

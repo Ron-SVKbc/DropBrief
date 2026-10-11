@@ -469,8 +469,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
             <div style={{
               position: 'absolute', top: '-80px', left: '50%', transform: 'translateX(-50%)',
               width: '380px', height: '160px',
-              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.38) 0%, transparent 70%)',
-              pointerEvents: 'none', filter: 'blur(32px)'
+              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.32) 0%, rgba(99, 102, 241, 0.08) 45%, transparent 70%)',
+              pointerEvents: 'none',
+              contain: 'strict'
             }} />
 
             <span className="badge badge-accent" style={{ marginBottom: '18px' }}>Start Instantly</span>

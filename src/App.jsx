@@ -80,8 +80,8 @@ export default function App() {
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
         padding: '32px 0 28px',
         background: 'rgba(7, 9, 14, 0.95)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         marginTop: 'auto',
         boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)'
       }}>

@@ -55,8 +55,8 @@ export default function Navbar({ onOpenCreateModal }) {
     <header style={{
       borderBottom: '1px solid var(--border-hairline)',
       background: 'rgba(7, 9, 14, 0.84)',
-      backdropFilter: 'blur(22px)',
-      WebkitBackdropFilter: 'blur(22px)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
