@@ -194,6 +194,12 @@ export function AppProvider({ children }) {
             if (preservedType) {
               mapped.projectType = preservedType;
             }
+            if (prevProj?.cadenceDays) {
+              mapped.cadenceDays = prevProj.cadenceDays;
+            }
+            if (prevProj?.batches && Array.isArray(prevProj.batches) && prevProj.batches.length > 0) {
+              mapped.batches = prevProj.batches;
+            }
             return mapped;
           });
         });
@@ -234,11 +240,42 @@ export function AppProvider({ children }) {
           if (storedTypes[cleanSlug]) {
             mapped.projectType = storedTypes[cleanSlug];
           }
+
+          // Also check storage metadata if DB columns don't exist yet
+          try {
+            const { data: ptBlob } = await supabase.storage
+              .from('client-uploads')
+              .download(`_meta/pt_${cleanSlug}.json`);
+            if (ptBlob) {
+              const ptText = await ptBlob.text();
+              const ptData = JSON.parse(ptText);
+              if (ptData?.projectType) mapped.projectType = ptData.projectType;
+              if (ptData?.cadenceDays) mapped.cadenceDays = ptData.cadenceDays;
+            }
+          } catch (e) {}
+
+          try {
+            const { data: bBlob } = await supabase.storage
+              .from('client-uploads')
+              .download(`_meta/batches_${cleanSlug}.json`);
+            if (bBlob) {
+              const bText = await bBlob.text();
+              const bData = JSON.parse(bText);
+              if (Array.isArray(bData) && bData.length > 0) mapped.batches = bData;
+            }
+          } catch (e) {}
+
           setProjects((prev) => {
             const exists = prev.some((p) => p.slug === data.slug || p.id === data.id);
             const prevProj = prev.find((p) => p.slug === data.slug || p.id === data.id);
             if (prevProj?.projectType) {
               mapped.projectType = prevProj.projectType;
+            }
+            if (prevProj?.cadenceDays) {
+              mapped.cadenceDays = prevProj.cadenceDays;
+            }
+            if (prevProj?.batches && Array.isArray(prevProj.batches) && prevProj.batches.length > 0) {
+              mapped.batches = prevProj.batches;
             }
             if (exists) return prev.map((p) => (p.slug === data.slug || p.id === data.id ? mapped : p));
             return [mapped, ...prev];
@@ -596,6 +633,10 @@ export function AppProvider({ children }) {
           batches: [],
         };
 
+        if (flId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(flId)) {
+          insertPayload.freelancer_id = flId;
+        }
+
         let { data: insertedProj, error: pErr } = await supabase
           .from('projects')
           .insert(insertPayload)
@@ -603,22 +644,20 @@ export function AppProvider({ children }) {
           .single();
 
         // Fallback if remote DB doesn't have project_type, cadence_days, or batches columns yet
-        if (pErr && pErr.message) {
-          const errMsg = pErr.message.toLowerCase();
-          if (errMsg.includes('cadence_days') || errMsg.includes('batches') || errMsg.includes('project_type')) {
-            delete insertPayload.cadence_days;
-            delete insertPayload.batches;
-            if (errMsg.includes('project_type')) {
-              delete insertPayload.project_type;
-            }
-            const retryRes = await supabase
-              .from('projects')
-              .insert(insertPayload)
-              .select()
-              .single();
-            insertedProj = retryRes.data;
-            pErr = retryRes.error;
-          }
+        if (pErr) {
+          console.warn('Initial project insert in Supabase failed, trying standard schema fallback:', pErr.message);
+          delete insertPayload.cadence_days;
+          delete insertPayload.batches;
+          delete insertPayload.project_type;
+          delete insertPayload.freelancer_id;
+
+          const retryRes = await supabase
+            .from('projects')
+            .insert(insertPayload)
+            .select()
+            .single();
+          insertedProj = retryRes.data;
+          pErr = retryRes.error;
         }
 
         if (pErr) throw pErr;
@@ -640,6 +679,22 @@ export function AppProvider({ children }) {
 
           const { error: iErr } = await supabase.from('project_items').insert(itemsToInsert);
           if (iErr) throw iErr;
+
+          // Update storage mirror with the generated Supabase project ID and item IDs
+          try {
+            const finalMetaProject = {
+              ...newProject,
+              id: insertedProj.id,
+              items: newProject.items.map((it, idx) => ({
+                ...it,
+                id: (itemsToInsert[idx] && itemsToInsert[idx].id) || it.id
+              }))
+            };
+            supabase.storage
+              .from('client-uploads')
+              .upload(`_meta/proj_${randomSlug}.json`, new Blob([JSON.stringify(finalMetaProject)], { type: 'application/json' }), { upsert: true })
+              .catch(() => {});
+          } catch (e) {}
 
           fetchSupabaseProjects();
         }
@@ -672,10 +727,14 @@ export function AppProvider({ children }) {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase
-          .from('projects')
-          .update({ project_type: newType })
-          .or(`id.eq.${projectIdOrSlug},slug.eq.${projectIdOrSlug}`);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectIdOrSlug);
+        let q = supabase.from('projects').update({ project_type: newType });
+        if (isUuid) {
+          q = q.eq('id', projectIdOrSlug);
+        } else {
+          q = q.ilike('slug', projectIdOrSlug);
+        }
+        await q;
       } catch (e) {}
 
       try {
@@ -710,10 +769,14 @@ export function AppProvider({ children }) {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase
-          .from('projects')
-          .update({ cadence_days: days })
-          .or(`id.eq.${projectIdOrSlug},slug.eq.${projectIdOrSlug}`);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectIdOrSlug);
+        let q = supabase.from('projects').update({ cadence_days: days });
+        if (isUuid) {
+          q = q.eq('id', projectIdOrSlug);
+        } else {
+          q = q.ilike('slug', projectIdOrSlug);
+        }
+        await q;
       } catch (e) {}
 
       try {
@@ -793,10 +856,14 @@ export function AppProvider({ children }) {
         }
 
         try {
-          await supabase
-            .from('projects')
-            .update({ batches: existingBatches })
-            .or(`slug.eq.${projectSlug},id.eq.${projectSlug}`);
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectSlug);
+          let q = supabase.from('projects').update({ batches: existingBatches });
+          if (isUuid) {
+            q = q.eq('id', projectSlug);
+          } else {
+            q = q.ilike('slug', projectSlug);
+          }
+          await q;
         } catch (dbErr) {
           console.warn('DB update for batches:', dbErr);
         }
