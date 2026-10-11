@@ -27,11 +27,15 @@ create table if not exists public.projects (
   last_reminder_sent text,
   status text not null default 'pending', -- 'pending' | 'completed'
   project_type text not null default 'one-off', -- 'one-off' (jednorazové) | 'ongoing' (dlhodobé)
+  cadence_days integer default 1,               -- frekvencia zberu v dňoch: 1 = denne, 2, 7 = týždenne, atď.
+  batches jsonb default '[]'::jsonb,            -- zoznam odovzdaných dávok podkladov podľa dní
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Migrácia pre existujúce databázy
 alter table public.projects add column if not exists project_type text default 'one-off';
+alter table public.projects add column if not exists cadence_days integer default 1;
+alter table public.projects add column if not exists batches jsonb default '[]'::jsonb;
 
 -- 2. Tabuľka položiek checklistu
 create table if not exists public.project_items (

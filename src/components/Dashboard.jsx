@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { formatCadenceBadge, isTodaySubmitted } from '../utils/cadenceUtils';
 import { 
   FolderSync, 
   Copy, 
@@ -388,9 +389,9 @@ export default function Dashboard({ onOpenCreateModal }) {
                             cursor: 'pointer',
                             transition: 'all 0.18s ease'
                           }}
-                          title="Click to switch to One-off Project"
+                          title="Pravidelný zber - kliknutím zmeníte typ"
                         >
-                          <RefreshCw size={10} /> Ongoing
+                          <RefreshCw size={10} /> {formatCadenceBadge(proj.cadenceDays || 1)}
                         </button>
                       ) : (
                         <button 
@@ -412,19 +413,31 @@ export default function Dashboard({ onOpenCreateModal }) {
                             cursor: 'pointer',
                             transition: 'all 0.18s ease'
                           }}
-                          title="Click to switch to Ongoing / Retainer"
+                          title="Jednorazová zákazka - kliknutím zmeníte typ"
                         >
                           <Zap size={10} /> One-off
                         </button>
                       )}
-                      {isCompleted ? (
-                        <span className="badge badge-success">
-                          <CheckCircle2 size={11} /> Completed
-                        </span>
+                      {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
+                        isTodaySubmitted(proj) ? (
+                          <span className="badge badge-success">
+                            <CheckCircle2 size={11} /> Dnes dodané
+                          </span>
+                        ) : (
+                          <span className="badge badge-warning">
+                            <Clock size={11} /> Čaká sa na dnes
+                          </span>
+                        )
                       ) : (
-                        <span className="badge badge-warning">
-                          <Clock size={11} /> Waiting for client
-                        </span>
+                        isCompleted ? (
+                          <span className="badge badge-success">
+                            <CheckCircle2 size={11} /> Completed
+                          </span>
+                        ) : (
+                          <span className="badge badge-warning">
+                            <Clock size={11} /> Waiting for client
+                          </span>
+                        )
                       )}
                       <span className="badge badge-neutral" style={{ gap: '4px' }}>
                         <BellRing size={10} /> {proj.reminderFrequency}d

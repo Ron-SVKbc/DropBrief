@@ -3,6 +3,15 @@ import { useApp } from '../context/AppContext';
 import confetti from 'canvas-confetti';
 import { uploadClientFile, isSupabaseConfigured } from '../lib/supabase';
 import { 
+  getTodayDateString, 
+  formatDateSlovak, 
+  formatCadenceDays, 
+  getCurrentBatch, 
+  isBatchSubmitted, 
+  isTodaySubmitted, 
+  getProjectBatches 
+} from '../utils/cadenceUtils';
+import { 
   CheckCircle2, 
   Upload, 
   FileText, 
@@ -108,6 +117,7 @@ export default function ClientPortal() {
     openDashboard, 
     openProjectDetail, 
     updateItemValue, 
+    submitOngoingBatch,
     addToast,
     fetchProjectBySlug,
     isLoadingDb,
@@ -230,6 +240,12 @@ export default function ClientPortal() {
   const totalCount = project.items.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   const isAllDone = totalCount > 0 && completedCount === totalCount;
+
+  // Pravidelný zber (Cadence & Batches)
+  const isOngoing = Boolean(project.projectType === 'ongoing' || project.project_type === 'ongoing');
+  const todayDateStr = getTodayDateString();
+  const todayBatch = getCurrentBatch(project, todayDateStr);
+  const isTodayDone = isBatchSubmitted(todayBatch) || (isOngoing && isAllDone);
 
   // Trigger confetti when 100% completed
   const handleCheckCompletion = (newPercent) => {
@@ -410,6 +426,25 @@ export default function ClientPortal() {
       await updateItemValue(project.slug, itemId, payload, true);
       handleClearStagedFiles(itemId);
 
+      if (isOngoing && !isDemoMode) {
+        const batchFiles = [];
+        let batchNote = '';
+        project.items.forEach((it) => {
+          if (it.id === itemId) {
+            batchFiles.push(...allFiles);
+          } else if (it.type === 'file' && it.value?.files) {
+            batchFiles.push(...it.value.files);
+          } else if (it.type === 'text' && typeof it.value === 'string') {
+            batchNote += (batchNote ? '\n' : '') + it.value;
+          }
+        });
+        submitOngoingBatch(project.slug, {
+          date: todayDateStr,
+          files: batchFiles,
+          note: batchNote
+        });
+      }
+
       addToast(
         filesToUpload.length === 1 
           ? `File "${filesToUpload[0].name}" successfully saved!`
@@ -522,6 +557,24 @@ export default function ClientPortal() {
     }
 
     await updateItemValue(project.slug, itemId, val.trim(), true);
+
+    if (isOngoing && !isDemoMode) {
+      const batchFiles = [];
+      let batchNote = val.trim();
+      project.items.forEach((it) => {
+        if (it.type === 'file' && it.value?.files) {
+          batchFiles.push(...it.value.files);
+        } else if (it.id !== itemId && it.type === 'text' && typeof it.value === 'string') {
+          batchNote = (it.value ? it.value + '\n' : '') + batchNote;
+        }
+      });
+      submitOngoingBatch(project.slug, {
+        date: todayDateStr,
+        files: batchFiles,
+        note: batchNote
+      });
+    }
+
     addToast('Copy successfully saved!', 'success', 'Text Saved');
 
     const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
@@ -755,52 +808,122 @@ export default function ClientPortal() {
             </div>
           </div>
 
-          {/* Progress Tracker */}
-          <div style={{ marginTop: '28px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '0.925rem' }}>
-              <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-                Submission progress: <strong>{completedCount} of {totalCount} items completed</strong>
-              </span>
-              <span style={{ fontWeight: 800, color: isAllDone ? 'var(--success)' : 'var(--accent-primary)', fontSize: '1.2rem' }}>
-                {progressPercent}%
-              </span>
-            </div>
-            
-            <div className="progress-track" style={{ height: '10px' }}>
-              <div 
-                className="progress-fill" 
-                style={{ 
-                  width: `${progressPercent}%`,
-                  background: isAllDone ? 'var(--success)' : 'var(--accent-gradient)'
-                }} 
-              />
-            </div>
-          </div>
+          {/* Progress / Daily Cadence Tracker */}
+          {isOngoing ? (
+            <div style={{ marginTop: '24px' }}>
+              <div style={{
+                padding: '18px 22px',
+                borderRadius: 'var(--radius-lg)',
+                background: isTodayDone ? 'rgba(16, 185, 129, 0.12)' : 'rgba(168, 85, 247, 0.12)',
+                border: isTodayDone ? '1px solid var(--success-border)' : '1px solid rgba(168, 85, 247, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '42px', height: '42px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isTodayDone ? 'rgba(16, 185, 129, 0.22)' : 'rgba(168, 85, 247, 0.22)',
+                    color: isTodayDone ? 'var(--success)' : '#c084fc',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1rem', color: '#fff', display: 'block' }}>
+                      {formatDateSlovak(todayDateStr)} – Dnešné podklady
+                    </strong>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      Pravidelný zber dát &bull; {formatCadenceDays(project.cadenceDays || 1)}
+                    </span>
+                  </div>
+                </div>
 
-          {/* 100% Celebration Banner */}
-          {isAllDone && (
-            <div style={{
-              marginTop: '24px',
-              padding: '18px 22px',
-              borderRadius: 'var(--radius-lg)',
-              background: 'rgba(16, 185, 129, 0.12)',
-              border: '1px solid var(--success-border)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '14px',
-              color: 'var(--success)',
-              boxShadow: '0 0 30px rgba(16, 185, 129, 0.15)'
-            }}>
-              <Sparkles size={26} style={{ flexShrink: 0 }} />
-              <div>
-                <strong style={{ fontSize: '1rem', display: 'block' }}>
-                  Great job! All requested assets and information are complete.
-                </strong>
-                <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)' }}>
-                  {project.freelancerName} has all the materials needed and can proceed with full execution of your project.
-                </span>
+                {isTodayDone ? (
+                  <span className="badge badge-success" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
+                    <CheckCircle2 size={14} /> Dnes úspešne odovzdané
+                  </span>
+                ) : (
+                  <span className="badge badge-warning" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
+                    <Clock size={14} /> Čaká sa na dnešné podklady
+                  </span>
+                )}
               </div>
+
+              {isTodayDone && (
+                <div style={{
+                  marginTop: '14px',
+                  padding: '14px 18px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  fontSize: '0.84rem',
+                  color: 'rgba(255, 255, 255, 0.9)'
+                }}>
+                  <Sparkles size={20} color="var(--success)" style={{ flexShrink: 0 }} />
+                  <span>
+                    Ďakujeme! Dnešné materiály boli bezpečne doručené. {project.freelancerName} ich spracuje. Na ďalšiu dávku sa formulár automaticky pripraví podľa nastavenej frekvencie ({formatCadenceDays(project.cadenceDays || 1)}).
+                  </span>
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              {/* Progress Tracker (One-off) */}
+              <div style={{ marginTop: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '0.925rem' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+                    Submission progress: <strong>{completedCount} of {totalCount} items completed</strong>
+                  </span>
+                  <span style={{ fontWeight: 800, color: isAllDone ? 'var(--success)' : 'var(--accent-primary)', fontSize: '1.2rem' }}>
+                    {progressPercent}%
+                  </span>
+                </div>
+                
+                <div className="progress-track" style={{ height: '10px' }}>
+                  <div 
+                    className="progress-fill" 
+                    style={{ 
+                      width: `${progressPercent}%`,
+                      background: isAllDone ? 'var(--success)' : 'var(--accent-gradient)'
+                    }} 
+                  />
+                </div>
+              </div>
+
+              {/* 100% Celebration Banner */}
+              {isAllDone && (
+                <div style={{
+                  marginTop: '24px',
+                  padding: '18px 22px',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'rgba(16, 185, 129, 0.12)',
+                  border: '1px solid var(--success-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  color: 'var(--success)',
+                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.15)'
+                }}>
+                  <Sparkles size={26} style={{ flexShrink: 0 }} />
+                  <div>
+                    <strong style={{ fontSize: '1rem', display: 'block' }}>
+                      Great job! All requested assets and information are complete.
+                    </strong>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)' }}>
+                      {project.freelancerName} has all the materials needed and can proceed with full execution of your project.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
         </div>
@@ -1620,6 +1743,70 @@ export default function ClientPortal() {
             );
           })}
         </div>
+
+        {/* Archív predchádzajúcich odovzdaní (pre dlhodobé zákazky) */}
+        {isOngoing && getProjectBatches(project).length > 0 && (
+          <div className="glass-card" style={{
+            padding: '24px 28px',
+            marginBottom: '32px',
+            borderRadius: 'var(--radius-xl)',
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+              <Layers size={18} color="#c084fc" />
+              <div>
+                <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>
+                  Archív vašich predchádzajúcich odovzdaní ({getProjectBatches(project).length})
+                </strong>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Všetky skôr odovzdané dávky a materiály sú bezpečne uložené u {project.freelancerName}.
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {getProjectBatches(project).map((batch) => {
+                const count = batch.files?.length || 0;
+                return (
+                  <div 
+                    key={batch.id || batch.date}
+                    style={{
+                      padding: '12px 18px',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid var(--border-hairline)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '10px'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                          {formatDateSlovak(batch.date)}
+                        </span>
+                        <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 7px' }}>
+                          {count} {count === 1 ? 'súbor' : count < 5 ? 'súbory' : 'súborov'}
+                        </span>
+                      </div>
+                      {batch.note && (
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
+                          {batch.note}
+                        </p>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
+                      <CheckCircle2 size={13} /> Bezpečne odovzdané
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Security and Trust Footer */}
         <div className="glass-card" style={{

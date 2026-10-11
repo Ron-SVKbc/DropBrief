@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
+  getTodayDateString, 
+  formatDateSlovak, 
+  formatCadenceDays, 
+  formatCadenceBadge, 
+  getCurrentBatch, 
+  isTodaySubmitted, 
+  getProjectBatches 
+} from '../utils/cadenceUtils';
+import { 
   ArrowLeft, 
   Copy, 
   Check, 
@@ -59,6 +68,7 @@ export default function ProjectDetailView() {
     updateItemInProject, 
     deleteItemFromProject, 
     toggleProjectType,
+    updateProjectCadence,
     addToast,
     currentFreelancer 
   } = useApp();
@@ -68,6 +78,7 @@ export default function ProjectDetailView() {
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'missing' | 'completed'
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedBatchTextId, setCopiedBatchTextId] = useState(null);
   
   // Modals state
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -269,20 +280,34 @@ export default function ProjectDetailView() {
             title="Kliknutím zmeníte typ zákazky"
           >
             {project.projectType === 'ongoing' ? <RefreshCw size={11} /> : <Zap size={11} />}
-            {project.projectType === 'ongoing' ? 'Dlhodobá zákazka (Ongoing)' : 'Jednorazová zákazka (One-off)'}
+            {project.projectType === 'ongoing' ? `Pravidelný zber (${formatCadenceBadge(project.cadenceDays || 1)})` : 'Jednorazová zákazka (One-off)'}
           </button>
 
           {/* Status badge */}
-          {isCompleted ? (
-            <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
-              <CheckCircle2 size={12} />
-              Kompletné (100% odovzdané)
-            </span>
+          {project.projectType === 'ongoing' ? (
+            isTodaySubmitted(project) ? (
+              <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
+                <CheckCircle2 size={12} />
+                Dnes dodané (Pripravené)
+              </span>
+            ) : (
+              <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
+                <Clock size={12} />
+                Čaká sa na dnes
+              </span>
+            )
           ) : (
-            <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
-              <Clock size={12} />
-              Čaká sa na klienta ({missingCount} chýba)
-            </span>
+            isCompleted ? (
+              <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
+                <CheckCircle2 size={12} />
+                Kompletné (100% odovzdané)
+              </span>
+            ) : (
+              <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
+                <Clock size={12} />
+                Čaká sa na klienta ({missingCount} chýba)
+              </span>
+            )
           )}
 
           <span className="badge badge-neutral" style={{ padding: '4px 10px', gap: '5px' }}>
@@ -475,6 +500,268 @@ export default function ProjectDetailView() {
           </div>
         </div>
       </div>
+
+      {/* ── Pravidelný zber (Cadence Hub & Daily Batches) ─────────────────── */}
+      {project.projectType === 'ongoing' && (
+        <div className="glass-card" style={{
+          padding: '24px 28px',
+          marginBottom: '26px',
+          borderRadius: 'var(--radius-xl)',
+          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(10, 14, 25, 0.95) 100%)',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
+          boxShadow: '0 8px 32px rgba(168, 85, 247, 0.12)'
+        }}>
+          {/* Header Row: Cadence Switcher */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 700 }}>
+                  <RefreshCw size={11} /> Pravidelný zber
+                </span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                  Stály odkaz pre klienta
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                Frekvencia požadovania podkladov: <span style={{ color: '#c084fc' }}>{formatCadenceDays(project.cadenceDays || 1)}</span>
+              </h3>
+            </div>
+
+            {/* Quick cadence selector buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Zmeniť frekvenciu:</span>
+              {[
+                { days: 1, label: 'Každý 1 deň' },
+                { days: 2, label: 'Každé 2 dni' },
+                { days: 3, label: 'Každé 3 dni' },
+                { days: 7, label: 'Každý týždeň' },
+                { days: 30, label: 'Každý mesiac' },
+              ].map((opt) => {
+                const isActive = (project.cadenceDays || 1) === opt.days;
+                return (
+                  <button
+                    key={opt.days}
+                    type="button"
+                    onClick={() => updateProjectCadence(project.id, opt.days)}
+                    className="badge"
+                    style={{
+                      padding: '5px 10px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      background: isActive ? 'rgba(168, 85, 247, 0.35)' : 'rgba(255, 255, 255, 0.04)',
+                      color: isActive ? '#fff' : 'var(--text-secondary)',
+                      border: isActive ? '1px solid #c084fc' : '1px solid var(--border-subtle)',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {isActive && <Check size={11} color="#c084fc" style={{ marginRight: '4px' }} />}
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dnešný stav / Dnešná dávka */}
+          {(() => {
+            const todayStr = getTodayDateString();
+            const todayBatch = getCurrentBatch(project, todayStr);
+            const isDelivered = Boolean(todayBatch && (todayBatch.status === 'completed' || todayBatch.files?.length > 0 || todayBatch.note));
+            
+            return (
+              <div style={{
+                padding: '18px 22px',
+                borderRadius: 'var(--radius-lg)',
+                background: isDelivered ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.08)',
+                border: isDelivered ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '16px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '44px', height: '44px',
+                    borderRadius: 'var(--radius-md)',
+                    background: isDelivered ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                    color: isDelivered ? 'var(--success)' : 'var(--warning)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {isDelivered ? <CheckCircle2 size={24} /> : <Clock size={24} />}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <strong style={{ fontSize: '1rem', color: '#fff' }}>
+                        {formatDateSlovak(todayStr)}
+                      </strong>
+                      <span className={`badge ${isDelivered ? 'badge-success' : 'badge-warning'}`}>
+                        {isDelivered ? 'Podklady pripravené na spracovanie' : 'Čaká sa na dnešné podklady'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                      {isDelivered ? (
+                        <>Klient odovzdal dnešnú dávku: <strong>{todayBatch.files?.length || 0} súborov</strong> {todayBatch.note ? `• ${todayBatch.note.substring(0, 60)}...` : ''}</>
+                      ) : (
+                        <>Klient zatiaľ nenahral dnešné materiály. Môžete mu poslať pripomienku 1 klikom.</>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {isDelivered ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleDownloadAll}
+                        className="btn btn-primary btn-sm btn-pill"
+                        style={{ gap: '6px' }}
+                      >
+                        <Download size={13} />
+                        Stiahnuť dnešné podklady
+                      </button>
+                      {todayBatch?.note && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(todayBatch.note);
+                            addToast('Dnešný popis skopírovaný!', 'success', 'Skopírované');
+                          }}
+                          className="btn btn-secondary btn-sm btn-pill"
+                          style={{ gap: '6px' }}
+                        >
+                          <Copy size={13} />
+                          Kopírovať popis
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openReminderModal(project.id)}
+                      className="btn btn-primary btn-sm btn-pill"
+                      style={{
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        border: 'none',
+                        color: '#fff',
+                        fontWeight: 700,
+                        gap: '6px'
+                      }}
+                    >
+                      <Send size={13} />
+                      Poslať pripomienku na dnes
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* História odovzdaní / dávok (Batches feed) */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Layers size={15} color="#c084fc" />
+                História odovzdaných dní ({getProjectBatches(project).length})
+              </div>
+            </div>
+
+            {getProjectBatches(project).length === 0 ? (
+              <div style={{
+                padding: '24px',
+                textAlign: 'center',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px dashed var(--border-subtle)',
+                color: 'var(--text-tertiary)',
+                fontSize: '0.85rem'
+              }}>
+                Zatiaľ neboli zaznamenané žiadne predchádzajúce dávky. Keď klient odošle dnešné materiály, automaticky sa uložia do histórie.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {getProjectBatches(project).map((batch) => {
+                  const filesCount = batch.files?.length || 0;
+                  return (
+                    <div 
+                      key={batch.id || batch.date}
+                      style={{
+                        padding: '14px 18px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid var(--border-subtle)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                        <div style={{
+                          width: '32px', height: '32px',
+                          borderRadius: 'var(--radius-sm)',
+                          background: 'rgba(168, 85, 247, 0.15)',
+                          color: '#c084fc',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <Calendar size={15} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                              {formatDateSlovak(batch.date)}
+                            </strong>
+                            <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+                              {filesCount} {filesCount === 1 ? 'súbor' : filesCount < 5 ? 'súbory' : 'súborov'}
+                            </span>
+                          </div>
+                          {batch.note && (
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
+                              {batch.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {batch.note && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(batch.note);
+                              addToast('Popis z dávky skopírovaný!', 'success', 'Skopírované');
+                            }}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                            title="Kopírovať popis"
+                          >
+                            <Copy size={12} /> Kopírovať popis
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleDownloadAll}
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                          title="Stiahnuť podklady"
+                        >
+                          <Download size={12} /> Stiahnuť
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Bento Metrics & Zero-Friction Info ─────────────────── */}
       <div className="bento-grid bento-grid-3" style={{ marginBottom: '28px' }}>

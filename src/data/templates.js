@@ -77,29 +77,23 @@ export const PROJECT_TEMPLATES = [
     icon: 'Share2',
     badge: 'Ongoing',
     projectType: 'ongoing',
-    description: 'Monthly asset collection for Instagram, TikTok, and LinkedIn content.',
+    cadenceDays: 1,
+    description: 'Pravidelný zber fotiek, videí a popisov na siete (denne, každé 2 dni alebo týždenne).',
     items: [
       {
         id: 'item-1',
-        title: 'Monthly promotions, discounts & campaign goals',
-        description: 'What are the main sales priorities and promotions for this month.',
-        type: 'text',
-        required: true,
-      },
-      {
-        id: 'item-2',
-        title: 'Raw photos & video reels for editing',
-        description: 'Short video clips (Reels/TikTok) and raw photos to design and schedule.',
+        title: 'Surové fotky & videá na dnešný deň (Reels / Stories)',
+        description: 'Krátke video zábery, fotky z prevádzky, tímu alebo produktov na zostrihanie.',
         type: 'file',
         allowedTypes: 'image/*,video/*',
         required: true,
       },
       {
-        id: 'item-3',
-        title: 'Updated pricing or new service offerings',
-        description: 'Detail any new products, pricing updates, or revised operating hours.',
+        id: 'item-2',
+        title: 'Popis, zľavy a inštrukcie k príspevku',
+        description: 'Čo je dnes špeciálne? Akcia, novinka, text k príspevku alebo inštrukcia pre grafika.',
         type: 'text',
-        required: false,
+        required: true,
       }
     ]
   },
@@ -195,6 +189,7 @@ export const INITIAL_DEMO_PROJECTS = [
     slug: 'dental-care-sro',
     title: 'Social Media Management – Dental Clinic',
     projectType: 'ongoing',
+    cadenceDays: 1,
     clientName: 'Dr. Susan Miller',
     clientEmail: 'info@dentalcare-clinic.com',
     freelancerName: 'Creative Studio',
@@ -204,30 +199,72 @@ export const INITIAL_DEMO_PROJECTS = [
     lastReminderSent: null,
     createdAt: '2026-10-01',
     status: 'completed',
+    batches: [
+      {
+        id: 'batch-demo-1',
+        date: '2026-10-10',
+        submittedAt: '2026-10-10T14:20:00Z',
+        status: 'completed',
+        files: [
+          {
+            id: 'f-101',
+            fileName: 'dental_hygiena_reels.mp4',
+            fileSize: '12.4 MB',
+            fileType: 'video/mp4',
+            url: null,
+            uploadedAt: '14:20'
+          },
+          {
+            id: 'f-102',
+            fileName: 'ambulancia_bielenie.jpg',
+            fileSize: '3.1 MB',
+            fileType: 'image/jpeg',
+            url: null,
+            uploadedAt: '14:21'
+          }
+        ],
+        note: 'Dnešné video na Reels: Ukážka bezbolestnej dentálnej hygieny. Text: "Objednajte sa na preventívnu prehliadku ešte dnes."',
+      }
+    ],
     items: [
       {
         id: 'item-1',
-        title: 'Brand guidelines & official color codes',
-        description: 'Hex codes or brand manual PDF.',
+        title: 'Surové fotky & videá na dnešný deň (Reels / Stories)',
+        description: 'Krátke video zábery, fotky z ambulancie alebo produktov na spracovanie.',
         type: 'file',
         required: true,
         isCompleted: true,
-        completedAt: '2026-10-02',
+        completedAt: '2026-10-10',
         value: {
-          fileName: 'dentalcare_brand_guidelines.pdf',
-          fileSize: '2.1 MB',
-          fileType: 'application/pdf'
+          files: [
+            {
+              id: 'f-101',
+              fileName: 'dental_hygiena_reels.mp4',
+              fileSize: '12.4 MB',
+              fileType: 'video/mp4',
+              url: null,
+              uploadedAt: '14:20'
+            },
+            {
+              id: 'f-102',
+              fileName: 'ambulancia_bielenie.jpg',
+              fileSize: '3.1 MB',
+              fileType: 'image/jpeg',
+              url: null,
+              uploadedAt: '14:21'
+            }
+          ]
         }
       },
       {
         id: 'item-2',
-        title: 'List of dental specialties & treatments',
-        description: 'Descriptions of procedures and key clinical doctor specialties.',
+        title: 'Popis, zľavy a inštrukcie k príspevku',
+        description: 'Text k príspevku, akcia dňa alebo dôležité informácie pre pacientov.',
         type: 'text',
         required: true,
         isCompleted: true,
-        completedAt: '2026-10-02',
-        value: 'Preventative check-ups, dental hygiene, laser teeth whitening, oral surgery, and micro-dentistry implantology.'
+        completedAt: '2026-10-10',
+        value: 'Dnešné video na Reels: Ukážka bezbolestnej dentálnej hygieny. Text: "Objednajte sa na preventívnu prehliadku ešte dnes."'
       }
     ]
   }

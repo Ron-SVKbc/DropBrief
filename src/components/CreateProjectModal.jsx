@@ -33,6 +33,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
   const [projectType, setProjectType] = useState('one-off'); // 'one-off' | 'ongoing'
+  const [cadenceDays, setCadenceDays] = useState(1); // 1 = denne, 2, 7 = týždenne, 30 = mesačne
   const [title, setTitle] = useState('Website Design & Development for Client');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -61,6 +62,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       setTitle(`${tpl.name} for Client`);
     }
     setProjectType(tpl.projectType || 'one-off');
+    if (tpl.cadenceDays) {
+      setCadenceDays(tpl.cadenceDays);
+    } else if (tpl.projectType === 'ongoing') {
+      setCadenceDays(1);
+    }
     setItems(tpl.items.map((i) => ({ ...i })));
   };
 
@@ -104,6 +110,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       deadline,
       reminderFrequency,
       projectType,
+      cadenceDays: projectType === 'ongoing' ? Number(cadenceDays) || 1 : null,
       items
     });
 
@@ -311,6 +318,80 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 {projectType === 'ongoing' && <Check size={16} color="#c084fc" />}
               </div>
             </div>
+
+            {/* Cadence picker pre dlhodobé zákazky */}
+            {projectType === 'ongoing' && (
+              <div style={{
+                marginTop: '14px',
+                padding: '16px 18px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(168, 85, 247, 0.08)',
+                border: '1px solid rgba(168, 85, 247, 0.28)',
+                animation: 'fadeIn 0.2s ease'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f3e8ff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={15} color="#c084fc" />
+                    Frekvencia pravidelného zberu dát *
+                  </label>
+                  <span style={{ fontSize: '0.73rem', color: '#c084fc', fontWeight: 700, background: 'rgba(168, 85, 247, 0.2)', padding: '2px 8px', borderRadius: '10px' }}>
+                    1 stály odkaz pre klienta
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
+                  Ako často má systém žiadať od klienta nové podklady? Klient má 1 odkaz – každých <strong>{cadenceDays === 1 ? '1 deň (denne)' : `${cadenceDays} dní`}</strong> sa na ňom formulár automaticky otvorí pre novú dávku (napr. dnešné reels, stories či týždenné dáta).
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                  {[
+                    { days: 1, label: 'Každý 1 deň (denne)' },
+                    { days: 2, label: 'Každé 2 dni' },
+                    { days: 3, label: 'Každé 3 dni' },
+                    { days: 7, label: 'Každý týždeň (7 dní)' },
+                    { days: 30, label: 'Každý mesiac (30 dní)' },
+                  ].map((opt) => {
+                    const isSel = cadenceDays === opt.days;
+                    return (
+                      <button
+                        key={opt.days}
+                        type="button"
+                        onClick={() => setCadenceDays(opt.days)}
+                        className="badge"
+                        style={{
+                          padding: '7px 13px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: isSel ? 'rgba(168, 85, 247, 0.28)' : 'rgba(255, 255, 255, 0.04)',
+                          color: isSel ? '#fff' : 'var(--text-secondary)',
+                          border: isSel ? '1px solid #c084fc' : '1px solid var(--border-subtle)',
+                          boxShadow: isSel ? '0 0 12px rgba(168, 85, 247, 0.35)' : 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {isSel && <Check size={12} color="#c084fc" style={{ marginRight: '5px' }} />}
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+
+                  {/* Vlastný počet dní */}
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '4px' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>alebo:</span>
+                    <input 
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={cadenceDays}
+                      onChange={(e) => setCadenceDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      className="input"
+                      style={{ width: '64px', padding: '4px 8px', fontSize: '0.78rem', textAlign: 'center' }}
+                      title="Vlastný počet dní"
+                    />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>dní</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Step 3: Basic Info */}

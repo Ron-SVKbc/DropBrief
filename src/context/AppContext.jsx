@@ -49,6 +49,8 @@ function mapDbToProject(proj) {
     createdAt: proj.created_at ? proj.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
     status: proj.status || 'pending',
     projectType: inferredType,
+    cadenceDays: Number(proj.cadence_days || proj.cadenceDays) || (inferredType === 'ongoing' ? 1 : null),
+    batches: Array.isArray(proj.batches) ? proj.batches : [],
     items: (proj.project_items || proj.items || [])
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       .map((item) => ({
@@ -87,15 +89,18 @@ export function AppProvider({ children }) {
       const storedTypes = getStoredProjectTypes();
       return initial.map((p) => {
         const explicit = p.projectType || p.project_type || storedTypes[p.slug] || storedTypes[p.id];
+        const pType = explicit || (
+          (p.title && (
+            p.title.toLowerCase().includes('social') || 
+            p.title.toLowerCase().includes('monthly') || 
+            p.title.toLowerCase().includes('retainer')
+          )) ? 'ongoing' : 'one-off'
+        );
         return {
           ...p,
-          projectType: explicit || (
-            (p.title && (
-              p.title.toLowerCase().includes('social') || 
-              p.title.toLowerCase().includes('monthly') || 
-              p.title.toLowerCase().includes('retainer')
-            )) ? 'ongoing' : 'one-off'
-          )
+          projectType: pType,
+          cadenceDays: Number(p.cadenceDays || p.cadence_days) || (pType === 'ongoing' ? 1 : null),
+          batches: Array.isArray(p.batches) ? p.batches : []
         };
       });
     } catch (e) {
@@ -494,6 +499,8 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString().split('T')[0],
       status: 'pending',
       projectType,
+      cadenceDays: projectType === 'ongoing' ? (Number(newProjData.cadenceDays) || 1) : null,
+      batches: [],
       items: newProjData.items.map((item, index) => ({
         id: 'item-' + (index + 1) + '-' + Date.now(),
         title: item.title,
@@ -515,7 +522,7 @@ export function AppProvider({ children }) {
         try {
           supabase.storage
             .from('client-uploads')
-            .upload(`_meta/pt_${randomSlug}.json`, new Blob([JSON.stringify({ projectType })], { type: 'application/json' }), { upsert: true })
+            .upload(`_meta/pt_${randomSlug}.json`, new Blob([JSON.stringify({ projectType, cadenceDays: newProject.cadenceDays })], { type: 'application/json' }), { upsert: true })
             .catch(() => {});
         } catch (e) {}
 
@@ -530,6 +537,8 @@ export function AppProvider({ children }) {
           reminder_frequency: Number(newProjData.reminderFrequency) || 3,
           status: 'pending',
           project_type: projectType,
+          cadence_days: newProject.cadenceDays,
+          batches: [],
         };
 
         let { data: insertedProj, error: pErr } = await supabase
@@ -538,16 +547,23 @@ export function AppProvider({ children }) {
           .select()
           .single();
 
-        // Fallback if remote DB doesn't have project_type column yet
-        if (pErr && pErr.message && pErr.message.toLowerCase().includes('project_type')) {
-          delete insertPayload.project_type;
-          const retryRes = await supabase
-            .from('projects')
-            .insert(insertPayload)
-            .select()
-            .single();
-          insertedProj = retryRes.data;
-          pErr = retryRes.error;
+        // Fallback if remote DB doesn't have project_type, cadence_days, or batches columns yet
+        if (pErr && pErr.message) {
+          const errMsg = pErr.message.toLowerCase();
+          if (errMsg.includes('cadence_days') || errMsg.includes('batches') || errMsg.includes('project_type')) {
+            delete insertPayload.cadence_days;
+            delete insertPayload.batches;
+            if (errMsg.includes('project_type')) {
+              delete insertPayload.project_type;
+            }
+            const retryRes = await supabase
+              .from('projects')
+              .insert(insertPayload)
+              .select()
+              .single();
+            insertedProj = retryRes.data;
+            pErr = retryRes.error;
+          }
         }
 
         if (pErr) throw pErr;
@@ -624,6 +640,128 @@ export function AppProvider({ children }) {
     const current = target?.projectType || 'one-off';
     const nextType = current === 'ongoing' ? 'one-off' : 'ongoing';
     return updateProjectType(projectIdOrSlug, nextType);
+  };
+
+  const updateProjectCadence = async (projectIdOrSlug, newCadenceDays) => {
+    const days = Math.max(1, Number(newCadenceDays) || 1);
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === projectIdOrSlug || p.slug === projectIdOrSlug) {
+          return { ...p, cadenceDays: days };
+        }
+        return p;
+      })
+    );
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase
+          .from('projects')
+          .update({ cadence_days: days })
+          .or(`id.eq.${projectIdOrSlug},slug.eq.${projectIdOrSlug}`);
+      } catch (e) {}
+
+      try {
+        const target = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
+        const targetSlug = target?.slug || projectIdOrSlug;
+        const currentMeta = { projectType: target?.projectType || 'ongoing', cadenceDays: days };
+        await supabase.storage
+          .from('client-uploads')
+          .upload(`_meta/pt_${targetSlug}.json`, new Blob([JSON.stringify(currentMeta)], { type: 'application/json' }), { upsert: true });
+      } catch (e) {}
+    }
+
+    addToast(`Frekvencia zberu nastavená: každých ${days} ${days === 1 ? 'deň (denne)' : days < 5 ? 'dni' : 'dní'}.`, 'success', 'Frekvencia zmenená');
+  };
+
+  const submitOngoingBatch = async (projectSlug, batchData) => {
+    if (!projectSlug || !batchData) return null;
+
+    let targetProj = null;
+
+    setProjects((prevProjects) =>
+      prevProjects.map((proj) => {
+        if (proj.slug !== projectSlug && proj.id !== projectSlug) return proj;
+
+        const existingBatches = Array.isArray(proj.batches) ? [...proj.batches] : [];
+        const targetDate = batchData.date || new Date().toISOString().split('T')[0];
+        const existingIndex = existingBatches.findIndex((b) => b.date === targetDate);
+
+        const newBatch = {
+          id: batchData.id || `batch-${targetDate}-${Date.now()}`,
+          date: targetDate,
+          submittedAt: batchData.submittedAt || new Date().toISOString(),
+          status: 'completed',
+          files: batchData.files || [],
+          note: batchData.note || '',
+          items: batchData.items || []
+        };
+
+        if (existingIndex >= 0) {
+          existingBatches[existingIndex] = { ...existingBatches[existingIndex], ...newBatch };
+        } else {
+          existingBatches.unshift(newBatch);
+        }
+
+        targetProj = {
+          ...proj,
+          batches: existingBatches,
+          status: 'completed'
+        };
+
+        return targetProj;
+      })
+    );
+
+    // Sync to Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const target = projects.find((p) => p.slug === projectSlug || p.id === projectSlug);
+        const existingBatches = Array.isArray(target?.batches) ? [...target.batches] : [];
+        const targetDate = batchData.date || new Date().toISOString().split('T')[0];
+        const existingIndex = existingBatches.findIndex((b) => b.date === targetDate);
+
+        const newBatch = {
+          id: batchData.id || `batch-${targetDate}-${Date.now()}`,
+          date: targetDate,
+          submittedAt: batchData.submittedAt || new Date().toISOString(),
+          status: 'completed',
+          files: batchData.files || [],
+          note: batchData.note || '',
+          items: batchData.items || []
+        };
+
+        if (existingIndex >= 0) {
+          existingBatches[existingIndex] = { ...existingBatches[existingIndex], ...newBatch };
+        } else {
+          existingBatches.unshift(newBatch);
+        }
+
+        try {
+          await supabase
+            .from('projects')
+            .update({ batches: existingBatches })
+            .or(`slug.eq.${projectSlug},id.eq.${projectSlug}`);
+        } catch (dbErr) {
+          console.warn('DB update for batches:', dbErr);
+        }
+
+        try {
+          await supabase.storage
+            .from('client-uploads')
+            .upload(
+              `_meta/batches_${projectSlug}.json`,
+              new Blob([JSON.stringify(existingBatches)], { type: 'application/json' }),
+              { upsert: true }
+            );
+        } catch (stErr) {}
+      } catch (err) {
+        console.error('Failed to sync batch to Supabase:', err);
+      }
+    }
+
+    addToast('Podklady na dnešný deň boli úspešne odovzdané!', 'success', 'Dávka odovzdaná');
+    return targetProj;
   };
 
   const deleteProject = async (projectId) => {
@@ -1013,6 +1151,8 @@ export function AppProvider({ children }) {
         logoutFreelancer,
         updateProjectType,
         toggleProjectType,
+        updateProjectCadence,
+        submitOngoingBatch,
         seedDemoProjectForFreelancer,
       }}
     >
