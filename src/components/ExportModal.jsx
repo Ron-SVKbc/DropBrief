@@ -38,6 +38,20 @@ const sanitizeFileName = (name) => {
     .substring(0, 80);
 };
 
+const sanitizeFolderName = (name) => {
+  if (!name || typeof name !== 'string') return 'Podklady';
+  return name
+    .replace(/[\x00-\x1f]/g, '')
+    .replace(/[\\/]/g, ' - ')
+    .replace(/[:]/g, ' - ')
+    .replace(/[*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*-+\s*/g, ' - ')
+    .replace(/^[. ]+|[. ]+$/g, '')
+    .substring(0, 100)
+    .trim() || 'Podklady';
+};
+
 export default function ExportModal() {
   const { 
     exportModalProject, 
@@ -167,7 +181,7 @@ export default function ExportModal() {
   const handleDownloadTextItem = (item) => {
     const text = getItemText(item);
     if (!text) return;
-    const cleanTitle = sanitizeFileName(item.title);
+    const cleanTitle = sanitizeFolderName(item.title);
     const fileContent = `Požiadavka: ${item.title}\nZákazka: ${project.title}\nKlient: ${project.clientName} (${project.clientEmail})\nOdovzdané: ${item.completedAt ? new Date(item.completedAt).toLocaleString('sk-SK') : 'N/A'}\n${'='.repeat(60)}\n\n${text}\n`;
     
     const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
@@ -194,7 +208,7 @@ export default function ExportModal() {
 
     try {
       const zip = new JSZip();
-      const folderName = sanitizeFileName(item.title);
+      const folderName = sanitizeFolderName(item.title);
       const folder = zip.folder(folderName);
 
       for (let i = 0; i < files.length; i++) {
@@ -235,12 +249,10 @@ export default function ExportModal() {
     }
 
     setIsZipping(true);
-    setZipProgress('Pripravujem štruktúru priečinka...');
+    setZipProgress('Pripravujem štruktúru priečinkov v ZIPe...');
 
     try {
       const zip = new JSZip();
-      const rootFolderName = `${sanitizeFileName(project.slug || project.title)}_podklady`;
-      const root = zip.folder(rootFolderName);
 
       // 1. Text Summary File (PREHLAD_PODKLADOV.txt)
       let summaryText = `======================================================================\n`;
@@ -274,7 +286,7 @@ export default function ExportModal() {
         summaryText += `\n`;
       });
 
-      root.file('PREHLAD_PODKLADOV.txt', summaryText);
+      zip.file('PREHLAD_PODKLADOV.txt', summaryText);
 
       // 2. Structured JSON export
       const jsonExport = {
@@ -294,51 +306,74 @@ export default function ExportModal() {
           value: i.value,
         }))
       };
-      root.file('podklady_struktura.json', JSON.stringify(jsonExport, null, 2));
+      zip.file('podklady_struktura.json', JSON.stringify(jsonExport, null, 2));
 
-      // 3. Process each completed item
+      // 3. Process each completed item into its dedicated clean subfolder
+      const usedFolderNames = new Map();
+
       for (let idx = 0; idx < completedItems.length; idx++) {
         const item = completedItems[idx];
-        const numPrefix = String(idx + 1).padStart(2, '0');
-        const cleanItemTitle = sanitizeFileName(item.title);
+        const baseFolderName = sanitizeFolderName(item.title);
 
-        if (item.type === 'file') {
-          const files = getItemFiles(item);
+        let folderName = baseFolderName;
+        if (usedFolderNames.has(baseFolderName)) {
+          const count = usedFolderNames.get(baseFolderName) + 1;
+          usedFolderNames.set(baseFolderName, count);
+          folderName = `${baseFolderName} (${count})`;
+        } else {
+          usedFolderNames.set(baseFolderName, 1);
+        }
+
+        const itemFolder = zip.folder(folderName);
+        const files = getItemFiles(item);
+        const textVal = getItemText(item);
+
+        // A. File Requirement: Save uploaded files directly into this item's subfolder
+        if (item.type === 'file' || files.length > 0) {
           if (files.length > 0) {
-            // Create a subfolder for this requirement
-            const itemFolder = root.folder(`${numPrefix}_${cleanItemTitle}`);
+            const usedFileNames = new Set();
 
             for (let fIdx = 0; fIdx < files.length; fIdx++) {
               const file = files[fIdx];
-              setZipProgress(`Sťahujem súbor ${fIdx + 1}/${files.length}: ${file.fileName}...`);
+              setZipProgress(`Sťahujem [${folderName}]: ${file.fileName}...`);
+
+              let finalFileName = file.fileName || `subor_${fIdx + 1}`;
+              if (usedFileNames.has(finalFileName)) {
+                const ext = finalFileName.includes('.') ? finalFileName.slice(finalFileName.lastIndexOf('.')) : '';
+                const base = finalFileName.includes('.') ? finalFileName.slice(0, finalFileName.lastIndexOf('.')) : finalFileName;
+                finalFileName = `${base} (${fIdx + 1})${ext}`;
+              }
+              usedFileNames.add(finalFileName);
 
               if (file.url) {
                 try {
                   const resp = await fetch(file.url);
                   if (!resp.ok) throw new Error('Fetch failed');
                   const blob = await resp.blob();
-                  itemFolder.file(file.fileName, blob);
+                  itemFolder.file(finalFileName, blob);
                 } catch (fetchErr) {
                   // Fallback info text if direct cross-origin fetch is blocked
-                  itemFolder.file(`${file.fileName}_odkaz.txt`, `Názov súboru: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nPriamy odkaz na stiahnutie:\n${file.url}`);
+                  itemFolder.file(`${finalFileName}_odkaz.txt`, `Názov súboru: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nPriamy odkaz na stiahnutie:\n${file.url}`);
                 }
               } else {
                 // Demo simulated file
-                itemFolder.file(file.fileName, `DropBrief podklad: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nOdovzdané: ${file.uploadedAt || 'N/A'}`);
+                itemFolder.file(finalFileName, `DropBrief podklad: ${file.fileName}\nVeľkosť: ${file.fileSize || 'N/A'}\nOdovzdané: ${file.uploadedAt || 'N/A'}`);
               }
             }
           }
-        } else if (item.type === 'text') {
-          // Text requirement -> save as .txt file in the root or in item folder
-          setZipProgress(`Ukladám text: ${item.title}...`);
-          const textVal = getItemText(item);
-          const textContent = `Požiadavka: ${item.title}\nZákazka: ${project.title}\nKlient: ${project.clientName} <${project.clientEmail}>\nOdovzdané: ${item.completedAt ? new Date(item.completedAt).toLocaleString('sk-SK') : 'N/A'}\n${'='.repeat(60)}\n\n${textVal}\n`;
-          root.file(`${numPrefix}_${cleanItemTitle}.txt`, textContent);
+        }
+
+        // B. Text Requirement: Save the submitted text directly into this item's subfolder
+        if (item.type === 'text' || textVal) {
+          setZipProgress(`Ukladám text [${folderName}]...`);
+          const textContent = `Požiadavka: ${item.title}\nZákazka: ${project.title}\nKlient: ${project.clientName} <${project.clientEmail}>\nOdovzdané: ${item.completedAt ? new Date(item.completedAt).toLocaleString('sk-SK') : 'N/A'}\n${'='.repeat(60)}\n\n${textVal || ''}\n`;
+          const textFileName = `${folderName}.txt`;
+          itemFolder.file(textFileName, textContent);
         }
       }
 
       // 4. Compress to ZIP
-      setZipProgress('Balím podklady do ZIP priečinka...');
+      setZipProgress('Balím podklady do ZIP archívu...');
       const zipBlob = await zip.generateAsync(
         { 
           type: 'blob', 
@@ -347,7 +382,7 @@ export default function ExportModal() {
         }, 
         (meta) => {
           if (meta.percent) {
-            setZipProgress(`Komprimujem: ${Math.round(meta.percent)}%...`);
+            setZipProgress(`Komprimujem ZIP: ${Math.round(meta.percent)}%...`);
           }
         }
       );
@@ -370,9 +405,9 @@ export default function ExportModal() {
       });
 
       addToast(
-        `Kompletný priečinok (${completedCount} položiek) bol úspešne zabalený a stiahnutý!`,
+        `Kompletný ZIP priečinok (${completedCount} položiek) bol úspešne zabalený a stiahnutý!`,
         'success',
-        'Priečinok stiahnutý'
+        'ZIP stiahnutý'
       );
     } catch (err) {
       console.error('Failed to create ZIP folder:', err);
