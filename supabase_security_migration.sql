@@ -138,7 +138,7 @@ BEGIN
   SELECT id, nick, email, created_at, pin_code
   INTO v_user
   FROM public.freelancers
-  WHERE lower(nick) = lower(trim(p_nick));
+  WHERE lower(nick) = lower(trim(p_nick)) OR lower(email) = lower(trim(p_nick));
 
   IF NOT FOUND THEN
     RETURN jsonb_build_object('success', false, 'error', 'Nesprávny nickname alebo PIN kód.');

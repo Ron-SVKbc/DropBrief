@@ -7,7 +7,8 @@ import {
   saveCloudFreelancer, 
   hashPin,
   setSupabaseSessionHeaders,
-  isNickAvailable
+  isNickAvailable,
+  isEmailAvailable
 } from '../lib/supabase';
 
 const AppContext = createContext();
@@ -468,20 +469,30 @@ export function AppProvider({ children }) {
 
   const registerFreelancer = async (nick, email = '') => {
     if (!nick || nick.trim().length < 2) {
-      throw new Error('Name / Nickname must have at least 2 characters.');
+      throw new Error('Meno / Nickname musí mať aspoň 2 znaky.');
     }
-    const cleanNick = nick.trim();
-    const cleanEmail = email ? email.trim() : '';
 
-    // 1. Skontrolujeme v cloude, či nick už neexistuje (cez bezpečnú RPC funkciu)
+    const cleanNick = nick.trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      throw new Error('Zadajte platnú e-mailovú adresu pre bezpečné doručenie vášho PIN kódu.');
+    }
+
+    // 1. Skontrolujeme v cloude dostupnosť mena a e-mailu
     if (isSupabaseConfigured) {
       try {
-        const available = await isNickAvailable(cleanNick);
-        if (!available) {
-          throw new Error('This nickname already exists. Choose a different name or log in.');
+        const nickAvailable = await isNickAvailable(cleanNick);
+        if (!nickAvailable) {
+          throw new Error('Tento nickname je už obsadený. Zvoľte si iné meno alebo sa prihláste.');
+        }
+
+        const emailAvailable = await isEmailAvailable(cleanEmail);
+        if (!emailAvailable) {
+          throw new Error('Tento e-mail je už registrovaný. Prihláste sa alebo použite obnovu PIN kódu.');
         }
       } catch (err) {
-        if (err.message && err.message.includes('already exists')) {
+        if (err.message && (err.message.includes('obsadený') || err.message.includes('registrovaný'))) {
           throw err;
         }
       }
@@ -511,12 +522,24 @@ export function AppProvider({ children }) {
     try {
       const pinHash = await hashPin(generatedPin);
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-      const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase());
+      const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase() && (!a.email || a.email.toLowerCase() !== cleanEmail));
       filtered.push({ id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt, pinHash });
       localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
     } catch (e) {
       console.error('Failed to save to local accounts:', e);
     }
+
+    // 4. Automatické odoslanie PIN kódu na e-mail cez Resend
+    try {
+      fetch('/api/send-auth-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, nick: cleanNick, pin: generatedPin }),
+        signal: AbortSignal.timeout(8000),
+      }).catch((sendErr) => {
+        console.warn('Odoslanie registračného PIN na e-mail zlyhalo:', sendErr);
+      });
+    } catch (err) {}
 
     // Session nikdy neukladá plaintext PIN
     const sessionRecord = { id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt };
@@ -526,15 +549,15 @@ export function AppProvider({ children }) {
     setAuthRegisteredData(freelancerRecord);
     setAuthModalMode('pin_reveal');
 
-    addToast(`Account ${cleanNick} ready! Your PIN is ${generatedPin}`, 'success', 'Registration Successful');
+    addToast(`Účet ${cleanNick} je pripravený! PIN kód sme vám zobrazili aj odoslali na e-mail.`, 'success', 'Registrácia úspešná');
     return freelancerRecord;
   };
 
-  const loginFreelancer = async (nick, pin) => {
-    if (!nick || !pin) {
-      throw new Error('Please enter both your nickname and 6-digit PIN code.');
+  const loginFreelancer = async (identifier, pin) => {
+    if (!identifier || !pin) {
+      throw new Error('Zadajte vaše meno (alebo e-mail) a 6-miestny PIN kód.');
     }
-    const cleanNick = nick.trim().toLowerCase();
+    const cleanIdentifier = identifier.trim().toLowerCase();
     const cleanPin = pin.trim();
 
     // 🛡️ Brute-force ochrana - max 5 pokusov za 60 sekúnd
@@ -545,7 +568,7 @@ export function AppProvider({ children }) {
       if (now - rateData.since < 60_000) {
         if (rateData.count >= 5) {
           const waitSec = Math.ceil((60_000 - (now - rateData.since)) / 1000);
-          throw new Error(`Too many failed attempts. Try again in ${waitSec} seconds.`);
+          throw new Error(`Príliš veľa neúspešných pokusov. Skúste to znova o ${waitSec} sekúnd.`);
         }
         rateData.count += 1;
       } else {
@@ -554,15 +577,18 @@ export function AppProvider({ children }) {
       }
       localStorage.setItem(RATE_KEY, JSON.stringify(rateData));
     } catch (rateErr) {
-      if (rateErr.message && rateErr.message.includes('Too many')) throw rateErr;
+      if (rateErr.message && rateErr.message.includes('Príliš veľa')) throw rateErr;
     }
 
     let matchedUser = null;
 
-    // 1. Najprv overiť lokálne účty – bleskový login (0 ms) bez čakania na sieť
+    // 1. Najprv overiť lokálne účty – bleskový login (0 ms) podľa nicku ALEBO e-mailu
     try {
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-      const found = localAccs.find((a) => a.nick.toLowerCase() === cleanNick);
+      const found = localAccs.find((a) => 
+        a.nick.toLowerCase() === cleanIdentifier || 
+        (a.email && a.email.toLowerCase() === cleanIdentifier)
+      );
       if (found) {
         let isValid = false;
         if (found.pinHash) {
@@ -573,33 +599,32 @@ export function AppProvider({ children }) {
         if (isValid) {
           matchedUser = { id: found.id, nick: found.nick, email: found.email || '', createdAt: found.createdAt };
         } else {
-          throw new Error('Incorrect 6-digit PIN code for this nickname.');
+          throw new Error('Nesprávny 6-miestny PIN kód pre tento účet.');
         }
       }
     } catch (e) {
-      if (e.message && e.message.includes('Incorrect 6-digit PIN code')) throw e;
+      if (e.message && e.message.includes('Nesprávny 6-miestny PIN kód')) throw e;
     }
 
     // 2. Ak sa nenašiel lokálne, overiť cez server-side endpoint /api/verify-pin
-    //    → rate limiting sa vykonáva na serveri (podľa IP), nie len v localStorage
+    //    → rate limiting sa vykonáva na serveri (podľa IP + mena/mailu)
     if (!matchedUser) {
       try {
         const verifyResponse = await fetch('/api/verify-pin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nick: cleanNick, pin: cleanPin }),
+          body: JSON.stringify({ identifier: cleanIdentifier, pin: cleanPin }),
           signal: AbortSignal.timeout(10000), // 10s bezpečný timeout
         });
 
         const verifyData = await verifyResponse.json().catch(() => ({}));
 
         if (verifyResponse.status === 429 || verifyData.rateLimited) {
-          // Server-side rate limit zasiahnutý – uprednostniť jeho správu
-          throw new Error(verifyData.error || 'Too many failed attempts. Please wait and try again.');
+          throw new Error(verifyData.error || 'Príliš veľa neúspešných pokusov. Počkajte chvíľu a skúste to znova.');
         }
 
         if (verifyResponse.status === 401 || verifyResponse.status === 404) {
-          throw new Error(verifyData.error || 'Incorrect 6-digit PIN code for this nickname.');
+          throw new Error(verifyData.error || 'Nesprávny nickname / e-mail alebo PIN kód.');
         }
 
         if (verifyResponse.ok && verifyData.success && verifyData.user) {
@@ -612,25 +637,23 @@ export function AppProvider({ children }) {
           // Uložíme do lokálnej pamäte pre budúce bleskové offline prihlásenia
           try {
             const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-            const filtered  = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick);
+            const filtered  = localAccs.filter((a) => a.nick.toLowerCase() !== matchedUser.nick.toLowerCase());
             filtered.push({ ...matchedUser, pinHash: verifyData.user.pinHash });
             localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
           } catch (e) {}
         }
       } catch (err) {
-        // Prepustiť chyby autentifikácie a rate-limitingu priamo na UI
         if (
-          err.message?.includes('Incorrect') ||
-          err.message?.includes('Too many')  ||
-          err.message?.includes('Príliš veľa')
+          err.message?.includes('Nesprávny') ||
+          err.message?.includes('Príliš veľa') ||
+          err.message?.includes('Incorrect')
         ) throw err;
-        // Sieťové chyby (offline, endpoint nedostupný) – tichý fallback
         console.warn('Cloud login via /api/verify-pin unavailable:', err.message);
       }
     }
 
     if (!matchedUser) {
-      throw new Error(`Account with nickname "${nick.trim()}" was not found. Please verify the name or register a new account.`);
+      throw new Error(`Účet pre "${identifier.trim()}" sa nenašiel. Skontrolujte zadané meno / e-mail alebo si vytvorte nový účet.`);
     }
 
     // Reset rate-limitera po úspešnom prihlásení
@@ -640,8 +663,30 @@ export function AppProvider({ children }) {
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
     setCurrentFreelancer(matchedUser);
     closeAuthModal();
-    addToast(`Welcome back, ${matchedUser.nick}!`, 'success', 'Logged In');
+    addToast(`Vitajte späť, ${matchedUser.nick}!`, 'success', 'Prihlásený');
     return matchedUser;
+  };
+
+  const resetFreelancerPin = async (email) => {
+    if (!email || !email.includes('@')) {
+      throw new Error('Zadajte platnú e-mailovú adresu.');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+
+    const response = await fetch('/api/reset-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Obnova PIN kódu zlyhala. Skúste to prosím znova.');
+    }
+
+    return data;
   };
 
   const loginAsDemo = async () => {
@@ -1465,6 +1510,7 @@ export function AppProvider({ children }) {
         closeAuthModal,
         registerFreelancer,
         loginFreelancer,
+        resetFreelancerPin,
         loginAsDemo,
         logoutFreelancer,
         updateProjectType,

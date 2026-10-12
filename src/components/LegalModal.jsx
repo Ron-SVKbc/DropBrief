@@ -106,9 +106,23 @@ export default function LegalModal() {
             </p>
           </div>
 
+          <div style={{ background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
+            <strong style={{ color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
+              <FileCheck size={17} /> 4. Email Processing & Zero-Marketing Guarantee
+            </strong>
+            <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
+              DropBrief processes email addresses strictly for <strong>operational and transactional purposes</strong> (GDPR Art. 6(1)(b)):
+            </p>
+            <ul style={{ paddingLeft: '20px', marginTop: '6px', marginBottom: 0, fontSize: '0.825rem', lineHeight: 1.6 }}>
+              <li><strong>Freelancer Emails:</strong> Used exclusively for account authentication, delivering access PIN codes, and secure account recovery.</li>
+              <li><strong>Client Emails:</strong> Used solely by freelancers to transmit transactional reminders about pending deliverables for their specific project.</li>
+              <li><strong>Zero Marketing & No SMS:</strong> We do not send marketing newsletters, advertisements, or SMS messages. Contact information is never sold or shared with commercial third parties.</li>
+            </ul>
+          </div>
+
           <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid var(--warning-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <AlertTriangle size={17} /> 4. Terms of Service & Liability
+              <AlertTriangle size={17} /> 5. Terms of Service & Liability
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               The software is provided on an "as-is" basis. DropBrief assumes no liability for the content of files uploaded by clients or unexpected third-party interruptions. Freelancers are advised to download completed asset packages to their local archives upon completion.

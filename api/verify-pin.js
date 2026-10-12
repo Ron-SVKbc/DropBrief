@@ -66,13 +66,14 @@ export default async function handler(req, res) {
     try { bodyData = JSON.parse(bodyData); } catch { bodyData = {}; }
   }
 
-  const { nick, pin } = bodyData;
+  const rawIdentifier = bodyData.identifier || bodyData.nick || bodyData.email;
+  const { pin } = bodyData;
 
-  if (!nick || typeof nick !== 'string' || !pin || typeof pin !== 'string') {
-    return res.status(400).json({ success: false, error: 'Chýba nick alebo PIN.' });
+  if (!rawIdentifier || typeof rawIdentifier !== 'string' || !pin || typeof pin !== 'string') {
+    return res.status(400).json({ success: false, error: 'Chýba prihlasovacie meno (alebo e-mail) a PIN.' });
   }
 
-  const cleanNick = nick.trim().toLowerCase();
+  const cleanNick = rawIdentifier.trim().toLowerCase();
   const cleanPin  = pin.trim();
 
   if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
@@ -125,7 +126,7 @@ export default async function handler(req, res) {
         supabase
           .from('freelancers')
           .select('id, nick, email, created_at, pin_code')
-          .ilike('nick', cleanNick)
+          .or(`nick.ilike.${cleanNick},email.ilike.${cleanNick}`)
           .maybeSingle()
       );
 

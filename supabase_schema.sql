@@ -11,6 +11,7 @@ create table if not exists public.freelancers (
 );
 
 create index if not exists idx_freelancers_nick on public.freelancers(lower(nick));
+create index if not exists idx_freelancers_email on public.freelancers(lower(email));
 
 -- 1. Tabuľka projektov
 create table if not exists public.projects (
@@ -142,7 +143,27 @@ $$;
 
 grant execute on function public.check_nick_available(text) to anon, authenticated, service_role;
 
--- Bezpečné overenie PIN kódu na serverovej úrovni
+-- Bezpečná kontrola dostupnosti e-mailu (SECURITY DEFINER funkcia bez úniku hashov)
+create or replace function public.check_email_available(check_email text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if check_email is null or length(trim(check_email)) < 3 or position('@' in check_email) = 0 then
+    return false;
+  end if;
+  return not exists (
+    select 1 from public.freelancers 
+    where lower(email) = lower(trim(check_email))
+  );
+end;
+$$;
+
+grant execute on function public.check_email_available(text) to anon, authenticated, service_role;
+
+-- Bezpečné overenie PIN kódu na serverovej úrovni (podporuje Nick aj E-mail)
 create or replace function public.verify_freelancer_pin(
   p_nick text,
   p_salted_hash text,
@@ -163,7 +184,7 @@ begin
   select id, nick, email, created_at, pin_code
   into v_user
   from public.freelancers
-  where lower(nick) = lower(trim(p_nick));
+  where lower(nick) = lower(trim(p_nick)) or lower(email) = lower(trim(p_nick));
 
   if not found then
     return jsonb_build_object('success', false, 'error', 'Nesprávny nickname alebo PIN kód.');

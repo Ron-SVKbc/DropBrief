@@ -64,6 +64,38 @@ export async function isNickAvailable(nick) {
   }
 }
 
+/**
+ * Bezpečná kontrola dostupnosti e-mailu (chráni pred duplicitnou registráciou a kolíziami)
+ */
+export async function isEmailAvailable(email) {
+  if (!supabase || !email) return true;
+  const cleanEmail = email.trim().toLowerCase();
+
+  // 1. Primárne vyskúšať bezpečnú Postgres RPC funkciu
+  try {
+    const { data, error } = await supabase.rpc('check_email_available', { check_email: cleanEmail });
+    if (!error && typeof data === 'boolean') {
+      return data;
+    }
+  } catch (e) {}
+
+  // 2. Fallback priamy dotaz
+  try {
+    const { data: dbUser, error } = await supabase
+      .from('freelancers')
+      .select('id')
+      .ilike('email', cleanEmail)
+      .maybeSingle();
+
+    if (!error && dbUser) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+
 
 /**
  * Získanie účtu freelancera z cloudu (DB tabuľka alebo Storage profil)

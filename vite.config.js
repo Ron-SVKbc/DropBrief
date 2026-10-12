@@ -79,6 +79,16 @@ export default defineConfig(({ command, mode }) => {
             return runHandler(verifyPinHandler);
           }
 
+          if (req.method === 'POST' && req.url === '/api/send-auth-pin') {
+            const { default: sendAuthPinHandler } = await import('./api/send-auth-pin.js');
+            return runHandler(sendAuthPinHandler);
+          }
+
+          if (req.method === 'POST' && req.url === '/api/reset-pin') {
+            const { default: resetPinHandler } = await import('./api/reset-pin.js');
+            return runHandler(resetPinHandler);
+          }
+
           if (req.url?.startsWith('/api/cron-purge')) {
             const { default: cronPurgeHandler } = await import('./api/cron-purge.js');
             return runHandler(cronPurgeHandler);
