@@ -89,5 +89,20 @@ export default defineConfig(({ command, mode }) => {
       port: 3000,
       open: false,
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@supabase')) return 'vendor-supabase';
+              if (id.includes('jszip')) return 'vendor-jszip';
+              if (id.includes('lucide-react')) return 'vendor-icons';
+              if (id.includes('canvas-confetti')) return 'vendor-confetti';
+            }
+          },
+        },
+      },
+    },
   };
 });

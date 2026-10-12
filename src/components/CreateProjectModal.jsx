@@ -38,7 +38,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [freelancerName, setFreelancerName] = useState(() => currentFreelancer?.nick || 'Freelancer');
-  const [deadline, setDeadline] = useState('2026-10-25');
+  const [deadline, setDeadline] = useState(() => {
+    const d = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    return d.toISOString().split('T')[0];
+  });
   const [reminderFrequency, setReminderFrequency] = useState(3);
 
   // Sync freelancer name if currentFreelancer changes

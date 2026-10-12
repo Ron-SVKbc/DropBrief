@@ -40,9 +40,10 @@ export default async function handler(req, res) {
 
   // V produkcii chránime hromadný výmaz (keď nie je špecifikovaný konkrétny slug):
   if (isProduction && !targetSlug) {
-    if (cronSecret && providedSecret !== cronSecret && !isVercelCron) {
+    const isAuthorized = isVercelCron || (Boolean(cronSecret) && providedSecret === cronSecret);
+    if (!isAuthorized) {
       console.warn('[cron-purge] Unauthorized attempt to trigger bulk purge.');
-      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid cron secret.' });
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing cron secret.' });
     }
   }
 

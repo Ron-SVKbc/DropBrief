@@ -109,9 +109,10 @@ create policy "update_projects_anon"
   using (true)
   with check (true);
 
--- DELETE: ŽIADNA politika → RLS implicitne blokuje anon mazanie projektov.
--- Mazanie projektu vyžaduje service-role key cez /api/delete-project alebo
--- priamo cez Supabase dashboard (vyhradené pre administrátora).
+-- DELETE: povolené pre anon (freelancer maže projekt zo svojho dashboardu)
+create policy "delete_projects_anon"
+  on public.projects for delete
+  using (true);
 
 -- ─── Politiky pre položky projektov (granulárne) ──────────────────────────────
 
@@ -159,3 +160,21 @@ create policy "Verejné čítanie a sťahovanie podkladov"
 -- Mazanie z cloudu je vyhradené výhradne pre autorizovaný cleanup / service role.
 -- (Ak existuje stará politika, zrušte ju: drop policy if exists "Odstránenie podkladov" on storage.objects;)
 drop policy if exists "Odstránenie podkladov" on storage.objects;
+
+-- 6. Povolenie Supabase Realtime (WebSockets synchronizácia zmien v reálnom čase)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'projects'
+  ) then
+    alter publication supabase_realtime add table public.projects;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'project_items'
+  ) then
+    alter publication supabase_realtime add table public.project_items;
+  end if;
+end $$;

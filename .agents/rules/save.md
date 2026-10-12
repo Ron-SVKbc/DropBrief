@@ -46,9 +46,13 @@ Tento dokument slúži pre každú AI aj vývojára ako kompletný sprievodca pr
 * **Prepojenie:** Vercel je priamo napojený na GitHub repozitár:
   `https://github.com/Ron-SVKbc/DropBrief.git` (vetva `main`).
 * **Environment Variables na Verceli:**
-  V nastaveniach projektu na Verceli sú zadefinované dve produkčné premenné:
-  * `VITE_SUPABASE_URL` = adresa Supabase projektu
+  V nastaveniach projektu na Verceli (Settings → Environment Variables) musia byť zadefinované tieto premenné:
+  * `VITE_SUPABASE_URL` = adresa Supabase projektu (napr. `https://byflbydvhlghdhnmsmci.supabase.co`)
   * `VITE_SUPABASE_ANON_KEY` = verejný anon/publishable kľúč
+  * `SUPABASE_SERVICE_ROLE_KEY` = tajný service-role kľúč (pre `/api/verify-pin` a `/api/cron-purge`, bez prefixu VITE_)
+  * `RESEND_API_KEY` = API kľúč z https://resend.com (pre odosielanie e-mailových pripomienok `/api/send-reminder`)
+  * `RESEND_FROM_EMAIL` = overená e-mailová adresa odosielateľa (napr. `notifikacie@usedropbrief.xyz`)
+  * `CRON_SECRET` = tajný reťazec pre zabezpečenie cron endpointu `/api/cron-purge`
 
 ### B. Databáza & Cloud Úložisko (Supabase)
 * **Umiestnenie servera:** Europe Ireland (EÚ) – 100 % v súlade s GDPR.
