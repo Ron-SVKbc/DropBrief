@@ -63,16 +63,20 @@ export default async function handler(req, res) {
   const now = Date.now();
   const cutoffDate = new Date(now - THIRTY_DAYS_MS);
 
+  const FUNCTION_START_MS = Date.now();
+  const MAX_EXECUTION_TIME_MS = 8000; // 8s bezpečný časový rozpočet (Vercel Hobby limit je 10s)
+  const MAX_CANDIDATES_LIMIT = 25;   // Limit stránkovania kandidátov na jeden beh
+
   try {
-    // ── 4. Výber kandidátov na purge ──────────────────────────────────────────
+    // ── 4. Výber kandidátov na purge (so striktným limitom stránkovania) ──────
     let query = supabase
       .from('projects')
       .select('id, slug, title, status, completed_at, created_at, files_purged, purged_at, batches');
 
     if (targetSlug) {
-      query = query.ilike('slug', targetSlug);
+      query = query.ilike('slug', targetSlug).limit(1);
     } else {
-      query = query.eq('status', 'completed');
+      query = query.eq('status', 'completed').limit(MAX_CANDIDATES_LIMIT);
     }
 
     const { data: candidateProjects, error: fetchErr } = await query;
@@ -105,16 +109,24 @@ export default async function handler(req, res) {
     console.log(`[cron-purge] Found ${eligibleProjects.length} projects eligible for auto-purge.`);
 
     const purgeResults = [];
+    let timedOutEarly = false;
 
-    // ── 5. Vykonanie mazania pre každý projekt ────────────────────────────────
+    // ── 5. Vykonanie mazania pre každý projekt (strážené time budgetom) ───────
     for (const project of eligibleProjects) {
+      // Base-case ochrana pred timeoutom Serverless funkcie
+      if (Date.now() - FUNCTION_START_MS > MAX_EXECUTION_TIME_MS) {
+        console.warn(`[cron-purge] Serverless time budget exceeded (${Date.now() - FUNCTION_START_MS}ms). Yielding remaining projects for subsequent cron run.`);
+        timedOutEarly = true;
+        break;
+      }
+
       const filesToDelete = new Set();
 
-      // A) Zoznam súborov priamo v Storage pod priečinkom slug/
+      // A) Zoznam súborov priamo v Storage pod priečinkom slug/ (s limitom 500 súborov)
       try {
         const { data: listedFiles, error: listErr } = await supabase.storage
           .from('client-uploads')
-          .list(project.slug, { limit: 1000 });
+          .list(project.slug, { limit: 500 });
 
         if (!listErr && Array.isArray(listedFiles)) {
           for (const item of listedFiles) {
@@ -127,12 +139,13 @@ export default async function handler(req, res) {
         console.warn(`[cron-purge] Could not list storage for slug ${project.slug}:`, err.message);
       }
 
-      // B) Zoznam súborov z položiek checklistu (project_items)
+      // B) Zoznam súborov z položiek checklistu (project_items) s limitom 100
       try {
         const { data: items, error: itemsErr } = await supabase
           .from('project_items')
           .select('id, type, value')
-          .eq('project_id', project.id);
+          .eq('project_id', project.id)
+          .limit(100);
 
         if (!itemsErr && Array.isArray(items)) {
           for (const item of items) {
@@ -181,48 +194,63 @@ export default async function handler(req, res) {
         continue;
       }
 
-      // ── Fyzické zmazanie zo Supabase Storage ───────────────────────────────
+      // ── Fyzické zmazanie zo Supabase Storage v bezpečných dávkach po 50 ──────
       let deletedStorageCount = 0;
       let storageError = null;
 
       if (pathsArray.length > 0) {
         try {
-          const { data: removedData, error: removeErr } = await supabase.storage
-            .from('client-uploads')
-            .remove(pathsArray);
+          const STORAGE_BATCH_SIZE = 50;
+          for (let b = 0; b < pathsArray.length; b += STORAGE_BATCH_SIZE) {
+            const chunk = pathsArray.slice(b, b + STORAGE_BATCH_SIZE);
+            const { error: removeErr } = await supabase.storage
+              .from('client-uploads')
+              .remove(chunk);
 
-          if (removeErr) {
-            storageError = removeErr.message;
-            console.error(`[cron-purge] Failed to remove storage paths for ${project.slug}:`, removeErr);
-          } else {
-            deletedStorageCount = pathsArray.length;
+            if (removeErr) {
+              storageError = removeErr.message;
+              console.error(`[cron-purge] Failed to remove storage batch for ${project.slug}:`, removeErr);
+              break;
+            } else {
+              deletedStorageCount += chunk.length;
+            }
           }
         } catch (storageEx) {
           storageError = storageEx.message;
         }
       }
 
-      // ── Aktualizácia záznamov položiek checklistu ─────────────────────────
+      // ── Aktualizácia záznamov položiek checklistu (paralelne v dávkach po 5) ─
       try {
         const { data: itemsToUpdate } = await supabase
           .from('project_items')
           .select('id, value')
-          .eq('project_id', project.id);
+          .eq('project_id', project.id)
+          .limit(100);
 
         if (Array.isArray(itemsToUpdate)) {
-          for (const it of itemsToUpdate) {
-            if (it.value && typeof it.value === 'object') {
-              const updatedValue = {
-                ...it.value,
-                purged: true,
-                purgedAt: new Date().toISOString(),
-                url: null, // Odkaz už neexistuje
-              };
-              await supabase
-                .from('project_items')
-                .update({ value: updatedValue, purged: true })
-                .eq('id', it.id);
-            }
+          const eligibleItems = itemsToUpdate.filter(
+            (it) => it.value && typeof it.value === 'object'
+          );
+
+          // Spracovanie po dávkach (chunking) pre prevenciu preťaženia spojenia
+          const CHUNK_SIZE = 5;
+          for (let i = 0; i < eligibleItems.length; i += CHUNK_SIZE) {
+            const chunk = eligibleItems.slice(i, i + CHUNK_SIZE);
+            await Promise.allSettled(
+              chunk.map((it) => {
+                const updatedValue = {
+                  ...it.value,
+                  purged: true,
+                  purgedAt: new Date().toISOString(),
+                  url: null,
+                };
+                return supabase
+                  .from('project_items')
+                  .update({ value: updatedValue, purged: true })
+                  .eq('id', it.id);
+              })
+            );
           }
         }
       } catch (itemUpdateErr) {
@@ -260,6 +288,8 @@ export default async function handler(req, res) {
       cutoffDate: cutoffDate.toISOString(),
       eligibleProjectsCount: eligibleProjects.length,
       purgedCount: purgeResults.length,
+      timedOutEarly,
+      executionDurationMs: Date.now() - FUNCTION_START_MS,
       results: purgeResults,
     });
   } catch (error) {

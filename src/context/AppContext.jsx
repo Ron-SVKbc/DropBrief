@@ -246,7 +246,8 @@ export function AppProvider({ children }) {
       let query = supabase
         .from('projects')
         .select('*, project_items(*)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Bezpečnostný strop stránkovania pre prevenciu preťaženia pamäte
 
       if (isUuid) {
         query = query.or(`freelancer_id.eq.${flId},freelancer_name.ilike.${cleanNick}`);
@@ -263,7 +264,8 @@ export function AppProvider({ children }) {
           .from('projects')
           .select('*, project_items(*)')
           .order('created_at', { ascending: false })
-          .ilike('freelancer_name', cleanNick);
+          .ilike('freelancer_name', cleanNick)
+          .limit(100);
 
         data = fallbackRes.data;
         error = fallbackRes.error;
@@ -425,18 +427,24 @@ export function AppProvider({ children }) {
 
     fetchSupabaseProjects();
 
+    // Debounce pre prevenciu búrky požiadaviek (websocket event storm) pri hromadných zmenách
+    let debounceTimer = null;
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchSupabaseProjects();
+      }, 400);
+    };
+
     // Listen to database changes in real time (WebSockets)
     const channel = supabase
       .channel('schema-db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
-        fetchSupabaseProjects();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_items' }, () => {
-        fetchSupabaseProjects();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, debouncedFetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_items' }, debouncedFetch)
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [fetchSupabaseProjects, currentFreelancer]);
@@ -580,6 +588,7 @@ export function AppProvider({ children }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nick: cleanNick, pin: cleanPin }),
+          signal: AbortSignal.timeout(10000), // 10s bezpečný timeout
         });
 
         const verifyData = await verifyResponse.json().catch(() => ({}));
@@ -676,10 +685,21 @@ export function AppProvider({ children }) {
 
   const createProject = async (newProjData) => {
     let randomSlug = generateSecureSlug(newProjData.clientName || 'client', 8);
+    let attempts = 0;
+    const MAX_COLLISION_ATTEMPTS = 20;
 
-    // Prevencia lokálnej kolízie
-    while (projects.some((p) => p.slug?.toLowerCase() === randomSlug.toLowerCase())) {
+    // Prevencia lokálnej kolízie so striktnou podmienkou ukončenia (base case)
+    while (
+      attempts < MAX_COLLISION_ATTEMPTS &&
+      projects.some((p) => p.slug?.toLowerCase() === randomSlug.toLowerCase())
+    ) {
+      attempts++;
       randomSlug = generateSecureSlug(newProjData.clientName || 'client', 8);
+    }
+
+    // Deterministický fallback ak by nastala nepravdepodobná séria 20 kolízií
+    if (projects.some((p) => p.slug?.toLowerCase() === randomSlug.toLowerCase())) {
+      randomSlug = `${randomSlug}-${Date.now().toString(36)}`;
     }
 
     const tempId = 'proj-' + Date.now();
@@ -1014,6 +1034,7 @@ export function AppProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: projectSlug, force: true }),
+        signal: AbortSignal.timeout(12000), // 12s bezpečný timeout
       });
       const data = await resp.json();
       if (data.success) {
@@ -1182,6 +1203,7 @@ export function AppProvider({ children }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(12000), // 12s bezpečný timeout
     });
 
     const resData = await response.json().catch(() => ({}));

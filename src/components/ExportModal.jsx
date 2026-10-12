@@ -136,7 +136,7 @@ export default function ExportModal() {
     
     if (file.url) {
       try {
-        const resp = await fetch(file.url);
+        const resp = await fetch(file.url, { signal: AbortSignal.timeout(12000) });
         if (!resp.ok) throw new Error('Fetch failed');
         const blob = await resp.blob();
         const blobUrl = URL.createObjectURL(blob);
@@ -215,7 +215,7 @@ export default function ExportModal() {
         const file = files[i];
         if (file.url) {
           try {
-            const resp = await fetch(file.url);
+            const resp = await fetch(file.url, { signal: AbortSignal.timeout(15000) });
             const blob = await resp.blob();
             folder.file(file.fileName, blob);
           } catch (e) {
@@ -347,7 +347,7 @@ export default function ExportModal() {
 
               if (file.url) {
                 try {
-                  const resp = await fetch(file.url);
+                  const resp = await fetch(file.url, { signal: AbortSignal.timeout(15000) });
                   if (!resp.ok) throw new Error('Fetch failed');
                   const blob = await resp.blob();
                   itemFolder.file(finalFileName, blob);

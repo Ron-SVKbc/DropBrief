@@ -111,13 +111,23 @@ export default async function handler(req, res) {
     let user = null;
     let isValid = false;
 
+    const withTimeout = (promise, ms = 6000) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase database operation timed out (6s)')), ms)
+        ),
+      ]);
+
     // 1. Primárne skúsiť priamy SELECT (keď je k dispozícii service-role kľúč)
     try {
-      const { data: dbUser, error } = await supabase
-        .from('freelancers')
-        .select('id, nick, email, created_at, pin_code')
-        .ilike('nick', cleanNick)
-        .maybeSingle();
+      const { data: dbUser, error } = await withTimeout(
+        supabase
+          .from('freelancers')
+          .select('id, nick, email, created_at, pin_code')
+          .ilike('nick', cleanNick)
+          .maybeSingle()
+      );
 
       if (!error && dbUser) {
         user = dbUser;
@@ -130,11 +140,13 @@ export default async function handler(req, res) {
     // 2. Fallback: Bezpečná RPC funkcia (funguje aj s anon kľúčom pri zapnutom striktnom RLS)
     if (!user) {
       try {
-        const { data: rpcData, error: rpcErr } = await supabase.rpc('verify_freelancer_pin', {
-          p_nick: cleanNick,
-          p_salted_hash: saltedHash,
-          p_unsalted_hash: unsaltedHash,
-        });
+        const { data: rpcData, error: rpcErr } = await withTimeout(
+          supabase.rpc('verify_freelancer_pin', {
+            p_nick: cleanNick,
+            p_salted_hash: saltedHash,
+            p_unsalted_hash: unsaltedHash,
+          })
+        );
 
         if (!rpcErr && rpcData?.success && rpcData.user) {
           user = rpcData.user;

@@ -289,14 +289,23 @@ ${cleanFreelancerName}
       resendPayload.reply_to = freelancerEmail.trim();
     }
 
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey.trim()}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(resendPayload),
-    });
+    let resendResponse;
+    try {
+      resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey.trim()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resendPayload),
+        signal: AbortSignal.timeout(8000), // 8s timeout pre prevenciu zaseknutia Serverless funkcie
+      });
+    } catch (networkErr) {
+      if (networkErr.name === 'TimeoutError' || networkErr.name === 'AbortError') {
+        throw new Error('Požiadavka na e-mailovú službu Resend vypršala (timeout 8s). Skontrolujte internetové spojenie a skúste to znovu.');
+      }
+      throw networkErr;
+    }
 
     const resendData = await resendResponse.json().catch(() => ({}));
 

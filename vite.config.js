@@ -25,14 +25,21 @@ export default defineConfig(({ command, mode }) => {
       name: 'dev-api-handlers',
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          // ── Spoločný body parser ───────────────────────────────────────
+          // ── Spoločný body parser (s limitom veľkosti 2 MB) ─────────────
           const parseBody = () =>
             new Promise((resolve) => {
               if (req.method === 'GET' || req.method === 'HEAD') {
                 return resolve({});
               }
               let raw = '';
-              req.on('data', (chunk) => { raw += chunk; });
+              const MAX_PAYLOAD_BYTES = 2 * 1024 * 1024; // 2 MB bezpečnostný limit
+              req.on('data', (chunk) => {
+                raw += chunk;
+                if (raw.length > MAX_PAYLOAD_BYTES) {
+                  req.destroy();
+                  resolve({});
+                }
+              });
               req.on('end', () => {
                 try { resolve(raw ? JSON.parse(raw) : {}); }
                 catch { resolve({}); }

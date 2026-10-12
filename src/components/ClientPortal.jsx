@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import confetti from 'canvas-confetti';
 import { uploadClientFile, isSupabaseConfigured } from '../lib/supabase';
@@ -189,6 +189,8 @@ export default function ClientPortal() {
     addToast('Interactive demo preview has been reset to defaults.', 'info', 'Reset');
   };
 
+  const attemptedSlugsRef = useRef(new Set());
+
   useEffect(() => {
     if (isDemoMode) {
       setHasAttemptedFetch(true);
@@ -201,6 +203,13 @@ export default function ClientPortal() {
     );
 
     if (!existsInMemory) {
+      // Prevencia nekonečného opakovaného dopytovania neexistujúceho projektu
+      if (attemptedSlugsRef.current.has(cleanActiveSlug)) {
+        setHasAttemptedFetch(true);
+        return;
+      }
+      attemptedSlugsRef.current.add(cleanActiveSlug);
+
       setLoadingInitial(true);
       fetchProjectBySlug(activeProjectSlug)
         .catch((err) => {
@@ -276,7 +285,9 @@ export default function ClientPortal() {
     }
   };
 
-  // 1. Stage local files
+  const MAX_STAGED_FILES_PER_ITEM = 20;
+
+  // 1. Stage local files (chránené limitom počtu súborov)
   const handleStageFiles = (itemId, filesInput) => {
     if (isFreelancerReadOnly) {
       addToast('As a freelancer, you are viewing a preview. Files and text are uploaded exclusively by the client.', 'warning', 'Client Only');
@@ -288,10 +299,21 @@ export default function ClientPortal() {
     );
     if (fileArray.length === 0) return;
 
-    setStagedFiles((prev) => ({
-      ...prev,
-      [itemId]: [...(prev[itemId] || []), ...fileArray]
-    }));
+    setStagedFiles((prev) => {
+      const current = prev[itemId] || [];
+      if (current.length + fileArray.length > MAX_STAGED_FILES_PER_ITEM) {
+        addToast(`Maximálne ${MAX_STAGED_FILES_PER_ITEM} súborov na položku povolených.`, 'warning', 'Limit dosiahnutý');
+        const allowedSlice = fileArray.slice(0, Math.max(0, MAX_STAGED_FILES_PER_ITEM - current.length));
+        return {
+          ...prev,
+          [itemId]: [...current, ...allowedSlice]
+        };
+      }
+      return {
+        ...prev,
+        [itemId]: [...current, ...fileArray]
+      };
+    });
   };
 
   // 2. Remove staged file
