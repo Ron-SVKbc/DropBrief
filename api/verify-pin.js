@@ -105,31 +105,47 @@ export default async function handler(req, res) {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const { data: user, error } = await supabase
-      .from('freelancers')
-      .select('id, nick, email, created_at, pin_code')
-      .ilike('nick', cleanNick)
-      .maybeSingle();
-
-    if (error) {
-      console.error('verify-pin: DB error:', error.message);
-      return res.status(500).json({ success: false, error: 'Chyba databázy.' });
-    }
-
-    if (!user) {
-      // Nerozlišujeme "nesprávny nick" od "nesprávny PIN" – security best practice
-      return res.status(401).json({
-        success: false,
-        error:   'Nesprávny nickname alebo PIN kód.',
-      });
-    }
-
-    // ── Overenie PIN-u (salted + fallback unsalted pre staré záznamy) ──────────
     const saltedHash   = hashPin(cleanPin, true);
     const unsaltedHash = hashPin(cleanPin, false);
-    const isValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
 
-    if (!isValid) {
+    let user = null;
+    let isValid = false;
+
+    // 1. Primárne skúsiť priamy SELECT (keď je k dispozícii service-role kľúč)
+    try {
+      const { data: dbUser, error } = await supabase
+        .from('freelancers')
+        .select('id, nick, email, created_at, pin_code')
+        .ilike('nick', cleanNick)
+        .maybeSingle();
+
+      if (!error && dbUser) {
+        user = dbUser;
+        isValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
+      }
+    } catch (selectErr) {
+      // Ignorovať chybu RLS a prejsť na RPC fallback
+    }
+
+    // 2. Fallback: Bezpečná RPC funkcia (funguje aj s anon kľúčom pri zapnutom striktnom RLS)
+    if (!user) {
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('verify_freelancer_pin', {
+          p_nick: cleanNick,
+          p_salted_hash: saltedHash,
+          p_unsalted_hash: unsaltedHash,
+        });
+
+        if (!rpcErr && rpcData?.success && rpcData.user) {
+          user = rpcData.user;
+          isValid = true;
+        }
+      } catch (rpcEx) {
+        console.error('verify-pin RPC error:', rpcEx);
+      }
+    }
+
+    if (!user || !isValid) {
       return res.status(401).json({
         success: false,
         error:   'Nesprávny nickname alebo PIN kód.',

@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { INITIAL_DEMO_PROJECTS } from '../data/templates';
-import { supabase, isSupabaseConfigured, getCloudFreelancer, saveCloudFreelancer, hashPin } from '../lib/supabase';
+import { 
+  supabase, 
+  isSupabaseConfigured, 
+  getCloudFreelancer, 
+  saveCloudFreelancer, 
+  hashPin,
+  setSupabaseSessionHeaders,
+  isNickAvailable
+} from '../lib/supabase';
 
 const AppContext = createContext();
 
@@ -201,6 +209,18 @@ export function AppProvider({ children }) {
     }
   }, [projects, currentFreelancer]);
 
+  // Synchronizácia RLS autorizačných hlavičiek v Supabase klientovi
+  useEffect(() => {
+    if (currentFreelancer?.nick) {
+      setSupabaseSessionHeaders({
+        nick: currentFreelancer.nick,
+        pinHash: currentFreelancer.pinHash || currentFreelancer.pin || null,
+      });
+    } else {
+      setSupabaseSessionHeaders({ nick: null, pinHash: null });
+    }
+  }, [currentFreelancer]);
+
   const addToast = useCallback((message, type = 'info', title = '') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
     setToasts((prev) => [...prev, { id, message, type, title }]);
@@ -301,6 +321,7 @@ export function AppProvider({ children }) {
 
     if (isSupabaseConfigured && supabase) {
       try {
+        setSupabaseSessionHeaders({ slug: cleanSlug });
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
         let query = supabase.from('projects').select('*, project_items(*)');
         if (isUuid) {
@@ -444,11 +465,11 @@ export function AppProvider({ children }) {
     const cleanNick = nick.trim();
     const cleanEmail = email ? email.trim() : '';
 
-    // 1. Skontrolujeme v cloude, či nick už neexistuje
+    // 1. Skontrolujeme v cloude, či nick už neexistuje (cez bezpečnú RPC funkciu)
     if (isSupabaseConfigured) {
       try {
-        const existing = await getCloudFreelancer(cleanNick);
-        if (existing) {
+        const available = await isNickAvailable(cleanNick);
+        if (!available) {
           throw new Error('This nickname already exists. Choose a different name or log in.');
         }
       } catch (err) {
@@ -1080,6 +1101,7 @@ export function AppProvider({ children }) {
     // Sync to Supabase
     if (isSupabaseConfigured && supabase) {
       try {
+        setSupabaseSessionHeaders({ slug: cleanSlug });
         await supabase
           .from('project_items')
           .update({

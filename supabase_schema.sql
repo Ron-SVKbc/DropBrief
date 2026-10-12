@@ -63,102 +63,367 @@ create index if not exists idx_projects_freelancer_id on public.projects(freelan
 create index if not exists idx_projects_freelancer_name on public.projects(lower(freelancer_name));
 create index if not exists idx_project_items_project_id on public.project_items(project_id);
 
--- 4. Row Level Security (RLS) & Policies
--- Pre MVP umožňujeme anonymné čítanie a aktualizáciu na základe slug/projektu
+-- 4. Row Level Security (RLS) & Policies (Zero-Trust & Multi-Tenant Isolation)
 alter table public.freelancers enable row level security;
+alter table public.freelancers force row level security;
+
 alter table public.projects enable row level security;
+alter table public.projects force row level security;
+
 alter table public.project_items enable row level security;
+alter table public.project_items force row level security;
 
--- Politiky pre freelancerov
--- Anonymný číteľ môže hľadať účet podľa nicku (kvoli login flow), ale NESMIE modifikovať
-create policy "Anonymné vyhlačávanie freelancera podľa nicku"
-  on public.freelancers for select
-  using (true); -- select je nevyhnutný pre login; obsahuje len hash, nie plain-text PIN
+-- Pomocná funkcia na bezpečné čítanie hlavičiek z požiadavky (PostgREST)
+create or replace function public.get_request_header(header_name text)
+returns text
+language plpgsql
+stable
+as $$
+declare
+  headers_raw text;
+begin
+  headers_raw := current_setting('request.headers', true);
+  if headers_raw is null or headers_raw = '' then
+    return null;
+  end if;
+  return nullif((headers_raw::jsonb ->> lower(header_name)), '');
+exception when others then
+  return null;
+end;
+$$;
 
-create policy "Freelancer si môže vytvoriť účet"
+grant execute on function public.get_request_header(text) to anon, authenticated, service_role;
+
+-- ─── Bezpečné pomocné funkcie (SECURITY DEFINER) ──────────────────────────────
+revoke all on public.freelancers from anon;
+grant insert on public.freelancers to anon;
+grant select (id, nick, created_at) on public.freelancers to anon;
+
+-- Bezpečné overenie, či má freelancer platný PIN hash (rieši cross-table práva bez chýb)
+create or replace function public.is_freelancer_authenticated(p_nick text, p_pin_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_nick is null or p_pin_hash is null or trim(p_nick) = '' or trim(p_pin_hash) = '' then
+    return false;
+  end if;
+
+  return exists (
+    select 1 from public.freelancers
+    where lower(nick) = lower(trim(p_nick))
+      and pin_code = trim(p_pin_hash)
+  );
+end;
+$$;
+
+grant execute on function public.is_freelancer_authenticated(text, text) to anon, authenticated, service_role;
+
+-- Bezpečná kontrola dostupnosti nicku (SECURITY DEFINER funkcia bez úniku hashov)
+create or replace function public.check_nick_available(check_nick text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if check_nick is null or length(trim(check_nick)) < 2 then
+    return false;
+  end if;
+  return not exists (
+    select 1 from public.freelancers 
+    where lower(nick) = lower(trim(check_nick))
+  );
+end;
+$$;
+
+grant execute on function public.check_nick_available(text) to anon, authenticated, service_role;
+
+-- Bezpečné overenie PIN kódu na serverovej úrovni
+create or replace function public.verify_freelancer_pin(
+  p_nick text,
+  p_salted_hash text,
+  p_unsalted_hash text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user record;
+begin
+  if p_nick is null or (p_salted_hash is null and p_unsalted_hash is null) then
+    return jsonb_build_object('success', false, 'error', 'Chýbajúce prihlasovacie údaje.');
+  end if;
+
+  select id, nick, email, created_at, pin_code
+  into v_user
+  from public.freelancers
+  where lower(nick) = lower(trim(p_nick));
+
+  if not found then
+    return jsonb_build_object('success', false, 'error', 'Nesprávny nickname alebo PIN kód.');
+  end if;
+
+  if v_user.pin_code = p_salted_hash or v_user.pin_code = p_unsalted_hash then
+    return jsonb_build_object(
+      'success', true,
+      'user', jsonb_build_object(
+        'id', v_user.id,
+        'nick', v_user.nick,
+        'email', v_user.email,
+        'createdAt', v_user.created_at,
+        'pinHash', v_user.pin_code
+      )
+    );
+  else
+    return jsonb_build_object('success', false, 'error', 'Nesprávny nickname alebo PIN kód.');
+  end if;
+end;
+$$;
+
+grant execute on function public.verify_freelancer_pin(text, text, text) to anon, authenticated, service_role;
+
+-- Bezpečná kontrola prístupu k položkám projektu
+create or replace function public.can_access_project(p_project_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_proj record;
+  v_client_slug text;
+  v_fl_nick text;
+  v_fl_auth text;
+begin
+  if p_project_id is null then
+    return false;
+  end if;
+
+  if auth.role() = 'service_role' then
+    return true;
+  end if;
+
+  select slug, id, freelancer_name into v_proj
+  from public.projects
+  where id = p_project_id;
+
+  if not found then
+    return false;
+  end if;
+
+  v_client_slug := public.get_request_header('x-project-slug');
+  if v_client_slug is not null and (v_proj.slug = v_client_slug or v_proj.id::text = v_client_slug) then
+    return true;
+  end if;
+
+  v_fl_nick := public.get_request_header('x-freelancer-nick');
+  v_fl_auth := public.get_request_header('x-freelancer-auth');
+  if v_fl_nick is not null and lower(v_proj.freelancer_name) = lower(v_fl_nick) then
+    return public.is_freelancer_authenticated(v_fl_nick, v_fl_auth);
+  end if;
+
+  return false;
+end;
+$$;
+
+grant execute on function public.can_access_project(uuid) to anon, authenticated, service_role;
+
+create policy "freelancers_insert_policy"
   on public.freelancers for insert
-  with check (true);
-
--- ZAKAZÁNÉ: Anonymný update/delete freelancerích účtov
--- (chybá RLS pre update/delete = implicitne zakázané bez explicitnej politiky)
-
--- ─── Politiky pre projekty (granulárne) ───────────────────────────────────────
--- Stará blanket politika odstránená: nahradená striktnejšími pravidlami
-
--- SELECT: verejné čítanie – klienti potrebujú načítať projekt podľa slug
-create policy "select_projects_public"
-  on public.projects for select
-  using (true);
-
--- INSERT: povolené pre anon (freelancer bez Supabase Auth)
--- Kontrola: povinné polia musia byť vyplnené
-create policy "insert_projects_anon"
-  on public.projects for insert
+  to anon, authenticated
   with check (
-    freelancer_name is not null
-    and freelancer_name <> ''
-    and title      is not null
-    and title      <> ''
-    and slug       is not null
-    and slug       <> ''
+    nick is not null 
+    and length(trim(nick)) >= 2 
+    and length(trim(nick)) <= 50
+    and pin_code is not null 
+    and length(pin_code) = 64
   );
 
--- UPDATE: povolené pre anon (klient odovzdáva podklady, freelancer mení stav)
-create policy "update_projects_anon"
+create policy "freelancers_select_policy"
+  on public.freelancers for select
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      and pin_code = public.get_request_header('x-freelancer-auth')
+    )
+    or auth.role() = 'service_role'
+  );
+
+-- ─── Politiky pre projekty (granulárne & bezpečné) ───────────────────────────
+
+create policy "projects_select_secure"
+  on public.projects for select
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-project-slug') is not null
+      and (
+        slug = public.get_request_header('x-project-slug')
+        or id::text = public.get_request_header('x-project-slug')
+      )
+    )
+    or (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+    )
+    or auth.role() = 'service_role'
+  );
+
+create policy "projects_insert_secure"
+  on public.projects for insert
+  to anon, authenticated
+  with check (
+    title is not null and length(trim(title)) > 0
+    and slug is not null and length(trim(slug)) > 0
+    and client_name is not null and length(trim(client_name)) > 0
+    and freelancer_name is not null and length(trim(freelancer_name)) > 0
+    and (
+      (
+        public.get_request_header('x-freelancer-nick') is not null
+        and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+        and public.is_freelancer_authenticated(
+          public.get_request_header('x-freelancer-nick'),
+          public.get_request_header('x-freelancer-auth')
+        )
+      )
+      or auth.role() = 'service_role'
+    )
+  );
+
+create policy "projects_update_secure"
   on public.projects for update
-  using (true)
-  with check (true);
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-project-slug') is not null
+      and (
+        slug = public.get_request_header('x-project-slug')
+        or id::text = public.get_request_header('x-project-slug')
+      )
+    )
+    or (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+    )
+    or auth.role() = 'service_role'
+  )
+  with check (
+    (
+      public.get_request_header('x-project-slug') is not null
+      and (
+        slug = public.get_request_header('x-project-slug')
+        or id::text = public.get_request_header('x-project-slug')
+      )
+    )
+    or (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+    )
+    or auth.role() = 'service_role'
+  );
 
--- DELETE: povolené pre anon (freelancer maže projekt zo svojho dashboardu)
-create policy "delete_projects_anon"
+create policy "projects_delete_secure"
   on public.projects for delete
-  using (true);
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+    )
+    or auth.role() = 'service_role'
+  );
 
--- ─── Politiky pre položky projektov (granulárne) ──────────────────────────────
+-- ─── Politiky pre položky projektov (granulárne & bezpečné) ───────────────────
 
--- SELECT: voľné – klienti musia vidieť checklist
-create policy "select_items_public"
+create policy "items_select_secure"
   on public.project_items for select
-  using (true);
+  to anon, authenticated
+  using (
+    public.can_access_project(project_items.project_id)
+  );
 
--- INSERT: povolené pre anon s kontrolou integrity
-create policy "insert_items_anon"
+create policy "items_insert_secure"
   on public.project_items for insert
+  to anon, authenticated
   with check (
     project_id is not null
-    and title  is not null
-    and title  <> ''
+    and title is not null and length(trim(title)) > 0
+    and (
+      (
+        public.get_request_header('x-freelancer-nick') is not null
+        and public.is_freelancer_authenticated(
+          public.get_request_header('x-freelancer-nick'),
+          public.get_request_header('x-freelancer-auth')
+        )
+      )
+      or auth.role() = 'service_role'
+    )
   );
 
--- UPDATE: voľné – klient označuje položku ako splnenú
-create policy "update_items_anon"
+create policy "items_update_secure"
   on public.project_items for update
-  using (true)
-  with check (true);
+  to anon, authenticated
+  using (
+    public.can_access_project(project_items.project_id)
+  );
 
--- DELETE: povolené pre anon – freelancer maže jednotlivé položky checklistu
--- (nižšie riziko ako mazanie celého projektu)
-create policy "delete_items_anon"
+create policy "items_delete_secure"
   on public.project_items for delete
-  using (true);
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+    )
+    or auth.role() = 'service_role'
+  );
 
 -- 5. Storage Bucket pre klientske súbory
 insert into storage.buckets (id, name, public)
 values ('client-uploads', 'client-uploads', true)
 on conflict (id) do update set public = true;
 
--- Politiky pre úložisko súborov
-create policy "Verejné nahrávanie podkladov klientmi"
+-- Politiky pre úložisko súborov (zákaz nahrávania a čítania _profiles)
+create policy "storage_upload_secure"
   on storage.objects for insert
-  with check (bucket_id = 'client-uploads');
+  to anon, authenticated
+  with check (
+    bucket_id = 'client-uploads'
+    and not (name like '_%')
+  );
 
-create policy "Verejné čítanie a sťahovanie podkladov"
+create policy "storage_select_secure"
   on storage.objects for select
-  using (bucket_id = 'client-uploads');
+  to anon, authenticated
+  using (
+    bucket_id = 'client-uploads'
+    and not (name like '_profiles/%')
+  );
 
--- ZAKÁZANÉ: Verejné anonymné mazanie súborov z bucketu.
--- Mazanie z cloudu je vyhradené výhradne pre autorizovaný cleanup / service role.
--- (Ak existuje stará politika, zrušte ju: drop policy if exists "Odstránenie podkladov" on storage.objects;)
+drop policy if exists "Verejné nahrávanie podkladov klientmi" on storage.objects;
+drop policy if exists "Verejné čítanie a sťahovanie podkladov" on storage.objects;
 drop policy if exists "Odstránenie podkladov" on storage.objects;
 
 -- 6. Povolenie Supabase Realtime (WebSockets synchronizácia zmien v reálnom čase)

@@ -15,6 +15,57 @@ export const supabase = isSupabaseConfigured
   : null;
 
 /**
+ * Nastavenie autorizačných a kontextových hlavičiek pre Supabase PostgREST (RLS)
+ * Zabezpečuje, že klient posiela overený x-project-slug alebo x-freelancer-nick + x-freelancer-auth.
+ */
+export function setSupabaseSessionHeaders({ nick, pinHash, slug } = {}) {
+  if (!supabase || !supabase.rest || !supabase.rest.headers) return;
+
+  if (nick) {
+    supabase.rest.headers.set('x-freelancer-nick', String(nick).trim());
+  } else if (nick === null) {
+    supabase.rest.headers.delete('x-freelancer-nick');
+  }
+
+  if (pinHash) {
+    supabase.rest.headers.set('x-freelancer-auth', String(pinHash).trim());
+  } else if (pinHash === null) {
+    supabase.rest.headers.delete('x-freelancer-auth');
+  }
+
+  if (slug) {
+    supabase.rest.headers.set('x-project-slug', String(slug).trim());
+  } else if (slug === null) {
+    supabase.rest.headers.delete('x-project-slug');
+  }
+}
+
+/**
+ * Bezpečná kontrola dostupnosti nicku cez RPC funkciu (chráni pred únikom hashov a e-mailov)
+ */
+export async function isNickAvailable(nick) {
+  if (!supabase || !nick) return true;
+  const cleanNick = nick.trim().toLowerCase();
+
+  // 1. Primárne vyskúšať bezpečnú Postgres RPC funkciu (SECURITY DEFINER)
+  try {
+    const { data, error } = await supabase.rpc('check_nick_available', { check_nick: cleanNick });
+    if (!error && typeof data === 'boolean') {
+      return data;
+    }
+  } catch (e) {}
+
+  // 2. Fallback pre spätnú kompatibilitu ak RPC ešte nie je v DB nasadené
+  try {
+    const existing = await getCloudFreelancer(cleanNick);
+    return !existing;
+  } catch (e) {
+    return true;
+  }
+}
+
+
+/**
  * Získanie účtu freelancera z cloudu (DB tabuľka alebo Storage profil)
  */
 export async function getCloudFreelancer(nick) {
