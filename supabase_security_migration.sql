@@ -459,17 +459,118 @@ CREATE POLICY "storage_upload_secure"
     AND NOT (name LIKE '_%')
   );
 
--- B. Čítanie súborov: Povolené pre klientske súbory, chráni _profiles/ pred verejným čítaním
+-- B. Čítanie súborov: Povolené pre klientske súbory, chráni všetky interné súbory začínajúce na _ (_profiles, _meta) pred neoprávneným čítaním
 CREATE POLICY "storage_select_secure"
   ON storage.objects FOR SELECT
   TO anon, authenticated
   USING (
     bucket_id = 'client-uploads'
-    AND NOT (name LIKE '_profiles/%')
+    AND NOT (name LIKE '_%')
   );
 
 -- ------------------------------------------------------------------------------
--- 8. KONTROLNÝ AUDIT & OVERENIE NASTAVENIA RLS (Spustiteľný v SQL Editore)
+-- 8. INTEGRITNÉ TRIGGERY: OCHRANA KRITICKÝCH STĹPCOV PRED NEOPRÁVNENÝM PREPISOM
+-- ------------------------------------------------------------------------------
+-- Aj keď má klient právo aktualizovať stav a odovzdané dávky (cez x-project-slug),
+-- nesmie zmeniť vlastníka projektu, slug, e-maily ani prepojenia položiek.
+
+CREATE OR REPLACE FUNCTION public.enforce_project_update_integrity()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_fl boolean;
+BEGIN
+  IF auth.role() = 'service_role' THEN
+    RETURN NEW;
+  END IF;
+
+  v_is_fl := (
+    public.get_request_header('x-freelancer-nick') IS NOT NULL
+    AND lower(OLD.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+    AND public.is_freelancer_authenticated(
+      public.get_request_header('x-freelancer-nick'),
+      public.get_request_header('x-freelancer-auth')
+    )
+  );
+
+  -- Ak používateľ NIE JE overený freelancer (vlastník), chránime citlivé polia:
+  IF NOT v_is_fl THEN
+    NEW.id := OLD.id;
+    NEW.slug := OLD.slug;
+    NEW.freelancer_id := OLD.freelancer_id;
+    NEW.freelancer_name := OLD.freelancer_name;
+    NEW.freelancer_email := OLD.freelancer_email;
+    NEW.client_name := OLD.client_name;
+    NEW.client_email := OLD.client_email;
+    NEW.title := OLD.title;
+    NEW.created_at := OLD.created_at;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_protect_project_integrity ON public.projects;
+CREATE TRIGGER trg_protect_project_integrity
+  BEFORE UPDATE ON public.projects
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enforce_project_update_integrity();
+
+CREATE OR REPLACE FUNCTION public.enforce_item_update_integrity()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_fl boolean;
+  v_proj record;
+BEGIN
+  IF auth.role() = 'service_role' THEN
+    RETURN NEW;
+  END IF;
+
+  -- Zabránenie zmene väzby projektu
+  NEW.project_id := OLD.project_id;
+
+  SELECT freelancer_name INTO v_proj
+  FROM public.projects
+  WHERE id = OLD.project_id;
+
+  v_is_fl := (
+    v_proj.freelancer_name IS NOT NULL
+    AND public.get_request_header('x-freelancer-nick') IS NOT NULL
+    AND lower(v_proj.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+    AND public.is_freelancer_authenticated(
+      public.get_request_header('x-freelancer-nick'),
+      public.get_request_header('x-freelancer-auth')
+    )
+  );
+
+  -- Ak klient odovzdáva podklad (nie je freelancer), nesmie zmeniť názov, typ ani požiadavku
+  IF NOT v_is_fl THEN
+    NEW.title := OLD.title;
+    NEW.description := OLD.description;
+    NEW.type := OLD.type;
+    NEW.required := OLD.required;
+    NEW.sort_order := OLD.sort_order;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_protect_item_integrity ON public.project_items;
+CREATE TRIGGER trg_protect_item_integrity
+  BEFORE UPDATE ON public.project_items
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enforce_item_update_integrity();
+
+-- ------------------------------------------------------------------------------
+-- 9. KONTROLNÝ AUDIT & OVERENIE NASTAVENIA RLS (Spustiteľný v SQL Editore)
 -- ------------------------------------------------------------------------------
 -- Nasledujúce dotazy overujú stav zabezpečenia:
 
@@ -495,3 +596,11 @@ SELECT
 FROM pg_policies 
 WHERE schemaname = 'public'
 ORDER BY tablename, cmd;
+
+-- 3. TEST ANONYMNÉHO PRÍSTUPU (Simulácia anon_key bez hlavičiek):
+-- Tieto dotazy MUSIA vrátiť 0 riadkov (absolútny Zero-Trust).
+SET ROLE anon;
+SELECT count(*) AS unauth_freelancers_count FROM public.freelancers;
+SELECT count(*) AS unauth_projects_count FROM public.projects;
+SELECT count(*) AS unauth_items_count FROM public.project_items;
+RESET ROLE;

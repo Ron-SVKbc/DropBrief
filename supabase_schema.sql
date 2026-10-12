@@ -437,14 +437,107 @@ create policy "storage_select_secure"
   to anon, authenticated
   using (
     bucket_id = 'client-uploads'
-    and not (name like '_profiles/%')
+    and not (name like '_%')
   );
 
 drop policy if exists "Verejné nahrávanie podkladov klientmi" on storage.objects;
 drop policy if exists "Verejné čítanie a sťahovanie podkladov" on storage.objects;
 drop policy if exists "Odstránenie podkladov" on storage.objects;
 
--- 6. Povolenie Supabase Realtime (WebSockets synchronizácia zmien v reálnom čase)
+-- 6. Integritné triggery (Ochrana citlivých polí pri aktualizácii klientom)
+create or replace function public.enforce_project_update_integrity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_is_fl boolean;
+begin
+  if auth.role() = 'service_role' then
+    return new;
+  end if;
+
+  v_is_fl := (
+    public.get_request_header('x-freelancer-nick') is not null
+    and lower(old.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+    and public.is_freelancer_authenticated(
+      public.get_request_header('x-freelancer-nick'),
+      public.get_request_header('x-freelancer-auth')
+    )
+  );
+
+  if not v_is_fl then
+    new.id := old.id;
+    new.slug := old.slug;
+    new.freelancer_id := old.freelancer_id;
+    new.freelancer_name := old.freelancer_name;
+    new.freelancer_email := old.freelancer_email;
+    new.client_name := old.client_name;
+    new.client_email := old.client_email;
+    new.title := old.title;
+    new.created_at := old.created_at;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_project_integrity on public.projects;
+create trigger trg_protect_project_integrity
+  before update on public.projects
+  for each row
+  execute function public.enforce_project_update_integrity();
+
+create or replace function public.enforce_item_update_integrity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_is_fl boolean;
+  v_proj record;
+begin
+  if auth.role() = 'service_role' then
+    return new;
+  end if;
+
+  new.project_id := old.project_id;
+
+  select freelancer_name into v_proj
+  from public.projects
+  where id = old.project_id;
+
+  v_is_fl := (
+    v_proj.freelancer_name is not null
+    and public.get_request_header('x-freelancer-nick') is not null
+    and lower(v_proj.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+    and public.is_freelancer_authenticated(
+      public.get_request_header('x-freelancer-nick'),
+      public.get_request_header('x-freelancer-auth')
+    )
+  );
+
+  if not v_is_fl then
+    new.title := old.title;
+    new.description := old.description;
+    new.type := old.type;
+    new.required := old.required;
+    new.sort_order := old.sort_order;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_item_integrity on public.project_items;
+create trigger trg_protect_item_integrity
+  before update on public.project_items
+  for each row
+  execute function public.enforce_item_update_integrity();
+
+-- 7. Povolenie Supabase Realtime (WebSockets synchronizácia zmien v reálnom čase)
 do $$
 begin
   if not exists (
