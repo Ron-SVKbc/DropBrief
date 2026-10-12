@@ -78,6 +78,7 @@ create or replace function public.get_request_header(header_name text)
 returns text
 language plpgsql
 stable
+set search_path = public
 as $$
 declare
   headers_raw text;
@@ -95,9 +96,9 @@ $$;
 grant execute on function public.get_request_header(text) to anon, authenticated, service_role;
 
 -- ─── Bezpečné pomocné funkcie (SECURITY DEFINER) ──────────────────────────────
-revoke all on public.freelancers from anon;
-grant insert on public.freelancers to anon;
-grant select (id, nick, created_at) on public.freelancers to anon;
+revoke all on public.freelancers from anon, authenticated;
+grant insert on public.freelancers to anon, authenticated;
+grant select (id, nick, created_at) on public.freelancers to anon, authenticated;
 
 -- Bezpečné overenie, či má freelancer platný PIN hash (rieši cross-table práva bez chýb)
 create or replace function public.is_freelancer_authenticated(p_nick text, p_pin_hash text)
@@ -333,6 +334,10 @@ create policy "projects_update_secure"
     or (
       public.get_request_header('x-freelancer-nick') is not null
       and lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
     )
     or auth.role() = 'service_role'
   );
@@ -374,6 +379,11 @@ create policy "items_insert_secure"
           public.get_request_header('x-freelancer-nick'),
           public.get_request_header('x-freelancer-auth')
         )
+        and exists (
+          select 1 from public.projects p
+          where p.id = project_items.project_id
+            and lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+        )
       )
       or auth.role() = 'service_role'
     )
@@ -383,6 +393,9 @@ create policy "items_update_secure"
   on public.project_items for update
   to anon, authenticated
   using (
+    public.can_access_project(project_items.project_id)
+  )
+  with check (
     public.can_access_project(project_items.project_id)
   );
 
@@ -395,6 +408,11 @@ create policy "items_delete_secure"
       and public.is_freelancer_authenticated(
         public.get_request_header('x-freelancer-nick'),
         public.get_request_header('x-freelancer-auth')
+      )
+      and exists (
+        select 1 from public.projects p
+        where p.id = project_items.project_id
+          and lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
       )
     )
     or auth.role() = 'service_role'

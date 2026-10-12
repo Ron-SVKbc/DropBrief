@@ -77,7 +77,7 @@ export async function getCloudFreelancer(nick) {
   try {
     const { data: dbUser, error } = await supabase
       .from('freelancers')
-      .select('*')
+      .select('id, nick, created_at')
       .ilike('nick', cleanNick)
       .maybeSingle();
 
@@ -86,9 +86,6 @@ export async function getCloudFreelancer(nick) {
         return {
           id: dbUser.id,
           nick: dbUser.nick,
-          pin: dbUser.pin_code,
-          pinHash: dbUser.pin_code,
-          email: dbUser.email || '',
           createdAt: dbUser.created_at,
         };
       }
@@ -170,7 +167,7 @@ export async function saveCloudFreelancer(freelancer) {
         pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
         email: freelancer.email || '',
       })
-      .select()
+      .select('id, nick, created_at')
       .single();
 
     if (!insertErr && insertedUser) {

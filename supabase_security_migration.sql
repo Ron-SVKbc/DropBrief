@@ -1,14 +1,17 @@
 -- ==============================================================================
 -- DropBrief / SplitAI - Bezpečnostná RLS Migrácia (Zero-Trust & Multi-Tenant Isolation)
 -- ==============================================================================
--- Táto migrácia opravuje krížové oprávnenia pomocou SECURITY DEFINER funkcií,
--- čím zabraňuje 'permission denied' chybám pri vyhodnocovaní RLS politík
--- a zabezpečuje, že neautorizované dotazy vracajú čistých 0 riadkov.
+-- Táto migrácia rieši a garantuje:
+-- 1. Explicitné zapnutie a VYNÚTENIE (FORCE) Row Level Security na VŠETKÝCH tabuľkách.
+-- 2. Absolútny zákaz prístupu verejného anon_key k cudzím dátam bez autentifikácie (vracia 0 riadkov).
+-- 3. Odstránenie cross-tenant zraniteľností pri vkladaní a mazaní checklistových položiek.
+-- 4. Ochrana citlivých údajov (SHA-256 hashe PINov a e-maily) pred hromadným dumpom.
 -- ==============================================================================
 
 -- ------------------------------------------------------------------------------
 -- 1. EXPLICITNÉ ZAPNUTIE A VYNÚTENIE RLS NA VŠETKÝCH TABUĽKÁCH
 -- ------------------------------------------------------------------------------
+-- Explicitné zapnutie na známych tabuľkách
 ALTER TABLE IF EXISTS public.freelancers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.freelancers FORCE ROW LEVEL SECURITY;
 
@@ -18,15 +21,44 @@ ALTER TABLE IF EXISTS public.projects FORCE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.project_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.project_items FORCE ROW LEVEL SECURITY;
 
+-- Dynamická ochrana: Automaticky zapne a vynúti RLS na ÚPLNE VŠETKÝCH tabuľkách v public schéme
+DO $$
+DECLARE
+  t RECORD;
+BEGIN
+  FOR t IN (
+    SELECT tablename 
+    FROM pg_tables 
+    WHERE schemaname = 'public'
+  ) LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t.tablename);
+    EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY;', t.tablename);
+  END LOOP;
+END $$;
+
 -- ------------------------------------------------------------------------------
--- 2. BEZPEČNÉ POMOCNÉ FUNKCIE (SECURITY DEFINER)
+-- 2. OPRÁVNENIA PODĽA PRINCÍPU NAJMENŠÍCH PRÁV (LEAST PRIVILEGE)
+-- ------------------------------------------------------------------------------
+-- Freelancers: Anon ani bežný authenticated nesmie vidieť pin_code ani hromadne sťahovať tabuľku
+REVOKE ALL ON public.freelancers FROM anon, authenticated;
+GRANT INSERT ON public.freelancers TO anon, authenticated;
+GRANT SELECT (id, nick, created_at) ON public.freelancers TO anon, authenticated;
+GRANT ALL ON public.freelancers TO service_role;
+
+-- Projects a Project Items: Základné DML práva (samotné riadky prísne filtrujú RLS politiky)
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.projects TO anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.project_items TO anon, authenticated, service_role;
+
+-- ------------------------------------------------------------------------------
+-- 3. BEZPEČNÉ POMOCNÉ FUNKCIE (SECURITY DEFINER & HARDENED SEARCH_PATH)
 -- ------------------------------------------------------------------------------
 
--- A. Čítanie HTTP hlavičiek z PostgREST požiadavky
+-- A. Bezpečné čítanie HTTP hlavičiek z PostgREST požiadavky
 CREATE OR REPLACE FUNCTION public.get_request_header(header_name text)
 RETURNS text
 LANGUAGE plpgsql
 STABLE
+SET search_path = public
 AS $$
 DECLARE
   headers_raw text;
@@ -43,7 +75,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_request_header(text) TO anon, authenticated, service_role;
 
--- B. Bezpečné overenie, či má freelancer platný PIN hash (rieši cross-table oprávnenia)
+-- B. Bezpečné overenie, či má freelancer platný PIN hash (rieši cross-table práva bez cyklenia)
 CREATE OR REPLACE FUNCTION public.is_freelancer_authenticated(p_nick text, p_pin_hash text)
 RETURNS boolean
 LANGUAGE plpgsql
@@ -65,7 +97,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.is_freelancer_authenticated(text, text) TO anon, authenticated, service_role;
 
--- C. Bezpečná kontrola dostupnosti nicku (pre registráciu)
+-- C. Bezpečná kontrola dostupnosti nicku (pre registráciu, chráni pred enumeráciou hashov)
 CREATE OR REPLACE FUNCTION public.check_nick_available(check_nick text)
 RETURNS boolean
 LANGUAGE plpgsql
@@ -85,7 +117,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.check_nick_available(text) TO anon, authenticated, service_role;
 
--- D. Bezpečné overenie PINu pre /api/verify-pin
+-- D. Bezpečné overenie PINu na serveri pre /api/verify-pin
 CREATE OR REPLACE FUNCTION public.verify_freelancer_pin(
   p_nick text,
   p_salted_hash text,
@@ -160,11 +192,13 @@ BEGIN
     RETURN false;
   END IF;
 
+  -- 1. Klient pristupuje cez overený link (slug projektu)
   v_client_slug := public.get_request_header('x-project-slug');
   IF v_client_slug IS NOT NULL AND (v_proj.slug = v_client_slug OR v_proj.id::text = v_client_slug) THEN
     RETURN true;
   END IF;
 
+  -- 2. Freelancer pristupuje k vlastnému projektu (overený nick + PIN hash)
   v_fl_nick := public.get_request_header('x-freelancer-nick');
   v_fl_auth := public.get_request_header('x-freelancer-auth');
   IF v_fl_nick IS NOT NULL AND lower(v_proj.freelancer_name) = lower(v_fl_nick) THEN
@@ -178,7 +212,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.can_access_project(uuid) TO anon, authenticated, service_role;
 
 -- ------------------------------------------------------------------------------
--- 3. ZABEZPEČENIE TABUĽKY: public.freelancers
+-- 4. ZABEZPEČENIE TABUĽKY: public.freelancers
 -- ------------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Anonymné vyhlačávanie freelancera podľa nicku" ON public.freelancers;
 DROP POLICY IF EXISTS "Freelancer si môže vytvoriť účet" ON public.freelancers;
@@ -187,11 +221,7 @@ DROP POLICY IF EXISTS "insert_freelancers_anon" ON public.freelancers;
 DROP POLICY IF EXISTS "freelancers_insert_policy" ON public.freelancers;
 DROP POLICY IF EXISTS "freelancers_select_policy" ON public.freelancers;
 
--- Zákaz priameho čítania hesiel/hashov celej tabuľky
-REVOKE ALL ON public.freelancers FROM anon;
-GRANT INSERT ON public.freelancers TO anon;
-GRANT SELECT (id, nick, created_at) ON public.freelancers TO anon;
-
+-- A. INSERT: Vytvorenie nového účtu (validácia štruktúry a SHA-256 hashu)
 CREATE POLICY "freelancers_insert_policy"
   ON public.freelancers FOR INSERT
   TO anon, authenticated
@@ -203,6 +233,7 @@ CREATE POLICY "freelancers_insert_policy"
     AND length(pin_code) = 64
   );
 
+-- B. SELECT: Čítanie vlastného profilu výhradne pri zhode nicku a PIN hashu
 CREATE POLICY "freelancers_select_policy"
   ON public.freelancers FOR SELECT
   TO anon, authenticated
@@ -216,7 +247,7 @@ CREATE POLICY "freelancers_select_policy"
   );
 
 -- ------------------------------------------------------------------------------
--- 4. ZABEZPEČENIE TABUĽKY: public.projects
+-- 5. ZABEZPEČENIE TABUĽKY: public.projects
 -- ------------------------------------------------------------------------------
 DROP POLICY IF EXISTS "select_projects_public" ON public.projects;
 DROP POLICY IF EXISTS "update_projects_anon" ON public.projects;
@@ -228,11 +259,12 @@ DROP POLICY IF EXISTS "projects_delete_secure" ON public.projects;
 DROP POLICY IF EXISTS "projects_insert_secure" ON public.projects;
 
 -- A. SELECT: Zákaz neoprávneného dumpu všetkých projektov!
+-- Neautentifikovaný dotaz bez hlavičiek vráti čistých 0 riadkov.
 CREATE POLICY "projects_select_secure"
   ON public.projects FOR SELECT
   TO anon, authenticated
   USING (
-    -- 1. Klient pristupuje k svojmu projektu cez hlavičku x-project-slug
+    -- 1. Klient pristupuje k svojmu projektu cez unikátny slug
     (
       public.get_request_header('x-project-slug') IS NOT NULL
       AND (
@@ -249,11 +281,11 @@ CREATE POLICY "projects_select_secure"
         public.get_request_header('x-freelancer-auth')
       )
     )
-    -- 3. Service role
+    -- 3. Servisná rola (Vercel Cron purge, backend)
     OR auth.role() = 'service_role'
   );
 
--- B. INSERT: Vytvorenie projektu smie vykonať iba overený freelancer
+-- B. INSERT: Vytvorenie projektu smie vykonať VÝHRADNE overený freelancer pre seba
 CREATE POLICY "projects_insert_secure"
   ON public.projects FOR INSERT
   TO anon, authenticated
@@ -275,7 +307,7 @@ CREATE POLICY "projects_insert_secure"
     )
   );
 
--- C. UPDATE: Klient smie meniť iba svoj projekt; Freelancer svoje projekty
+-- C. UPDATE: Klient smie meniť iba svoj projekt (dávky/status); Freelancer svoje projekty
 CREATE POLICY "projects_update_secure"
   ON public.projects FOR UPDATE
   TO anon, authenticated
@@ -308,11 +340,15 @@ CREATE POLICY "projects_update_secure"
     OR (
       public.get_request_header('x-freelancer-nick') IS NOT NULL
       AND lower(freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      AND public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
     )
     OR auth.role() = 'service_role'
   );
 
--- D. DELETE: Mazať projekt smie VÝHRADNE overený freelancer (vlastník)
+-- D. DELETE: Mazať projekt smie VÝHRADNE overený vlastník projektu
 CREATE POLICY "projects_delete_secure"
   ON public.projects FOR DELETE
   TO anon, authenticated
@@ -329,7 +365,7 @@ CREATE POLICY "projects_delete_secure"
   );
 
 -- ------------------------------------------------------------------------------
--- 5. ZABEZPEČENIE TABUĽKY: public.project_items
+-- 6. ZABEZPEČENIE TABUĽKY: public.project_items
 -- ------------------------------------------------------------------------------
 DROP POLICY IF EXISTS "select_items_public" ON public.project_items;
 DROP POLICY IF EXISTS "update_items_anon" ON public.project_items;
@@ -340,6 +376,7 @@ DROP POLICY IF EXISTS "items_insert_secure" ON public.project_items;
 DROP POLICY IF EXISTS "items_update_secure" ON public.project_items;
 DROP POLICY IF EXISTS "items_delete_secure" ON public.project_items;
 
+-- A. SELECT: Čítať položky smie len klient s prístupom k slug alebo vlastník projektu
 CREATE POLICY "items_select_secure"
   ON public.project_items FOR SELECT
   TO anon, authenticated
@@ -347,6 +384,8 @@ CREATE POLICY "items_select_secure"
     public.can_access_project(project_items.project_id)
   );
 
+-- B. INSERT: Vkladať položky smie iba overený freelancer a VÝHRADNE do svojich projektov!
+-- (Zabraňuje cross-tenant injektovaniu položiek do cudzích zákaziek)
 CREATE POLICY "items_insert_secure"
   ON public.project_items FOR INSERT
   TO anon, authenticated
@@ -360,18 +399,29 @@ CREATE POLICY "items_insert_secure"
           public.get_request_header('x-freelancer-nick'),
           public.get_request_header('x-freelancer-auth')
         )
+        AND EXISTS (
+          SELECT 1 FROM public.projects p
+          WHERE p.id = project_items.project_id
+            AND lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+        )
       )
       OR auth.role() = 'service_role'
     )
   );
 
+-- C. UPDATE: Klient (nahranie podkladu) alebo freelancer smú meniť iba položky svojich projektov
 CREATE POLICY "items_update_secure"
   ON public.project_items FOR UPDATE
   TO anon, authenticated
   USING (
     public.can_access_project(project_items.project_id)
+  )
+  WITH CHECK (
+    public.can_access_project(project_items.project_id)
   );
 
+-- D. DELETE: Mazať položky smie VÝHRADNE overený freelancer do vlastného projektu!
+-- (Zabraňuje cross-tenant mazaniu položiek cudzích projektov)
 CREATE POLICY "items_delete_secure"
   ON public.project_items FOR DELETE
   TO anon, authenticated
@@ -382,12 +432,17 @@ CREATE POLICY "items_delete_secure"
         public.get_request_header('x-freelancer-nick'),
         public.get_request_header('x-freelancer-auth')
       )
+      AND EXISTS (
+        SELECT 1 FROM public.projects p
+        WHERE p.id = project_items.project_id
+          AND lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+      )
     )
     OR auth.role() = 'service_role'
   );
 
 -- ------------------------------------------------------------------------------
--- 6. ZABEZPEČENIE STORAGE BUCKETU: client-uploads
+-- 7. ZABEZPEČENIE STORAGE BUCKETU: client-uploads
 -- ------------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Verejné nahrávanie podkladov klientmi" ON storage.objects;
 DROP POLICY IF EXISTS "Verejné čítanie a sťahovanie podkladov" ON storage.objects;
@@ -395,6 +450,7 @@ DROP POLICY IF EXISTS "Odstránenie podkladov" ON storage.objects;
 DROP POLICY IF EXISTS "storage_upload_secure" ON storage.objects;
 DROP POLICY IF EXISTS "storage_select_secure" ON storage.objects;
 
+-- A. Nahrávanie súborov: Povolené len do bucketu client-uploads, zákaz interných _ ciest
 CREATE POLICY "storage_upload_secure"
   ON storage.objects FOR INSERT
   TO anon, authenticated
@@ -403,6 +459,7 @@ CREATE POLICY "storage_upload_secure"
     AND NOT (name LIKE '_%')
   );
 
+-- B. Čítanie súborov: Povolené pre klientske súbory, chráni _profiles/ pred verejným čítaním
 CREATE POLICY "storage_select_secure"
   ON storage.objects FOR SELECT
   TO anon, authenticated
@@ -410,3 +467,31 @@ CREATE POLICY "storage_select_secure"
     bucket_id = 'client-uploads'
     AND NOT (name LIKE '_profiles/%')
   );
+
+-- ------------------------------------------------------------------------------
+-- 8. KONTROLNÝ AUDIT & OVERENIE NASTAVENIA RLS (Spustiteľný v SQL Editore)
+-- ------------------------------------------------------------------------------
+-- Nasledujúce dotazy overujú stav zabezpečenia:
+
+-- 1. Skontroluj, či je RLS zapnuté (rls_enabled) a vynútené (rls_forced) na VŠETKÝCH tabuľkách:
+SELECT 
+  c.relname AS tablename, 
+  c.relrowsecurity AS rls_enabled,
+  c.relforcerowsecurity AS rls_forced
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' 
+  AND c.relkind = 'r'
+ORDER BY c.relname;
+
+-- 2. Zoznam všetkých aktívnych politík v databáze:
+SELECT 
+  schemaname, 
+  tablename, 
+  policyname, 
+  permissive, 
+  roles, 
+  cmd 
+FROM pg_policies 
+WHERE schemaname = 'public'
+ORDER BY tablename, cmd;
