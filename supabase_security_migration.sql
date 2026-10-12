@@ -43,6 +43,8 @@ END $$;
 REVOKE ALL ON public.freelancers FROM anon, authenticated;
 GRANT INSERT ON public.freelancers TO anon, authenticated;
 GRANT SELECT (id, nick, created_at) ON public.freelancers TO anon, authenticated;
+GRANT UPDATE (pin_code, email) ON public.freelancers TO anon, authenticated;
+GRANT DELETE ON public.freelancers TO anon, authenticated;
 GRANT ALL ON public.freelancers TO service_role;
 
 -- Projects a Project Items: Základné DML práva (samotné riadky prísne filtrujú RLS politiky)
@@ -116,6 +118,26 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.check_nick_available(text) TO anon, authenticated, service_role;
+
+-- C2. Bezpečná kontrola dostupnosti e-mailu (SECURITY DEFINER funkcia bez úniku hashov)
+CREATE OR REPLACE FUNCTION public.check_email_available(check_email text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF check_email IS NULL OR length(trim(check_email)) < 3 OR position('@' in check_email) = 0 THEN
+    RETURN false;
+  END IF;
+  RETURN NOT EXISTS (
+    SELECT 1 FROM public.freelancers 
+    WHERE lower(email) = lower(trim(check_email))
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.check_email_available(text) TO anon, authenticated, service_role;
 
 -- D. Bezpečné overenie PINu na serveri pre /api/verify-pin
 CREATE OR REPLACE FUNCTION public.verify_freelancer_pin(
@@ -220,6 +242,8 @@ DROP POLICY IF EXISTS "select_freelancers_public" ON public.freelancers;
 DROP POLICY IF EXISTS "insert_freelancers_anon" ON public.freelancers;
 DROP POLICY IF EXISTS "freelancers_insert_policy" ON public.freelancers;
 DROP POLICY IF EXISTS "freelancers_select_policy" ON public.freelancers;
+DROP POLICY IF EXISTS "freelancers_update_policy" ON public.freelancers;
+DROP POLICY IF EXISTS "freelancers_delete_policy" ON public.freelancers;
 
 -- A. INSERT: Vytvorenie nového účtu (validácia štruktúry a SHA-256 hashu)
 CREATE POLICY "freelancers_insert_policy"
@@ -236,6 +260,40 @@ CREATE POLICY "freelancers_insert_policy"
 -- B. SELECT: Čítanie vlastného profilu výhradne pri zhode nicku a PIN hashu
 CREATE POLICY "freelancers_select_policy"
   ON public.freelancers FOR SELECT
+  TO anon, authenticated
+  USING (
+    (
+      public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      AND pin_code = public.get_request_header('x-freelancer-auth')
+    )
+    OR auth.role() = 'service_role'
+  );
+
+-- C. UPDATE: Zmena údajov (PIN kód / e-mail) výhradne pre overeného vlastníka účtu
+CREATE POLICY "freelancers_update_policy"
+  ON public.freelancers FOR UPDATE
+  TO anon, authenticated
+  USING (
+    (
+      public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      AND pin_code = public.get_request_header('x-freelancer-auth')
+    )
+    OR auth.role() = 'service_role'
+  )
+  WITH CHECK (
+    (
+      public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      AND (pin_code IS NULL OR length(pin_code) = 64)
+    )
+    OR auth.role() = 'service_role'
+  );
+
+-- D. DELETE: Vymazanie účtu výhradne pre overeného vlastníka účtu
+CREATE POLICY "freelancers_delete_policy"
+  ON public.freelancers FOR DELETE
   TO anon, authenticated
   USING (
     (

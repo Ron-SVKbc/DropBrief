@@ -100,6 +100,8 @@ grant execute on function public.get_request_header(text) to anon, authenticated
 revoke all on public.freelancers from anon, authenticated;
 grant insert on public.freelancers to anon, authenticated;
 grant select (id, nick, created_at) on public.freelancers to anon, authenticated;
+grant update (pin_code, email) on public.freelancers to anon, authenticated;
+grant delete on public.freelancers to anon, authenticated;
 
 -- Bezpečné overenie, či má freelancer platný PIN hash (rieši cross-table práva bez chýb)
 create or replace function public.is_freelancer_authenticated(p_nick text, p_pin_hash text)
@@ -268,6 +270,38 @@ create policy "freelancers_insert_policy"
 
 create policy "freelancers_select_policy"
   on public.freelancers for select
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      and pin_code = public.get_request_header('x-freelancer-auth')
+    )
+    or auth.role() = 'service_role'
+  );
+
+create policy "freelancers_update_policy"
+  on public.freelancers for update
+  to anon, authenticated
+  using (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      and pin_code = public.get_request_header('x-freelancer-auth')
+    )
+    or auth.role() = 'service_role'
+  )
+  with check (
+    (
+      public.get_request_header('x-freelancer-nick') is not null
+      and lower(nick) = lower(public.get_request_header('x-freelancer-nick'))
+      and (pin_code is null or length(pin_code) = 64)
+    )
+    or auth.role() = 'service_role'
+  );
+
+create policy "freelancers_delete_policy"
+  on public.freelancers for delete
   to anon, authenticated
   using (
     (
