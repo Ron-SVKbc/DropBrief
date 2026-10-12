@@ -112,16 +112,24 @@ export default function Navbar({ onOpenCreateModal }) {
       }}>
         
         {/* ── Brand ─────────────────────────────────────────── */}
-        <div 
+        <button 
+          type="button"
+          onClick={openDashboard}
+          aria-label="DropBrief - Prejsť na hlavný panel"
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '10px', 
             cursor: 'pointer',
             userSelect: 'none',
-            flexShrink: 0
+            flexShrink: 0,
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            textAlign: 'left',
+            color: 'inherit',
+            font: 'inherit'
           }} 
-          onClick={openDashboard}
           title="Go to main dashboard"
         >
           {/* Logo mark */}
@@ -139,7 +147,7 @@ export default function Navbar({ onOpenCreateModal }) {
             transition: 'var(--transition)',
             flexShrink: 0
           }}>
-            <FolderSync size={19} />
+            <FolderSync size={19} aria-hidden="true" />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
@@ -155,12 +163,12 @@ export default function Navbar({ onOpenCreateModal }) {
               </span>
               {isLiveDb ? (
                 <span className="badge badge-success" style={{ fontSize: '0.6rem', padding: '2px 7px', gap: '4px' }}>
-                  <span className="status-dot status-dot-live" style={{ width: '5px', height: '5px' }} />
+                  <span className="status-dot status-dot-live" style={{ width: '5px', height: '5px' }} aria-hidden="true" />
                   Live
                 </span>
               ) : (
                 <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px', gap: '3px' }}>
-                  <Zap size={9} /> Free
+                  <Zap size={9} aria-hidden="true" /> Free
                 </span>
               )}
             </div>
@@ -168,10 +176,10 @@ export default function Navbar({ onOpenCreateModal }) {
               Automated client asset collection
             </p>
           </div>
-        </div>
+        </button>
 
         {/* ── View Switcher ──────────────────────────────────── */}
-        <div className="segmented-control navbar-segmented">
+        <div className="segmented-control navbar-segmented" role="navigation" aria-label="Prepínač pohľadov">
           <button
             id="nav-dashboard-tab"
             onClick={handleDashboardClick}
@@ -181,7 +189,7 @@ export default function Navbar({ onOpenCreateModal }) {
               padding: '5px 13px', fontSize: '0.8rem'
             }}
           >
-            <LayoutDashboard size={13} />
+            <LayoutDashboard size={13} aria-hidden="true" />
             {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Back' : 'Dashboard') : 'For Freelancers'}
           </button>
 
@@ -191,6 +199,9 @@ export default function Navbar({ onOpenCreateModal }) {
                 id="nav-client-portal-tab"
                 type="button"
                 onClick={() => setIsClientDropdownOpen((prev) => !prev)}
+                aria-expanded={isClientDropdownOpen}
+                aria-haspopup="true"
+                aria-label="Výber projektu pre klientsky náhľad"
                 className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ 
                   border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
@@ -200,7 +211,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 }}
                 title="Click to select a project for client preview"
               >
-                <Eye size={13} />
+                <Eye size={13} aria-hidden="true" />
                 <span>
                   {currentView === 'client-portal' && currentPortalProject 
                     ? `Preview: ${currentPortalProject.title.length > 16 ? currentPortalProject.title.slice(0, 15) + '...' : currentPortalProject.title}` 
@@ -208,6 +219,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 </span>
                 <ChevronDown 
                   size={12} 
+                  aria-hidden="true"
                   style={{ 
                     transform: isClientDropdownOpen ? 'rotate(180deg)' : 'none', 
                     transition: 'transform 0.2s ease',
@@ -220,6 +232,8 @@ export default function Navbar({ onOpenCreateModal }) {
               {isClientDropdownOpen && (
                 <div 
                   className="animate-fade-in"
+                  role="menu"
+                  aria-label="Zoznam projektov pre klientsky náhľad"
                   style={{
                     position: 'absolute',
                     top: 'calc(100% + 8px)',
@@ -246,7 +260,7 @@ export default function Navbar({ onOpenCreateModal }) {
                     alignItems: 'center'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Eye size={13} color="var(--accent-primary)" />
+                      <Eye size={13} color="var(--accent-primary)" aria-hidden="true" />
                       <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Select Project for Preview
                       </span>
@@ -377,10 +391,10 @@ export default function Navbar({ onOpenCreateModal }) {
               }}
               title="Try the client portal without login (Interactive Demo)"
             >
-              <Eye size={13} />
+              <Eye size={13} aria-hidden="true" />
               <span>Client View</span>
               <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '1px 5px', gap: '3px' }}>
-                <Sparkles size={8} /> Demo
+                <Sparkles size={8} aria-hidden="true" /> Demo
               </span>
             </button>
           )}
@@ -392,11 +406,12 @@ export default function Navbar({ onOpenCreateModal }) {
           <button
             id="btn-security-info"
             onClick={() => setIsLegalModalOpen(true)}
+            aria-label="Informácie o bezpečnosti údajov a GDPR"
             className="btn btn-secondary btn-sm btn-pill"
             title="Data security & GDPR information"
             style={{ gap: '5px' }}
           >
-            <ShieldCheck size={14} color="var(--success)" />
+            <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
             <span className="navbar-gdpr-label" style={{ fontSize: '0.78rem' }}>GDPR</span>
           </button>
 
@@ -423,7 +438,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   fontWeight: 800, fontSize: '0.7rem', color: '#fff',
                   boxShadow: '0 0 8px rgba(99, 102, 241, 0.4)',
                   flexShrink: 0
-                }}>
+                }} aria-hidden="true">
                   {currentFreelancer.nick.charAt(0).toUpperCase()}
                 </div>
                 <strong style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{currentFreelancer.nick}</strong>
@@ -433,6 +448,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   <button
                     type="button"
                     onClick={handleCopyMyPin}
+                    aria-label={`Skopírovať PIN kód (${currentFreelancer.pin})`}
                     title="Click to copy PIN code"
                     style={{
                       background: 'rgba(99, 102, 241, 0.14)',
@@ -448,7 +464,7 @@ export default function Navbar({ onOpenCreateModal }) {
                       letterSpacing: '0.05em'
                     }}
                   >
-                    {copiedPin ? <Check size={10} color="var(--success)" /> : <KeyRound size={10} color="var(--accent-primary)" />}
+                    {copiedPin ? <Check size={10} color="var(--success)" aria-hidden="true" /> : <KeyRound size={10} color="var(--accent-primary)" aria-hidden="true" />}
                     {currentFreelancer.pin}
                   </button>
                 )}
@@ -460,7 +476,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 onClick={onOpenCreateModal}
                 className="btn btn-primary btn-sm btn-pill"
               >
-                <Plus size={14} />
+                <Plus size={14} aria-hidden="true" />
                 New Project
               </button>
 
@@ -468,11 +484,12 @@ export default function Navbar({ onOpenCreateModal }) {
               <button
                 id="btn-nav-logout"
                 onClick={logoutFreelancer}
+                aria-label="Odhlásiť sa z účtu"
                 className="btn btn-secondary btn-sm"
                 title="Log out"
                 style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)' }}
               >
-                <LogOut size={14} />
+                <LogOut size={14} aria-hidden="true" />
               </button>
 
             </div>
@@ -483,7 +500,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 onClick={() => openAuthModal('login')}
                 className="btn btn-secondary btn-sm btn-pill"
               >
-                <KeyRound size={13} />
+                <KeyRound size={13} aria-hidden="true" />
                 Log In
               </button>
 
@@ -493,7 +510,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 className="btn btn-primary btn-sm btn-pill"
                 style={{ boxShadow: 'var(--glow-accent)' }}
               >
-                <Plus size={13} />
+                <Plus size={13} aria-hidden="true" />
                 Sign Up Free
               </button>
             </div>

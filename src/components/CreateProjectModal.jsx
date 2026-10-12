@@ -55,6 +55,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     return PROJECT_TEMPLATES[0].items.map((i) => ({ ...i }));
   });
 
+  // Close modal on Escape key press (WCAG 2.1.2)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSelectTemplate = (tpl) => {
@@ -129,6 +139,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     >
       <div 
         className="auth-modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-project-modal-title"
         style={{
           width: '100%',
           maxWidth: '740px',
@@ -161,10 +174,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               color: '#fff',
               boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
             }}>
-              <Plus size={20} />
+              <Plus size={20} aria-hidden="true" />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              <h2 id="create-project-modal-title" style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Create New Asset Collection
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
@@ -176,10 +189,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <button 
             id="btn-close-modal"
             onClick={onClose} 
+            aria-label="Zatvoriť dialógové okno vytvorenia projektu"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -191,15 +205,18 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
               1. Choose Industry Template
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Výber šablóny">
               {PROJECT_TEMPLATES.map((tpl) => {
                 const IconComponent = ICONS_MAP[tpl.icon] || Globe;
                 const isSelected = selectedTemplateId === tpl.id;
 
                 return (
-                  <div
+                  <button
                     key={tpl.id}
                     id={`tpl-card-${tpl.id}`}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     onClick={() => handleSelectTemplate(tpl)}
                     style={{
                       padding: '14px 10px',
@@ -213,27 +230,29 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      color: 'inherit',
+                      font: 'inherit'
                     }}
                   >
-                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} style={{ marginBottom: '6px' }} />
+                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} aria-hidden="true" style={{ marginBottom: '6px' }} />
                     <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)', marginBottom: '4px' }}>
                       {tpl.name}
                     </div>
                     {tpl.id === 'social-media' ? (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <RefreshCw size={9} /> Ongoing
+                        <RefreshCw size={9} aria-hidden="true" /> Ongoing
                       </span>
                     ) : tpl.id === 'custom' ? (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Sparkles size={9} /> Custom
+                        <Sparkles size={9} aria-hidden="true" /> Custom
                       </span>
                     ) : (
                       <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Zap size={9} /> One-off
+                        <Zap size={9} aria-hidden="true" /> One-off
                       </span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -244,10 +263,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
               <span>2. Engagement Type *</span>
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Typ spolupráce">
               {/* Option 1: One-off */}
-              <div 
+              <button 
                 id="btn-select-one-off"
+                type="button"
+                role="radio"
+                aria-checked={projectType === 'one-off'}
                 onClick={() => setProjectType('one-off')}
                 style={{
                   padding: '12px 14px',
@@ -259,7 +281,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   transition: 'var(--transition)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px'
+                  gap: '12px',
+                  textAlign: 'left',
+                  color: 'inherit',
+                  font: 'inherit'
                 }}
               >
                 <div style={{
@@ -270,7 +295,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <Zap size={18} />
+                  <Zap size={18} aria-hidden="true" />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'one-off' ? '#fff' : 'var(--text-primary)' }}>
@@ -280,12 +305,15 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     Web design, branding, redesign, single delivery
                   </div>
                 </div>
-                {projectType === 'one-off' && <Check size={16} color="#38bdf8" />}
-              </div>
+                {projectType === 'one-off' && <Check size={16} color="#38bdf8" aria-hidden="true" />}
+              </button>
 
               {/* Option 2: Ongoing */}
-              <div 
+              <button 
                 id="btn-select-ongoing"
+                type="button"
+                role="radio"
+                aria-checked={projectType === 'ongoing'}
                 onClick={() => setProjectType('ongoing')}
                 style={{
                   padding: '12px 14px',
@@ -297,7 +325,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   transition: 'var(--transition)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px'
+                  gap: '12px',
+                  textAlign: 'left',
+                  color: 'inherit',
+                  font: 'inherit'
                 }}
               >
                 <div style={{
@@ -308,7 +339,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <RefreshCw size={18} />
+                  <RefreshCw size={18} aria-hidden="true" />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'ongoing' ? '#fff' : 'var(--text-primary)' }}>
@@ -318,8 +349,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     Social media, monthly management, recurring retainer
                   </div>
                 </div>
-                {projectType === 'ongoing' && <Check size={16} color="#c084fc" />}
-              </div>
+                {projectType === 'ongoing' && <Check size={16} color="#c084fc" aria-hidden="true" />}
+              </button>
             </div>
 
             {/* Cadence picker for recurring projects */}
@@ -569,10 +600,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
+                    aria-label={`Odstrániť požiadavku ${item.title || idx + 1}`}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
                     title="Remove item"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </div>
               ))}
@@ -596,7 +628,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               type="submit" 
               className="btn btn-primary btn-pill"
             >
-              <Check size={16} /> Create & Get Link
+              <Check size={16} aria-hidden="true" /> Create & Get Link
             </button>
           </div>
 

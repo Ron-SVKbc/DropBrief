@@ -54,6 +54,16 @@ export default function AuthModal() {
     }
   }, [isAuthModalOpen, authModalMode]);
 
+  // Close modal on Escape key press (WCAG 2.1.2)
+  useEffect(() => {
+    if (!isAuthModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeAuthModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAuthModalOpen, closeAuthModal]);
+
   if (!isAuthModalOpen) return null;
 
   const handleLoginSubmit = async (e) => {
@@ -103,6 +113,9 @@ export default function AuthModal() {
     >
       <div 
         className="auth-modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
         style={{
           width: '100%',
           maxWidth: '500px',
@@ -135,10 +148,10 @@ export default function AuthModal() {
               color: '#fff',
               boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
             }}>
-              <KeyRound size={20} />
+              <KeyRound size={20} aria-hidden="true" />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+              <h3 id="auth-modal-title" style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
                 {authModalMode === 'pin_reveal' ? '🎉 Your Account is Ready!' : 
                  authModalMode === 'register' ? 'New Freelancer Account' : 'Dashboard Login'}
               </h3>
@@ -152,10 +165,11 @@ export default function AuthModal() {
           <button 
             id="btn-close-auth-modal"
             onClick={closeAuthModal}
+            aria-label="Zatvoriť prihlasovacie okno"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 
@@ -212,10 +226,11 @@ export default function AuthModal() {
                 id="btn-copy-pin"
                 type="button"
                 onClick={() => handleCopyPin(authRegisteredData.pin)}
+                aria-label="Skopírovať PIN kód do schránky"
                 className={`btn btn-sm btn-pill ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ margin: '0 auto', fontSize: '0.85rem', padding: '7px 18px' }}
               >
-                {copiedPin ? <Check size={15} /> : <Copy size={15} />}
+                {copiedPin ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                 {copiedPin ? 'Copied to clipboard!' : 'Copy PIN Code'}
               </button>
             </div>
@@ -303,7 +318,7 @@ export default function AuthModal() {
             {authModalMode === 'login' && (
               <form onSubmit={handleLoginSubmit} style={{ padding: '26px' }}>
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  <label htmlFor="login-nick-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Your Nickname / Studio Name
                   </label>
                   <input
@@ -320,15 +335,16 @@ export default function AuthModal() {
 
                 <div style={{ marginBottom: '26px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    <label htmlFor="login-pin-input" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       6-digit numeric PIN
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
+                      aria-label={showPin ? 'Skryť PIN kód' : 'Zobraziť PIN kód'}
                       style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      {showPin ? <EyeOff size={13} /> : <Eye size={13} />}
+                      {showPin ? <EyeOff size={13} aria-hidden="true" /> : <Eye size={13} aria-hidden="true" />}
                       {showPin ? 'Hide' : 'Show'}
                     </button>
                   </div>

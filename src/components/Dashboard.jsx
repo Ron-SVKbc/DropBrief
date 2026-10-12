@@ -243,12 +243,13 @@ export default function Dashboard({ onOpenCreateModal }) {
       }}>
         {/* Search */}
         <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 300px', maxWidth: '420px' }}>
-          <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <Search size={15} aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
           <input
             id="search-projects-input"
             type="text"
             className="input"
             placeholder="Search projects, clients or emails..."
+            aria-label="Vyhľadať projekty, klientov alebo e-maily"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '36px', paddingRight: searchTerm ? '36px' : '12px', fontSize: 'var(--text-sm)' }}
@@ -257,17 +258,19 @@ export default function Dashboard({ onOpenCreateModal }) {
             <button 
               type="button" 
               onClick={() => setSearchTerm('')} 
+              aria-label="Vymazať vyhľadávanie"
               style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}
             >
-              <X size={14} />
+              <X size={14} aria-hidden="true" />
             </button>
           )}
         </div>
 
         {/* Status Filters */}
-        <div className="segmented-control">
+        <div className="segmented-control" role="group" aria-label="Filtrovanie projektov podľa stavu">
           <button
             onClick={() => setFilterStatus('all')}
+            aria-pressed={filterStatus === 'all'}
             className={`btn btn-sm btn-pill ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
@@ -275,6 +278,7 @@ export default function Dashboard({ onOpenCreateModal }) {
           </button>
           <button
             onClick={() => setFilterStatus('pending')}
+            aria-pressed={filterStatus === 'pending'}
             className={`btn btn-sm btn-pill ${filterStatus === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
@@ -282,6 +286,7 @@ export default function Dashboard({ onOpenCreateModal }) {
           </button>
           <button
             onClick={() => setFilterStatus('completed')}
+            aria-pressed={filterStatus === 'completed'}
             className={`btn btn-sm btn-pill ${filterStatus === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ border: 'none', padding: '5px 13px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
           >
@@ -379,6 +384,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                             e.stopPropagation();
                             toggleProjectType(proj.id);
                           }}
+                          aria-label={`Zmeniť typ spolupráce pre projekt ${proj.title}`}
                           className="badge" 
                           style={{ 
                             background: 'rgba(168, 85, 247, 0.16)', 
@@ -393,7 +399,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                           }}
                           title="Recurring deliverables – click to change engagement type"
                         >
-                          <RefreshCw size={10} /> {formatCadenceBadge(proj.cadenceDays || 1)}
+                          <RefreshCw size={10} aria-hidden="true" /> {formatCadenceBadge(proj.cadenceDays || 1)}
                         </button>
                       ) : (
                         <button 
@@ -403,6 +409,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                             e.stopPropagation();
                             toggleProjectType(proj.id);
                           }}
+                          aria-label={`Zmeniť typ spolupráce pre projekt ${proj.title}`}
                           className="badge" 
                           style={{ 
                             background: 'rgba(56, 189, 248, 0.16)', 
@@ -417,7 +424,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                           }}
                           title="One-off project – click to toggle engagement type"
                         >
-                          <Zap size={10} /> One-off
+                          <Zap size={10} aria-hidden="true" /> One-off
                         </button>
                       )}
                       {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
@@ -492,10 +499,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                         e.stopPropagation();
                         copyClientLink(proj.slug);
                       }}
+                      aria-label={`Skopírovať odkaz pre klienta projektu ${proj.title}`}
                       className="btn btn-secondary btn-sm btn-pill"
                       title="Copy private link for client"
                     >
-                      {isLinkCopied ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
+                      {isLinkCopied ? <Check size={13} color="var(--success)" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
                       {isLinkCopied ? 'Copied!' : 'Copy Link'}
                     </button>
 
@@ -505,11 +513,12 @@ export default function Dashboard({ onOpenCreateModal }) {
                         e.stopPropagation();
                         openProjectDetail(proj.slug);
                       }}
+                      aria-label={`Prejsť na prehľad projektu ${proj.title}`}
                       className="btn btn-primary btn-sm btn-pill"
                       title="Open project overview and asset management"
                       style={{ gap: '5px' }}
                     >
-                      <Eye size={13} />
+                      <Eye size={13} aria-hidden="true" />
                       Project Overview
                     </button>
 
@@ -520,11 +529,12 @@ export default function Dashboard({ onOpenCreateModal }) {
                           deleteProject(proj.id);
                         }
                       }}
+                      aria-label={`Zmazať projekt ${proj.title}`}
                       className="btn btn-secondary btn-sm"
                       style={{ color: 'var(--danger)', padding: '6px 8px', borderRadius: 'var(--radius-full)' }}
                       title="Delete project"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={14} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -539,7 +549,14 @@ export default function Dashboard({ onOpenCreateModal }) {
                       {progressPercent}%
                     </span>
                   </div>
-                  <div className="progress-track">
+                  <div 
+                    className="progress-track"
+                    role="progressbar"
+                    aria-valuenow={progressPercent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Priebeh odovzdávania podkladov pre ${proj.title}: ${progressPercent}%`}
+                  >
                     <div 
                       className="progress-fill" 
                       style={{ 
@@ -614,16 +631,17 @@ export default function Dashboard({ onOpenCreateModal }) {
                           e.stopPropagation();
                           openReminderModal(proj.id);
                         }}
+                        aria-label={`Odoslať e-mailovú pripomienku pre projekt ${proj.title}`}
                         className="btn btn-secondary btn-sm btn-pill"
                         style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem' }}
                         title="Preview and send follow-up reminder"
                       >
-                        <Send size={13} />
+                        <Send size={13} aria-hidden="true" />
                         {proj.lastReminderSent ? `Send Again (${proj.lastReminderSent})` : 'Send Reminder'}
                       </button>
                     ) : (
                       <span style={{ fontSize: '0.8rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                        <CheckCircle2 size={14} /> All assets delivered
+                        <CheckCircle2 size={14} aria-hidden="true" /> All assets delivered
                       </span>
                     )}
                   </div>
@@ -634,10 +652,11 @@ export default function Dashboard({ onOpenCreateModal }) {
                       e.stopPropagation();
                       handleDownloadAll(proj);
                     }}
+                    aria-label={`Exportovať podklady pre projekt ${proj.title} (${completedCount} položiek)`}
                     className="btn btn-secondary btn-sm btn-pill"
                     style={{ fontSize: '0.8rem' }}
                   >
-                    <Download size={13} />
+                    <Download size={13} aria-hidden="true" />
                     Export ({completedCount} items)
                   </button>
                 </div>

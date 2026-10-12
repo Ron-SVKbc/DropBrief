@@ -45,6 +45,16 @@ export default function EmailPreviewModal() {
     }
   }, [previewEmailProject]);
 
+  // Close modal on Escape key press (WCAG 2.1.2)
+  useEffect(() => {
+    if (!previewEmailProject) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewEmailProject]);
+
   if (!previewEmailProject) return null;
 
   const missingItems = previewEmailProject.items.filter((i) => !i.isCompleted);
@@ -105,6 +115,9 @@ export default function EmailPreviewModal() {
     >
       <div 
         className="auth-modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="email-preview-modal-title"
         style={{
           width: '100%',
           maxWidth: '700px',
@@ -139,12 +152,12 @@ export default function EmailPreviewModal() {
               color: '#fff',
               boxShadow: '0 0 15px rgba(56, 189, 248, 0.4)'
             }}>
-              <Zap size={18} color="#ffffff" />
+              <Zap size={18} color="#ffffff" aria-hidden="true" />
             </div>
             <div>
-              <strong style={{ fontSize: '1rem', color: 'var(--text-primary)', display: 'block' }}>
+              <h2 id="email-preview-modal-title" style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                 Send Reminder via Resend
-              </strong>
+              </h2>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Transactional Email API &bull; High inbox deliverability
               </span>
@@ -154,10 +167,11 @@ export default function EmailPreviewModal() {
           <button 
             id="btn-close-email-modal"
             onClick={handleClose}
+            aria-label="Zatvoriť okno odoslania pripomienky"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

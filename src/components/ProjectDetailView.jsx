@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   getTodayDateString, 
@@ -97,6 +97,23 @@ export default function ProjectDetailView() {
   const [editItemDesc, setEditItemDesc] = useState('');
   const [editItemType, setEditItemType] = useState('file');
   const [editItemRequired, setEditItemRequired] = useState(true);
+
+  // Escape key handler to close modals
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isAddItemModalOpen) setIsAddItemModalOpen(false);
+        if (isEditItemModalOpen) {
+          setIsEditItemModalOpen(false);
+          setEditingItem(null);
+        }
+      }
+    };
+    if (isAddItemModalOpen || isEditItemModalOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isAddItemModalOpen, isEditItemModalOpen]);
 
   const isOwner = Boolean(
     project &&
@@ -269,8 +286,9 @@ export default function ProjectDetailView() {
           onClick={openDashboard}
           className="btn btn-secondary btn-sm btn-pill"
           style={{ gap: '6px' }}
+          aria-label="Back to Dashboard"
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={14} aria-hidden="true" />
           Back to Dashboard
         </button>
 
@@ -293,8 +311,9 @@ export default function ProjectDetailView() {
               transition: 'all 0.18s ease'
             }}
             title="Click to toggle project type"
+            aria-label="Toggle project type between One-off and Ongoing Retainer"
           >
-            {project.projectType === 'ongoing' ? <RefreshCw size={11} /> : <Zap size={11} />}
+            {project.projectType === 'ongoing' ? <RefreshCw size={11} aria-hidden="true" /> : <Zap size={11} aria-hidden="true" />}
             {project.projectType === 'ongoing' ? `Ongoing Retainer (${formatCadenceBadge(project.cadenceDays || 1)})` : 'One-off Project'}
           </button>
 
@@ -302,31 +321,31 @@ export default function ProjectDetailView() {
           {project.projectType === 'ongoing' ? (
             isTodaySubmitted(project) ? (
               <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
-                <CheckCircle2 size={12} />
+                <CheckCircle2 size={12} aria-hidden="true" />
                 Delivered today (Ready)
               </span>
             ) : (
               <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
-                <Clock size={12} />
+                <Clock size={12} aria-hidden="true" />
                 Pending for today
               </span>
             )
           ) : (
             isCompleted ? (
               <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
-                <CheckCircle2 size={12} />
+                <CheckCircle2 size={12} aria-hidden="true" />
                 Complete (100% submitted)
               </span>
             ) : (
               <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
-                <Clock size={12} />
+                <Clock size={12} aria-hidden="true" />
                 Waiting on client ({missingCount} pending)
               </span>
             )
           )}
 
           <span className="badge badge-neutral" style={{ padding: '4px 10px', gap: '5px' }}>
-            <BellRing size={11} />
+            <BellRing size={11} aria-hidden="true" />
             Reminder: every {project.reminderFrequency || 3} days
           </span>
 
@@ -348,7 +367,7 @@ export default function ProjectDetailView() {
                 }}
                 title={retention.isPurged ? 'Files were permanently purged in compliance with 30-day GDPR policy' : 'Automated 30-day retention purge'}
               >
-                <ShieldCheck size={11} />
+                <ShieldCheck size={11} aria-hidden="true" />
                 {retention.badgeText}
               </span>
             );
@@ -372,8 +391,9 @@ export default function ProjectDetailView() {
                 borderColor: 'rgba(239, 68, 68, 0.25)'
               }}
               title="Immediately purge project files from cloud storage (GDPR)"
+              aria-label="Immediately purge project files from cloud storage (GDPR)"
             >
-              <Trash2 size={11} color="var(--danger)" />
+              <Trash2 size={11} color="var(--danger)" aria-hidden="true" />
               Purge files now
             </button>
           )}
@@ -409,7 +429,7 @@ export default function ProjectDetailView() {
 
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <User size={14} color="var(--accent-primary)" />
+                <User size={14} color="var(--accent-primary)" aria-hidden="true" />
                 <strong style={{ color: 'var(--text-secondary)' }}>{project.clientName}</strong>
               </span>
 
@@ -428,20 +448,21 @@ export default function ProjectDetailView() {
                   padding: 0
                 }}
                 title="Copy client email"
+                aria-label={`Copy client email: ${project.clientEmail}`}
               >
-                <Mail size={14} />
+                <Mail size={14} aria-hidden="true" />
                 <span>{project.clientEmail}</span>
-                {copiedEmail ? <Check size={12} color="var(--success)" /> : <Copy size={11} style={{ opacity: 0.7 }} />}
+                {copiedEmail ? <Check size={12} color="var(--success)" aria-hidden="true" /> : <Copy size={11} style={{ opacity: 0.7 }} aria-hidden="true" />}
               </button>
 
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <Calendar size={14} />
+                <Calendar size={14} aria-hidden="true" />
                 <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{project.deadline || 'Not set'}</strong></span>
               </span>
 
               {project.lastReminderSent && (
                 <span style={{ color: 'var(--warning-light)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Send size={12} />
+                  <Send size={12} aria-hidden="true" />
                   Last reminder: {project.lastReminderSent}
                 </span>
               )}
@@ -464,8 +485,9 @@ export default function ProjectDetailView() {
                   fontWeight: 700
                 }}
                 title="Send reminder to client via Resend"
+                aria-label={`Send reminder to client (${missingCount} pending)`}
               >
-                <Send size={14} />
+                <Send size={14} aria-hidden="true" />
                 Send Reminder ({missingCount} pending)
               </button>
             ) : (
@@ -475,8 +497,9 @@ export default function ProjectDetailView() {
                 className="btn btn-secondary btn-sm btn-pill"
                 style={{ fontSize: '0.8rem' }}
                 title="Message client"
+                aria-label="Message client"
               >
-                <Send size={13} />
+                <Send size={13} aria-hidden="true" />
                 Message Client
               </button>
             )}
@@ -487,8 +510,9 @@ export default function ProjectDetailView() {
               onClick={handleDownloadAll}
               className="btn btn-secondary btn-sm btn-pill"
               title="Download all delivered assets"
+              aria-label={`Download all delivered assets (${completedCount} completed)`}
             >
-              <Download size={14} />
+              <Download size={14} aria-hidden="true" />
               Export Assets ({completedCount})
             </button>
 
@@ -499,8 +523,9 @@ export default function ProjectDetailView() {
               className="btn btn-secondary btn-sm btn-pill"
               style={{ borderColor: 'var(--accent-primary)', color: '#c7d2fe' }}
               title="Add new checklist requirement"
+              aria-label="Add new checklist requirement"
             >
-              <Plus size={14} color="var(--accent-primary)" />
+              <Plus size={14} color="var(--accent-primary)" aria-hidden="true" />
               Add Item
             </button>
           </div>
@@ -526,7 +551,7 @@ export default function ProjectDetailView() {
               color: 'var(--accent-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0
-            }}>
+            }} aria-hidden="true">
               <ExternalLink size={15} />
             </div>
             <div style={{ minWidth: 0 }}>
@@ -545,8 +570,9 @@ export default function ProjectDetailView() {
               onClick={copyClientLink}
               className="btn btn-secondary btn-sm btn-pill"
               style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+              aria-label="Copy private client portal link"
             >
-              {copiedLink ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
+              {copiedLink ? <Check size={13} color="var(--success)" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
               {copiedLink ? 'Copied!' : 'Copy Link'}
             </button>
 
@@ -556,8 +582,9 @@ export default function ProjectDetailView() {
               className="btn btn-secondary btn-sm btn-pill"
               style={{ padding: '6px 12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
               title="Preview client portal"
+              aria-label="Preview client portal"
             >
-              <Eye size={13} />
+              <Eye size={13} aria-hidden="true" />
               Client Preview
             </button>
           </div>
@@ -579,7 +606,7 @@ export default function ProjectDetailView() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 700 }}>
-                  <RefreshCw size={11} /> Ongoing Retainer
+                  <RefreshCw size={11} aria-hidden="true" /> Ongoing Retainer
                 </span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
                   Permanent client upload link
@@ -591,7 +618,7 @@ export default function ProjectDetailView() {
             </div>
 
             {/* Quick cadence selector buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="group" aria-label="Cadence frequency options">
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Change cadence:</span>
               {[
                 { days: 1, label: 'Every day' },
@@ -617,8 +644,10 @@ export default function ProjectDetailView() {
                       border: isActive ? '1px solid #c084fc' : '1px solid var(--border-subtle)',
                       transition: 'all 0.15s ease'
                     }}
+                    aria-label={`Set cadence to: ${opt.label}`}
+                    aria-pressed={isActive}
                   >
-                    {isActive && <Check size={11} color="#c084fc" style={{ marginRight: '4px' }} />}
+                    {isActive && <Check size={11} color="#c084fc" style={{ marginRight: '4px' }} aria-hidden="true" />}
                     {opt.label}
                   </button>
                 );
@@ -653,7 +682,7 @@ export default function ProjectDetailView() {
                     color: isDelivered ? 'var(--success)' : 'var(--warning)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0
-                  }}>
+                  }} aria-hidden="true">
                     {isDelivered ? <CheckCircle2 size={24} /> : <Clock size={24} />}
                   </div>
                   <div>
@@ -683,8 +712,9 @@ export default function ProjectDetailView() {
                         onClick={handleDownloadAll}
                         className="btn btn-primary btn-sm btn-pill"
                         style={{ gap: '6px' }}
+                        aria-label="Download today submitted assets"
                       >
-                        <Download size={13} />
+                        <Download size={13} aria-hidden="true" />
                         Download Today Assets
                       </button>
                       {todayBatch?.note && (
@@ -696,8 +726,9 @@ export default function ProjectDetailView() {
                           }}
                           className="btn btn-secondary btn-sm btn-pill"
                           style={{ gap: '6px' }}
+                          aria-label="Copy today note from client"
                         >
-                          <Copy size={13} />
+                          <Copy size={13} aria-hidden="true" />
                           Copy Note
                         </button>
                       )}
@@ -714,8 +745,9 @@ export default function ProjectDetailView() {
                         fontWeight: 700,
                         gap: '6px'
                       }}
+                      aria-label="Send reminder to client for today"
                     >
-                      <Send size={13} />
+                      <Send size={13} aria-hidden="true" />
                       Send Reminder for Today
                     </button>
                   )}
@@ -728,7 +760,7 @@ export default function ProjectDetailView() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Layers size={15} color="#c084fc" />
+                <Layers size={15} color="#c084fc" aria-hidden="true" />
                 Submission History ({getProjectBatches(project).length})
               </div>
             </div>
@@ -772,7 +804,7 @@ export default function ProjectDetailView() {
                           color: '#c084fc',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0
-                        }}>
+                        }} aria-hidden="true">
                           <Calendar size={15} />
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -803,8 +835,9 @@ export default function ProjectDetailView() {
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '4px 10px', fontSize: '0.74rem' }}
                             title="Copy note"
+                            aria-label={`Copy note for batch ${batch.date}`}
                           >
-                            <Copy size={12} /> Copy Note
+                            <Copy size={12} aria-hidden="true" /> Copy Note
                           </button>
                         )}
                         <button
@@ -813,8 +846,9 @@ export default function ProjectDetailView() {
                           className="btn btn-secondary btn-sm"
                           style={{ padding: '4px 10px', fontSize: '0.74rem' }}
                           title="Download assets"
+                          aria-label={`Download assets for batch ${batch.date}`}
                         >
-                          <Download size={12} /> Download
+                          <Download size={12} aria-hidden="true" /> Download
                         </button>
                       </div>
                     </div>
@@ -841,7 +875,7 @@ export default function ProjectDetailView() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid var(--success-border)',
               flexShrink: 0
-            }}>
+            }} aria-hidden="true">
               <CheckCircle2 size={16} />
             </div>
           </div>
@@ -852,7 +886,15 @@ export default function ProjectDetailView() {
             {progressPercent}% of deliverables completed
           </div>
           
-          <div className="progress-track" style={{ marginTop: '12px' }}>
+          <div 
+            className="progress-track" 
+            style={{ marginTop: '12px' }}
+            role="progressbar"
+            aria-valuenow={progressPercent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Progress of client deliverables: ${progressPercent}%`}
+          >
             <div 
               className="progress-fill" 
               style={{ 
@@ -875,7 +917,7 @@ export default function ProjectDetailView() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid var(--warning-border)',
               flexShrink: 0
-            }}>
+            }} aria-hidden="true">
               <Clock size={16} />
             </div>
           </div>
@@ -892,12 +934,13 @@ export default function ProjectDetailView() {
                 onClick={() => openReminderModal(project.id)}
                 className="btn btn-secondary btn-sm"
                 style={{ width: '100%', fontSize: '0.76rem', color: 'var(--warning-light)', borderColor: 'var(--warning-border)', padding: '5px 10px' }}
+                aria-label="Send reminder to client for missing deliverables"
               >
-                <Send size={12} /> Send reminder to client
+                <Send size={12} aria-hidden="true" /> Send reminder to client
               </button>
             ) : (
               <div style={{ fontSize: '0.76rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <CheckCircle2 size={13} /> All deliverables received
+                <CheckCircle2 size={13} aria-hidden="true" /> All deliverables received
               </div>
             )}
           </div>
@@ -906,14 +949,14 @@ export default function ProjectDetailView() {
         {/* Metric 3 — Client Submission Rule Info */}
         <div className="glass-card" style={{ padding: '18px 20px', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(13, 18, 32, 0.6) 100%)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <ShieldCheck size={18} color="var(--accent-primary)" />
+            <ShieldCheck size={18} color="var(--accent-primary)" aria-hidden="true" />
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>Secure Deliverables Collection</span>
           </div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', lineHeight: 1.5, marginBottom: '10px' }}>
             Files and text are submitted exclusively by the client through their dedicated link. As a freelancer, you manage the list of requirements here and review submitted deliverables.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--accent-primary-light)', fontWeight: 600 }}>
-            <Sparkles size={12} /> Zero-friction: client needs no password or login
+            <Sparkles size={12} aria-hidden="true" /> Zero-friction: client needs no password or login
           </div>
         </div>
 
@@ -942,11 +985,12 @@ export default function ProjectDetailView() {
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {/* Filter pills */}
-            <div className="segmented-control">
+            <div className="segmented-control" role="group" aria-label="Filter checklist items">
               <button
                 onClick={() => setActiveFilter('all')}
                 className={`btn btn-sm btn-pill ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700 }}
+                aria-pressed={activeFilter === 'all'}
               >
                 All &bull; {totalCount}
               </button>
@@ -954,6 +998,7 @@ export default function ProjectDetailView() {
                 onClick={() => setActiveFilter('missing')}
                 className={`btn btn-sm btn-pill ${activeFilter === 'missing' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'missing' ? '#fff' : 'var(--warning-light)' }}
+                aria-pressed={activeFilter === 'missing'}
               >
                 Missing &bull; {missingCount}
               </button>
@@ -961,6 +1006,7 @@ export default function ProjectDetailView() {
                 onClick={() => setActiveFilter('completed')}
                 className={`btn btn-sm btn-pill ${activeFilter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'completed' ? '#fff' : 'var(--success-light)' }}
+                aria-pressed={activeFilter === 'completed'}
               >
                 Delivered &bull; {completedCount}
               </button>
@@ -972,8 +1018,9 @@ export default function ProjectDetailView() {
               onClick={handleOpenAddItemModal}
               className="btn btn-primary btn-sm btn-pill"
               style={{ gap: '6px' }}
+              aria-label="Add new checklist requirement"
             >
-              <Plus size={14} />
+              <Plus size={14} aria-hidden="true" />
               Add Requirement
             </button>
           </div>
@@ -982,7 +1029,7 @@ export default function ProjectDetailView() {
         {/* Items List */}
         {displayedItems.length === 0 ? (
           <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
-            <CheckCircle2 size={36} color="var(--accent-primary)" style={{ marginBottom: '8px' }} />
+            <CheckCircle2 size={36} color="var(--accent-primary)" style={{ marginBottom: '8px' }} aria-hidden="true" />
             <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>
               {activeFilter === 'missing' ? 'All items have been submitted! 🎉' : activeFilter === 'completed' ? 'No deliverables submitted yet.' : 'This project has no requirements yet.'}
             </h3>
@@ -994,8 +1041,8 @@ export default function ProjectDetailView() {
                   : 'Add your first requirement by clicking the button below.'}
             </p>
             {activeFilter === 'all' && (
-              <button onClick={handleOpenAddItemModal} className="btn btn-primary btn-sm btn-pill">
-                <Plus size={14} /> Add First Requirement
+              <button onClick={handleOpenAddItemModal} className="btn btn-primary btn-sm btn-pill" aria-label="Add first requirement">
+                <Plus size={14} aria-hidden="true" /> Add First Requirement
               </button>
             )}
           </div>
@@ -1039,7 +1086,7 @@ export default function ProjectDetailView() {
                             color: 'var(--success)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0
-                          }}>
+                          }} aria-hidden="true">
                             <CheckCircle2 size={15} />
                           </div>
                         ) : (
@@ -1050,7 +1097,7 @@ export default function ProjectDetailView() {
                             color: 'var(--warning)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0
-                          }}>
+                          }} aria-hidden="true">
                             <Clock size={15} />
                           </div>
                         )}
@@ -1061,7 +1108,7 @@ export default function ProjectDetailView() {
 
                         {/* Badges */}
                         <span className={`badge ${isFile ? 'badge-accent' : 'badge-violet'}`} style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                          {isFile ? <Upload size={10} /> : <FileText size={10} />}
+                          {isFile ? <Upload size={10} aria-hidden="true" /> : <FileText size={10} aria-hidden="true" />}
                           {isFile ? 'File' : 'Text / Details'}
                         </span>
 
@@ -1077,15 +1124,15 @@ export default function ProjectDetailView() {
 
                         {item.purged || project.filesPurged ? (
                           <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '2px 7px', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                            <Trash2 size={10} /> Purged (GDPR 30d)
+                            <Trash2 size={10} aria-hidden="true" /> Purged (GDPR 30d)
                           </span>
                         ) : isItemDone ? (
                           <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Check size={10} /> Submitted by client
+                            <Check size={10} aria-hidden="true" /> Submitted by client
                           </span>
                         ) : (
                           <span className="badge badge-warning" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Clock size={10} /> Missing &bull; Pending
+                            <Clock size={10} aria-hidden="true" /> Missing &bull; Pending
                           </span>
                         )}
                       </div>
@@ -1113,8 +1160,9 @@ export default function ProjectDetailView() {
                         className="btn btn-secondary btn-sm"
                         style={{ padding: '5px 10px', fontSize: '0.78rem', borderRadius: 'var(--radius-sm)' }}
                         title="Edit title, instructions, or requirement type"
+                        aria-label={`Edit requirement: ${item.title}`}
                       >
-                        <Edit3 size={13} />
+                        <Edit3 size={13} aria-hidden="true" />
                         Edit
                       </button>
 
@@ -1124,8 +1172,9 @@ export default function ProjectDetailView() {
                         className="btn btn-secondary btn-sm"
                         style={{ padding: '5px 8px', fontSize: '0.78rem', color: 'var(--danger)', borderRadius: 'var(--radius-sm)' }}
                         title="Delete requirement from project"
+                        aria-label={`Delete requirement: ${item.title}`}
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={13} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -1175,7 +1224,7 @@ export default function ProjectDetailView() {
                                         {isImg && f.url ? (
                                           <img 
                                             src={f.url} 
-                                            alt={f.fileName} 
+                                            alt={f.fileName || 'Preview of client upload'} 
                                             style={{
                                               width: '36px', height: '36px',
                                               objectFit: 'cover',
@@ -1192,7 +1241,7 @@ export default function ProjectDetailView() {
                                             color: 'var(--accent-primary)',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             flexShrink: 0
-                                          }}>
+                                          }} aria-hidden="true">
                                             {isImg ? <ImageIcon size={18} /> : <File size={18} />}
                                           </div>
                                         )}
@@ -1210,7 +1259,7 @@ export default function ProjectDetailView() {
                                       {/* Download Link */}
                                       {project.filesPurged || f.purged ? (
                                         <span style={{ fontSize: '0.74rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(239,68,68,0.1)', padding: '4px 8px', borderRadius: 'var(--radius-xs)' }}>
-                                          <Trash2 size={11} /> Purged (GDPR 30d)
+                                          <Trash2 size={11} aria-hidden="true" /> Purged (GDPR 30d)
                                         </span>
                                       ) : f.url ? (
                                         <a 
@@ -1220,8 +1269,9 @@ export default function ProjectDetailView() {
                                           download={f.fileName}
                                           className="btn btn-secondary btn-sm"
                                           style={{ fontSize: '0.78rem', padding: '5px 12px', gap: '5px' }}
+                                          aria-label={`Download file ${f.fileName}`}
                                         >
-                                          <Download size={12} /> Download file
+                                          <Download size={12} aria-hidden="true" /> Download file
                                         </a>
                                       ) : (
                                         <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
@@ -1249,8 +1299,9 @@ export default function ProjectDetailView() {
                                 }}
                                 className="btn btn-secondary btn-sm"
                                 style={{ padding: '3px 8px', fontSize: '0.74rem', gap: '4px' }}
+                                aria-label={`Copy submitted text for ${item.title}`}
                               >
-                                <Copy size={11} /> Copy text
+                                <Copy size={11} aria-hidden="true" /> Copy text
                               </button>
                             </div>
                             <div style={{
@@ -1283,7 +1334,7 @@ export default function ProjectDetailView() {
                         gap: '12px'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <AlertCircle size={16} color="var(--warning)" style={{ flexShrink: 0 }} />
+                          <AlertCircle size={16} color="var(--warning)" style={{ flexShrink: 0 }} aria-hidden="true" />
                           <div style={{ fontSize: '0.825rem', color: 'var(--warning-light)' }}>
                             <strong>Client has not submitted this deliverable yet.</strong>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
@@ -1296,8 +1347,9 @@ export default function ProjectDetailView() {
                           onClick={() => openReminderModal(project.id)}
                           className="btn btn-secondary btn-sm btn-pill"
                           style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.76rem', padding: '4px 12px' }}
+                          aria-label={`Remind client for ${item.title}`}
                         >
-                          <Send size={11} /> Remind client
+                          <Send size={11} aria-hidden="true" /> Remind client
                         </button>
                       </div>
                     )}
@@ -1321,7 +1373,7 @@ export default function ProjectDetailView() {
         gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          <Sparkles size={16} color="var(--accent-primary)" />
+          <Sparkles size={16} color="var(--accent-primary)" aria-hidden="true" />
           <span>Overall status: <strong>{completedCount} of {totalCount}</strong> requirements completed ({progressPercent}%)</span>
         </div>
 
@@ -1329,15 +1381,17 @@ export default function ProjectDetailView() {
           <button 
             onClick={openDashboard} 
             className="btn btn-secondary btn-sm btn-pill"
+            aria-label="Back to Dashboard"
           >
-            <ArrowLeft size={13} /> Back to Dashboard
+            <ArrowLeft size={13} aria-hidden="true" /> Back to Dashboard
           </button>
           
           <button
             onClick={handleOpenAddItemModal}
             className="btn btn-primary btn-sm btn-pill"
+            aria-label="Add another requirement"
           >
-            <Plus size={14} /> Add Another Requirement
+            <Plus size={14} aria-hidden="true" /> Add Another Requirement
           </button>
         </div>
       </div>
@@ -1363,6 +1417,9 @@ export default function ProjectDetailView() {
         >
           <div 
             className="auth-modal-card animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-item-modal-title"
             style={{
               width: '100%',
               maxWidth: '620px',
@@ -1391,11 +1448,11 @@ export default function ProjectDetailView() {
                   background: 'var(--accent-gradient)',
                   color: '#fff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
+                }} aria-hidden="true">
                   <Plus size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  <h3 id="add-item-modal-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                     Add Requirement to Project
                   </h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
@@ -1408,8 +1465,9 @@ export default function ProjectDetailView() {
                 onClick={() => setIsAddItemModalOpen(false)}
                 className="btn btn-secondary btn-sm"
                 style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
+                aria-label="Close dialog"
               >
-                <X size={16} />
+                <X size={16} aria-hidden="true" />
               </button>
             </div>
 
@@ -1429,6 +1487,7 @@ export default function ProjectDetailView() {
                       onClick={() => handleApplyPreset(p)}
                       className="btn btn-secondary btn-sm"
                       style={{ fontSize: '0.74rem', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}
+                      aria-label={`Apply preset: ${p.title}`}
                     >
                       {p.title.split('(')[0]}
                     </button>
@@ -1438,10 +1497,11 @@ export default function ProjectDetailView() {
 
               {/* Title */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="new-item-title-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                   Requirement Title *
                 </label>
                 <input
+                  id="new-item-title-input"
                   type="text"
                   className="input"
                   placeholder="e.g. Vector logo (SVG, AI) or Website copy"
@@ -1454,10 +1514,11 @@ export default function ProjectDetailView() {
 
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="new-item-desc-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                   Instructions & details for client
                 </label>
                 <textarea
+                  id="new-item-desc-input"
                   className="textarea"
                   rows={3}
                   placeholder="Explain the requirement to the client (e.g. Transparent background logo, SVG or high-resolution PNG)..."
@@ -1469,10 +1530,11 @@ export default function ProjectDetailView() {
               {/* Type and Required row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
                 <div>
-                  <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                  <label htmlFor="new-item-type-select" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                     Deliverable Type
                   </label>
                   <select 
+                    id="new-item-type-select"
                     className="select"
                     value={newItemType}
                     onChange={(e) => setNewItemType(e.target.value)}
@@ -1524,7 +1586,7 @@ export default function ProjectDetailView() {
                   className="btn btn-primary btn-sm btn-pill"
                   style={{ gap: '6px' }}
                 >
-                  <Plus size={14} /> Add to Project
+                  <Plus size={14} aria-hidden="true" /> Add to Project
                 </button>
               </div>
 
@@ -1554,6 +1616,9 @@ export default function ProjectDetailView() {
         >
           <div 
             className="auth-modal-card animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-item-modal-title"
             style={{
               width: '100%',
               maxWidth: '560px',
@@ -1582,11 +1647,11 @@ export default function ProjectDetailView() {
                   background: 'rgba(99, 102, 241, 0.15)',
                   color: 'var(--accent-primary)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
+                }} aria-hidden="true">
                   <Edit3 size={17} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  <h3 id="edit-item-modal-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                     Edit Requirement
                   </h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
@@ -1599,8 +1664,9 @@ export default function ProjectDetailView() {
                 onClick={() => setIsEditItemModalOpen(false)}
                 className="btn btn-secondary btn-sm"
                 style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
+                aria-label="Close dialog"
               >
-                <X size={16} />
+                <X size={16} aria-hidden="true" />
               </button>
             </div>
 
@@ -1609,10 +1675,11 @@ export default function ProjectDetailView() {
               
               {/* Title */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="edit-item-title-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                   Requirement Title *
                 </label>
                 <input
+                  id="edit-item-title-input"
                   type="text"
                   className="input"
                   value={editItemTitle}
@@ -1623,10 +1690,11 @@ export default function ProjectDetailView() {
 
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                <label htmlFor="edit-item-desc-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                   Instructions & details for client
                 </label>
                 <textarea
+                  id="edit-item-desc-input"
                   className="textarea"
                   rows={3}
                   value={editItemDesc}
@@ -1637,10 +1705,11 @@ export default function ProjectDetailView() {
               {/* Type and Required row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
                 <div>
-                  <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
+                  <label htmlFor="edit-item-type-select" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
                     Deliverable Type
                   </label>
                   <select 
+                    id="edit-item-type-select"
                     className="select"
                     value={editItemType}
                     onChange={(e) => setEditItemType(e.target.value)}

@@ -60,11 +60,16 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative' }}>
       
+      {/* Accessibility: Skip to Main Content Link (WCAG 2.4.1) */}
+      <a href="#main-content" className="skip-link">
+        Preskočiť na hlavný obsah
+      </a>
+
       {/* Top Navigation */}
       <Navbar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
 
       {/* Main View Display */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <main id="main-content" tabIndex={-1} style={{ flex: 1, display: 'flex', flexDirection: 'column', outline: 'none' }}>
         {currentView === 'client-portal' ? (
           /* Client portal is 100% accessible to anyone with the link - Zero friction */
           <ClientPortal />
@@ -110,7 +115,7 @@ export default function App() {
               justifyContent: 'center',
               color: '#fff'
             }}>
-              <FolderSync size={16} />
+              <FolderSync size={16} aria-hidden="true" />
             </div>
             <div>
               <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Client Asset & Brief Collection Micro-SaaS
@@ -119,13 +124,14 @@ export default function App() {
 
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="status-dot status-dot-live"></span>
+              <span className="status-dot status-dot-live" aria-hidden="true"></span>
               <span>All systems operational (Frankfurt EU)</span>
             </span>
 
             <button 
               type="button"
               onClick={() => setIsLegalModalOpen(true)}
+              aria-label="Informácie o GDPR a bezpečnosti osobných údajov"
               style={{
                 background: 'none',
                 border: 'none',
@@ -137,7 +143,7 @@ export default function App() {
                 gap: '5px'
               }}
             >
-              <ShieldCheck size={14} color="var(--success)" />
+              <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
               GDPR & Security
             </button>
 

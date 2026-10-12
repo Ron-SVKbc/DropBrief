@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, ShieldCheck, Lock, FileCheck, Server, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function LegalModal() {
   const { isLegalModalOpen, setIsLegalModalOpen } = useApp();
+
+  // Close modal on Escape key press (WCAG 2.1.2)
+  useEffect(() => {
+    if (!isLegalModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsLegalModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLegalModalOpen, setIsLegalModalOpen]);
 
   if (!isLegalModalOpen) return null;
 
@@ -17,6 +27,9 @@ export default function LegalModal() {
     >
       <div 
         className="auth-modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="legal-modal-title"
         style={{
           width: '100%',
           maxWidth: '700px',
@@ -40,10 +53,10 @@ export default function LegalModal() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ padding: '8px', borderRadius: 'var(--radius-md)', background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)' }}>
-              <ShieldCheck size={22} />
+              <ShieldCheck size={22} aria-hidden="true" />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              <h2 id="legal-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Data Security, GDPR & Legal Privacy
               </h2>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -55,10 +68,11 @@ export default function LegalModal() {
           <button 
             id="btn-close-legal-modal"
             onClick={() => setIsLegalModalOpen(false)}
+            aria-label="Zatvoriť informácie o GDPR a bezpečnosti"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

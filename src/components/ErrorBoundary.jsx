@@ -104,12 +104,12 @@ Time: ${new Date().toISOString()}`;
               justifyContent: 'center',
               margin: '0 auto 20px',
               boxShadow: '0 0 24px rgba(239, 68, 68, 0.2)'
-            }}>
+            }} aria-hidden="true">
               <AlertTriangle size={28} />
             </div>
 
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--accent-primary-light, #818cf8)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
-              <FolderSync size={13} /> DropBrief Safe Mode
+              <FolderSync size={13} aria-hidden="true" /> DropBrief Safe Mode
             </div>
 
             <h1 style={{
@@ -138,8 +138,9 @@ Time: ${new Date().toISOString()}`;
                 onClick={this.handleReload}
                 className="btn btn-primary btn-pill"
                 style={{ padding: '9px 20px', fontSize: '0.85rem', gap: '8px' }}
+                aria-label="Obnoviť stránku"
               >
-                <RefreshCw size={15} /> Obnoviť stránku
+                <RefreshCw size={15} aria-hidden="true" /> Obnoviť stránku
               </button>
 
               <button
@@ -147,8 +148,9 @@ Time: ${new Date().toISOString()}`;
                 onClick={this.handleGoHome}
                 className="btn btn-secondary btn-pill"
                 style={{ padding: '9px 18px', fontSize: '0.85rem', gap: '7px' }}
+                aria-label="Prejsť na domovskú stránku"
               >
-                <Home size={15} /> Domov
+                <Home size={15} aria-hidden="true" /> Domov
               </button>
             </div>
 
@@ -162,6 +164,7 @@ Time: ${new Date().toISOString()}`;
                 <button
                   type="button"
                   onClick={() => this.setState((prev) => ({ showDetails: !prev.showDetails }))}
+                  aria-expanded={this.state.showDetails}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -191,8 +194,9 @@ Time: ${new Date().toISOString()}`;
                     gap: '4px'
                   }}
                   title="Skopírovať chybu pre podporu"
+                  aria-label="Skopírovať technickú chybu do schránky"
                 >
-                  {this.state.copied ? <Check size={11} color="var(--success, #10b981)" /> : <Copy size={11} />}
+                  {this.state.copied ? <Check size={11} color="var(--success, #10b981)" aria-hidden="true" /> : <Copy size={11} aria-hidden="true" />}
                   {this.state.copied ? 'Skopírované!' : 'Kopírovať chybu'}
                 </button>
               </div>

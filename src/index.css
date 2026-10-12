@@ -152,6 +152,49 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ── Accessibility (a11y) & Focus Indicators ──────────────── */
+.skip-link {
+  position: absolute;
+  top: -120px;
+  left: 20px;
+  background: var(--accent-primary);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  z-index: 10000;
+  text-decoration: none;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), var(--glow-accent);
+  transition: top 0.22s var(--ease-spring);
+}
+
+.skip-link:focus, .skip-link:focus-visible {
+  top: 16px;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Universal high-contrast visible focus state (WCAG 2.4.7 & 2.4.11) */
+:focus-visible {
+  outline: 2px solid var(--accent-primary-light);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.32);
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -494,9 +537,14 @@ body::after {
 }
 
 .input:focus, .textarea:focus, .select:focus, .input-field:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), var(--shadow-inner-deep);
-  background-color: rgba(9, 13, 22, 0.9);
+  border-color: var(--accent-primary-light);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35), var(--shadow-inner-deep);
+  background-color: rgba(9, 13, 22, 0.95);
+}
+
+.input:focus-visible, .textarea:focus-visible, .select:focus-visible, .input-field:focus-visible {
+  outline: 2px solid var(--accent-primary-light);
+  outline-offset: 1px;
 }
 
 .input::placeholder, .textarea::placeholder, .input-field::placeholder {
@@ -549,6 +597,14 @@ select.select {
   border-color: var(--accent-primary);
   background: rgba(99, 102, 241, 0.06);
   box-shadow: 0 0 22px rgba(99, 102, 241, 0.14), var(--shadow-inner-highlight);
+}
+
+.dropzone:focus-visible {
+  border-color: var(--accent-primary-light);
+  background: rgba(99, 102, 241, 0.12);
+  outline: 2px solid var(--accent-primary-light);
+  outline-offset: 3px;
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.35), var(--shadow-inner-highlight);
 }
 
 /* ── Status Dot ───────────────────────────────────────────── */

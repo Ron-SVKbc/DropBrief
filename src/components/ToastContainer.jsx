@@ -8,18 +8,23 @@ export default function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '24px',
-      right: '24px',
-      zIndex: 200,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
-      maxWidth: '400px',
-      width: '100%',
-      pointerEvents: 'none'
-    }}>
+    <div 
+      role="region"
+      aria-live="polite"
+      aria-label="Systémové oznámenia"
+      style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 200,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        maxWidth: '400px',
+        width: '100%',
+        pointerEvents: 'none'
+      }}
+    >
       {toasts.map((toast) => {
         const isSuccess = toast.type === 'success';
         const isWarning = toast.type === 'warning';
@@ -27,6 +32,7 @@ export default function ToastContainer() {
         return (
           <div
             key={toast.id}
+            role="status"
             className="animate-fade-in"
             style={{
               background: 'rgba(13, 18, 30, 0.95)',
@@ -45,9 +51,9 @@ export default function ToastContainer() {
             }}
           >
             <div style={{ marginTop: '2px', flexShrink: 0 }}>
-              {isSuccess && <CheckCircle2 size={20} color="var(--success)" />}
-              {isWarning && <AlertCircle size={20} color="var(--warning)" />}
-              {!isSuccess && !isWarning && <Info size={20} color="var(--accent-primary)" />}
+              {isSuccess && <CheckCircle2 size={20} color="var(--success)" aria-hidden="true" />}
+              {isWarning && <AlertCircle size={20} color="var(--warning)" aria-hidden="true" />}
+              {!isSuccess && !isWarning && <Info size={20} color="var(--accent-primary)" aria-hidden="true" />}
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -63,6 +69,7 @@ export default function ToastContainer() {
 
             <button
               onClick={() => removeToast(toast.id)}
+              aria-label="Zatvoriť oznámenie"
               style={{
                 background: 'none',
                 border: 'none',
@@ -77,7 +84,7 @@ export default function ToastContainer() {
               }}
               title="Close notification"
             >
-              <X size={15} />
+              <X size={15} aria-hidden="true" />
             </button>
           </div>
         );

@@ -67,6 +67,16 @@ export default function ExportModal() {
   const [copiedKey, setCopiedKey] = useState(null);
   const [expandedTextIds, setExpandedTextIds] = useState({});
 
+  // Close modal on Escape key press (WCAG 2.1.2)
+  useEffect(() => {
+    if (!exportModalProject) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeExportModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [exportModalProject, closeExportModal]);
+
   if (!exportModalProject) return null;
 
   const project = exportModalProject;
@@ -472,6 +482,9 @@ export default function ExportModal() {
     >
       <div 
         className="export-modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -496,12 +509,12 @@ export default function ExportModal() {
               boxShadow: 'var(--glow-accent)',
               flexShrink: 0
             }}>
-              <FolderDown size={22} />
+              <FolderDown size={22} aria-hidden="true" />
             </div>
 
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                <h2 id="export-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                   Export & Deliverables Download
                 </h2>
                 <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
@@ -529,7 +542,7 @@ export default function ExportModal() {
               }}
               title="Download all delivered assets neatly organized in a single ZIP folder"
             >
-              {isZipping ? <Loader2 size={16} className="animate-spin" /> : <FolderDown size={16} />}
+              {isZipping ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <FolderDown size={16} aria-hidden="true" />}
               {isZipping ? (zipProgress || 'Creating folder...') : 'Download All as Folder (.ZIP)'}
             </button>
 
@@ -540,18 +553,19 @@ export default function ExportModal() {
               style={{ fontSize: '0.8rem', padding: '8px 12px' }}
               title="Download raw data in JSON format"
             >
-              <Download size={13} />
+              <Download size={13} aria-hidden="true" />
               JSON
             </button>
 
             {/* Close */}
             <button
               onClick={closeExportModal}
+              aria-label="Zatvoriť okno exportu podkladov"
               className="btn btn-secondary"
               style={{ borderRadius: 'var(--radius-full)', padding: '7px' }}
               title="Close window"
             >
-              <X size={17} />
+              <X size={17} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -872,7 +886,7 @@ export default function ExportModal() {
                                         {isImg && f.url ? (
                                           <img 
                                             src={f.url} 
-                                            alt={f.fileName} 
+                                            alt={f.fileName || 'Náhľad odovzdaného obrázka'} 
                                             style={{
                                               width: '32px', height: '32px',
                                               objectFit: 'cover',

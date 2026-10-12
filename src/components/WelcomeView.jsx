@@ -62,8 +62,8 @@ export default function WelcomeView({ onOpenCreateModal }) {
               fontWeight: 600,
               color: '#c7d2fe'
             }}>
-              <span className="status-dot status-dot-live" />
-              <Sparkles size={13} color="#a5b4fc" />
+              <span className="status-dot status-dot-live" aria-hidden="true" />
+              <Sparkles size={13} color="#a5b4fc" aria-hidden="true" />
               <span>Micro-SaaS for Freelancers & Creative Agencies</span>
               <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px' }}>FREE</span>
             </div>
@@ -116,9 +116,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
               className="btn btn-primary btn-lg btn-pill"
               style={{ boxShadow: 'var(--glow-accent)', fontSize: '0.975rem', padding: '13px 28px' }}
             >
-              <UserPlus size={18} />
+              <UserPlus size={18} aria-hidden="true" />
               Create Free Account
-              <ArrowRight size={16} />
+              <ArrowRight size={16} aria-hidden="true" />
             </button>
 
             <button
@@ -127,7 +127,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               className="btn btn-secondary btn-lg btn-pill"
               style={{ fontSize: '0.95rem', padding: '13px 24px' }}
             >
-              <KeyRound size={17} />
+              <KeyRound size={17} aria-hidden="true" />
               Log in with PIN
             </button>
           </div>
@@ -148,7 +148,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               '100% GDPR compliant (EU hosted)'
             ].map((text, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <CheckCircle2 size={15} color="var(--success)" />
+                <CheckCircle2 size={15} color="var(--success)" aria-hidden="true" />
                 {text}
               </span>
             ))}
@@ -182,9 +182,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
               gap: '10px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} aria-hidden="true" />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} aria-hidden="true" />
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} aria-hidden="true" />
                 <span style={{ marginLeft: '10px', fontSize: '0.78rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
                   usedropbrief.xyz/?p=brand-identity
                 </span>
@@ -192,15 +192,16 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="badge badge-accent" style={{ fontSize: '0.68rem' }}>
-                  <Sparkles size={10} /> Live Portal Preview
+                  <Sparkles size={10} aria-hidden="true" /> Live Portal Preview
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyDemoLink}
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: '0.74rem', padding: '4px 10px' }}
+                  aria-label="Copy sample client portal link"
                 >
-                  {copiedDemoLink ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
+                  {copiedDemoLink ? <Check size={12} color="var(--success)" aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
                   {copiedDemoLink ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
@@ -236,12 +237,12 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }} aria-hidden="true">
                   <div className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem', pointerEvents: 'none' }}>
-                    <Send size={12} color="var(--warning)" /> Send Reminder
+                    <Send size={12} color="var(--warning)" aria-hidden="true" /> Send Reminder
                   </div>
                   <div className="btn btn-secondary btn-sm" style={{ fontSize: '0.72rem', pointerEvents: 'none' }}>
-                    <Upload size={12} /> Export JSON
+                    <Upload size={12} aria-hidden="true" /> Export JSON
                   </div>
                 </div>
               </div>
@@ -267,7 +268,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                     gap: '10px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-                      <Icon size={16} color={color} style={{ flexShrink: 0 }} />
+                      <Icon size={16} color={color} style={{ flexShrink: 0 }} aria-hidden="true" />
                       <div style={{ minWidth: 0 }}>
                         <strong style={{ fontSize: '0.835rem', color: 'var(--text-primary)', display: 'block' }} className="truncate">{title}</strong>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{sub}</span>
@@ -285,7 +286,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   padding: '12px',
                   textAlign: 'center'
                 }}>
-                  <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 4px' }} />
+                  <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 4px' }} aria-hidden="true" />
                   <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)', display: 'block' }}>
                     Brand Guidelines & Copy (PDF)
                   </strong>
@@ -326,7 +327,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               background: 'rgba(239, 68, 68, 0.025)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-                <div style={{ padding: '8px', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)' }}>
+                <div style={{ padding: '8px', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)' }} aria-hidden="true">
                   <XCircle size={20} />
                 </div>
                 <div>
@@ -345,7 +346,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   'You waste hours writing awkward follow-up reminder messages.'
                 ].map((text, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
-                    <AlertTriangle size={15} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <AlertTriangle size={15} color="var(--danger)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                     <span>{text}</span>
                   </li>
                 ))}
@@ -360,7 +361,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               boxShadow: '0 0 32px rgba(16, 185, 129, 0.08)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-                <div style={{ padding: '8px', borderRadius: 'var(--radius-sm)', background: 'var(--success-bg)', color: 'var(--success)' }}>
+                <div style={{ padding: '8px', borderRadius: 'var(--radius-sm)', background: 'var(--success-bg)', color: 'var(--success)' }} aria-hidden="true">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
@@ -379,7 +380,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   { strong: 'Automated reminders:', rest: 'Polite email notifications keep deadlines on track.' }
                 ].map(({ strong, rest }, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
-                    <Check size={15} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <Check size={15} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                     <span><strong>{strong}</strong> {rest}</span>
                   </li>
                 ))}
@@ -415,7 +416,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   fontSize: '2.2rem', fontWeight: 800,
                   color: 'rgba(255, 255, 255, 0.04)',
                   userSelect: 'none', letterSpacing: '-0.04em'
-                }}>{num}</div>
+                }} aria-hidden="true">{num}</div>
                 <div style={{
                   width: '44px', height: '44px',
                   borderRadius: 'var(--radius-md)',
@@ -424,7 +425,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   marginBottom: '18px',
                   boxShadow: glow
-                }}>
+                }} aria-hidden="true">
                   <Icon size={22} />
                 </div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px', letterSpacing: '-0.02em' }}>{title}</h3>
@@ -455,7 +456,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               background: 'radial-gradient(circle, rgba(99, 102, 241, 0.32) 0%, rgba(99, 102, 241, 0.08) 45%, transparent 70%)',
               pointerEvents: 'none',
               contain: 'strict'
-            }} />
+            }} aria-hidden="true" />
 
             <span className="badge badge-accent" style={{ marginBottom: '18px' }}>Start Instantly</span>
 
@@ -472,7 +473,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               className="btn btn-primary btn-lg btn-pill"
               style={{ margin: '0 auto', boxShadow: 'var(--glow-accent)', padding: '14px 34px', fontSize: '1rem' }}
             >
-              <UserPlus size={19} />
+              <UserPlus size={19} aria-hidden="true" />
               Create Free Account with PIN
             </button>
 

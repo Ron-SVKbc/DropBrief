@@ -926,7 +926,15 @@ export default function ClientPortal() {
                   </span>
                 </div>
                 
-                <div className="progress-track" style={{ height: '10px' }}>
+                <div 
+                  className="progress-track" 
+                  style={{ height: '10px' }}
+                  role="progressbar"
+                  aria-valuenow={progressPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Priebeh odovzdávania podkladov: ${progressPercent}%`}
+                >
                   <div 
                     className="progress-fill" 
                     style={{ 
@@ -1151,12 +1159,24 @@ export default function ClientPortal() {
                                 const input = document.getElementById(`file-input-${item.id}`);
                                 if (input) input.click();
                               }}
+                              tabIndex={0}
+                              role="button"
+                              aria-label={`Kliknite alebo stlačte Enter na výber súborov pre: ${item.title}`}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  const input = document.getElementById(`file-input-${item.id}`);
+                                  if (input) input.click();
+                                }
+                              }}
                             >
                               <input 
                                 id={`file-input-${item.id}`}
                                 type="file" 
                                 multiple
                                 style={{ display: 'none' }}
+                                aria-hidden="true"
+                                tabIndex={-1}
                                 onChange={(e) => {
                                   if (e.target.files && e.target.files.length > 0) {
                                     handleStageFiles(item.id, e.target.files);
@@ -1174,7 +1194,7 @@ export default function ClientPortal() {
                                 justifyContent: 'center',
                                 margin: '0 auto 12px'
                               }}>
-                                <Upload size={22} />
+                                <Upload size={22} aria-hidden="true" />
                               </div>
                               <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
                                 Drag & drop files here or <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</span>
@@ -1382,11 +1402,12 @@ export default function ClientPortal() {
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           title="Click to open full size image"
+                                          aria-label={`Zobraziť obrázok ${f.fileName || 'v plnej veľkosti'}`}
                                           style={{ display: 'block', flexShrink: 0 }}
                                         >
                                           <img 
                                             src={f.url} 
-                                            alt={f.fileName || 'Image preview'}
+                                            alt={f.fileName || 'Náhľad odovzdaného obrázka'}
                                             style={{
                                               width: '48px',
                                               height: '48px',
@@ -1414,7 +1435,7 @@ export default function ClientPortal() {
                                           justifyContent: 'center',
                                           flexShrink: 0
                                         }}>
-                                          <FileText size={22} color="var(--success)" />
+                                          <FileText size={22} color="var(--success)" aria-hidden="true" />
                                         </div>
                                       )}
 
@@ -1447,8 +1468,9 @@ export default function ClientPortal() {
                                           className="btn btn-secondary btn-sm btn-pill"
                                           style={{ padding: '5px 10px', fontSize: '0.78rem' }}
                                           title="Download / View full size file"
+                                          aria-label={`Stiahnuť súbor ${f.fileName || ''}`}
                                         >
-                                          <Download size={13} /> View
+                                          <Download size={13} aria-hidden="true" /> View
                                         </a>
                                       )}
                                       {!isFreelancerReadOnly && (
@@ -1458,8 +1480,9 @@ export default function ClientPortal() {
                                           className="btn btn-secondary btn-sm"
                                           style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
                                           title={isDemoMode ? "Remove this file from preview" : "Remove this file from cloud"}
+                                          aria-label={`Odstrániť súbor ${f.fileName || 'z projektu'}`}
                                         >
-                                          <X size={14} />
+                                          <X size={14} aria-hidden="true" />
                                         </button>
                                       )}
                                     </div>
@@ -1522,7 +1545,7 @@ export default function ClientPortal() {
                                       {isImg && previewUrl ? (
                                         <img 
                                           src={previewUrl} 
-                                          alt={f.name}
+                                          alt={f.name || 'Náhľad vybraného súboru'}
                                           style={{
                                             width: '48px',
                                             height: '48px',
@@ -1545,7 +1568,7 @@ export default function ClientPortal() {
                                           justifyContent: 'center',
                                           flexShrink: 0
                                         }}>
-                                          <FileText size={22} color="var(--accent-primary)" />
+                                          <FileText size={22} color="var(--accent-primary)" aria-hidden="true" />
                                         </div>
                                       )}
 
@@ -1575,8 +1598,9 @@ export default function ClientPortal() {
                                       className="btn btn-secondary btn-sm"
                                       style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
                                       title="Remove from selection"
+                                      aria-label={`Odstrániť vybraný súbor ${f.name}`}
                                     >
-                                      <X size={14} />
+                                      <X size={14} aria-hidden="true" />
                                     </button>
                                   </div>
                                 );
@@ -1589,6 +1613,16 @@ export default function ClientPortal() {
                                 onClick={() => {
                                   const input = document.getElementById(`file-input-unified-${item.id}`);
                                   if (input) input.click();
+                                }}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`Pridať ďalšie súbory pre: ${item.title}`}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    const input = document.getElementById(`file-input-unified-${item.id}`);
+                                    if (input) input.click();
+                                  }
                                 }}
                                 onDragEnter={(e) => {
                                   e.preventDefault();
@@ -1632,7 +1666,7 @@ export default function ClientPortal() {
                                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
                                 }}
                               >
-                                <Upload size={16} color="var(--accent-primary)" />
+                                <Upload size={16} color="var(--accent-primary)" aria-hidden="true" />
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                   Drag & drop more files here or <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</strong>
                                 </span>
@@ -1734,6 +1768,7 @@ export default function ClientPortal() {
                               className="textarea"
                               rows={3}
                               placeholder="Type requested details, links, or copy here..."
+                              aria-label={`Zadanie textu pre položku ${item.title}`}
                               value={textInputs[item.id] || ''}
                               onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
                               style={{ marginBottom: '12px', borderRadius: 'var(--radius-lg)' }}
@@ -1741,9 +1776,10 @@ export default function ClientPortal() {
                             <button 
                               id={`btn-save-text-${item.id}`}
                               onClick={() => handleTextSave(item.id)}
+                              aria-label={`Uložiť text pre položku ${item.title}`}
                               className="btn btn-primary btn-sm btn-pill"
                             >
-                              <CheckCircle2 size={15} /> Save & Submit Copy
+                              <CheckCircle2 size={15} aria-hidden="true" /> Save & Submit Copy
                             </button>
                           </div>
                         )
