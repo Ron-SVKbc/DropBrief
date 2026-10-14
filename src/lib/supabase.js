@@ -183,43 +183,79 @@ export async function verifyCloudPin(inputPin, storedUser) {
  */
 export async function saveCloudFreelancer(freelancer) {
   if (!supabase || !freelancer) return freelancer;
-  const cleanNick = freelancer.nick.trim().toLowerCase();
-  const safeNick = cleanNick.replace(/[^a-z0-9]/g, '_');
-  const filePath = `_profiles/fl_${safeNick}.json`;
+  const rawNick = freelancer.nick.trim();
+  const rawEmail = freelancer.email ? freelancer.email.trim().toLowerCase() : '';
+  const pinHash = await hashPin(freelancer.pin, true);
 
-  const pinHash = await hashPin(freelancer.pin);
+  // 🛡️ Nastaviť autorizačné hlavičky pred zápisom, aby PostgREST RLS politika na SELECT (RETURNING) nezlyhala
+  setSupabaseSessionHeaders({ nick: rawNick, pinHash });
 
-  // 1. Uložiť do SQL tabuľky – výhradne hashed PIN, nikdy plain-text
-  let dbSaved = false;
+  let savedUserRecord = null;
+
+  // 1. Primárny pokus: INSERT s návratom vygenerovaného ID a created_at
   try {
     const { data: insertedUser, error: insertErr } = await supabase
       .from('freelancers')
       .insert({
-        nick: freelancer.nick.trim(),
+        nick: rawNick,
         pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
-        email: freelancer.email || '',
+        email: rawEmail,
       })
       .select('id, nick, created_at')
       .single();
 
     if (!insertErr && insertedUser) {
-      dbSaved = true;
-      return {
-        ...freelancer,
-        id: insertedUser.id,
-        createdAt: insertedUser.created_at || freelancer.createdAt,
-      };
+      savedUserRecord = insertedUser;
+    } else if (insertErr) {
+      console.warn('saveCloudFreelancer insert.select error:', insertErr.message);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('saveCloudFreelancer insert.select exception:', e);
+  }
 
-  // 2. Iba ak SQL tabuľka zlyhala, fallback do Storage bucketu (s upsert: true bez separátneho remove)
-  if (!dbSaved) {
+  // 2. Sekundárny pokus: Čistý INSERT bez .select() (pre prípad, že RLS SELECT policy nepovolila čítanie)
+  if (!savedUserRecord) {
     try {
+      const { error: bareInsertErr } = await supabase
+        .from('freelancers')
+        .insert({
+          nick: rawNick,
+          pin_code: pinHash,
+          email: rawEmail,
+        });
+
+      if (!bareInsertErr) {
+        // Po úspešnom čistom vložení načítame oficiálne ID a dátum vytvorenia cez RPC
+        try {
+          const { data: rpcData } = await supabase.rpc('verify_freelancer_pin', {
+            p_nick: rawNick,
+            p_salted_hash: pinHash,
+            p_unsalted_hash: await hashPin(freelancer.pin, false),
+          });
+          if (rpcData?.success && rpcData.user) {
+            savedUserRecord = rpcData.user;
+          }
+        } catch (rpcErr) {
+          console.warn('saveCloudFreelancer RPC fetch error:', rpcErr);
+        }
+      } else {
+        console.warn('saveCloudFreelancer bare insert error:', bareInsertErr.message);
+      }
+    } catch (e) {
+      console.warn('saveCloudFreelancer bare insert exception:', e);
+    }
+  }
+
+  // 3. Fallback do Storage (ak by databáza vôbec nereagovala)
+  if (!savedUserRecord) {
+    try {
+      const safeNick = rawNick.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const filePath = `profiles/fl_${safeNick}.json`;
       const safePayload = {
         id: freelancer.id,
-        nick: freelancer.nick,
+        nick: rawNick,
         pinHash: pinHash,
-        email: freelancer.email || '',
+        email: rawEmail,
         createdAt: freelancer.createdAt || new Date().toISOString(),
       };
 
@@ -228,11 +264,16 @@ export async function saveCloudFreelancer(freelancer) {
         .from('client-uploads')
         .upload(filePath, blob, { contentType: 'application/json', upsert: true });
     } catch (e) {
-      console.error('Failed to sync freelancer to storage fallback:', e);
+      console.warn('Storage fallback sync failed:', e);
     }
   }
 
-  return freelancer;
+  return {
+    ...freelancer,
+    id: savedUserRecord?.id || freelancer.id,
+    createdAt: savedUserRecord?.created_at || savedUserRecord?.createdAt || freelancer.createdAt,
+    pinHash: pinHash,
+  };
 }
 
 /**

@@ -460,7 +460,11 @@ export function AppProvider({ children }) {
       try {
         const saved = localStorage.getItem('dropbrief_freelancer_session');
         if (saved) {
-          setCurrentFreelancer(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          setCurrentFreelancer(parsed);
+          if (parsed?.nick && parsed?.pinHash) {
+            setSupabaseSessionHeaders({ nick: parsed.nick, pinHash: parsed.pinHash });
+          }
         }
       } catch (e) {}
     }
@@ -518,9 +522,10 @@ export function AppProvider({ children }) {
       }
     }
 
+    const pinHash = freelancerRecord.pinHash || (await hashPin(generatedPin, true));
+
     // 3. Uloženie do lokálnej pamäte prehliadača (iba hash, nie plaintext)
     try {
-      const pinHash = await hashPin(generatedPin);
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
       const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase() && (!a.email || a.email.toLowerCase() !== cleanEmail));
       filtered.push({ id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt, pinHash });
@@ -541,9 +546,16 @@ export function AppProvider({ children }) {
       });
     } catch (err) {}
 
-    // Session nikdy neukladá plaintext PIN
-    const sessionRecord = { id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt };
+    // Session nikdy neukladá plaintext PIN, iba bezpečný SHA-256 hash pre autorizáciu PostgREST RLS
+    const sessionRecord = { 
+      id: freelancerRecord.id, 
+      nick: freelancerRecord.nick, 
+      email: freelancerRecord.email, 
+      createdAt: freelancerRecord.createdAt,
+      pinHash: pinHash
+    };
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(sessionRecord));
+    setSupabaseSessionHeaders({ nick: sessionRecord.nick, pinHash: sessionRecord.pinHash });
     
     // Nastavíme dáta pre PIN reveal obrazovku
     setAuthRegisteredData(freelancerRecord);
@@ -586,18 +598,26 @@ export function AppProvider({ children }) {
     try {
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
       const found = localAccs.find((a) => 
-        a.nick.toLowerCase() === cleanIdentifier || 
+        (a.nick && a.nick.toLowerCase() === cleanIdentifier) || 
         (a.email && a.email.toLowerCase() === cleanIdentifier)
       );
       if (found) {
         let isValid = false;
+        const computedSalted = await hashPin(cleanPin, true);
+        const computedUnsalted = await hashPin(cleanPin, false);
         if (found.pinHash) {
-          isValid = (await hashPin(cleanPin, true)) === found.pinHash || (await hashPin(cleanPin, false)) === found.pinHash;
+          isValid = computedSalted === found.pinHash || computedUnsalted === found.pinHash;
         } else if (found.pin) {
           isValid = String(found.pin).trim() === cleanPin;
         }
         if (isValid) {
-          matchedUser = { id: found.id, nick: found.nick, email: found.email || '', createdAt: found.createdAt };
+          matchedUser = { 
+            id: found.id, 
+            nick: found.nick, 
+            email: found.email || '', 
+            createdAt: found.createdAt,
+            pinHash: found.pinHash || computedSalted
+          };
         } else {
           throw new Error('Nesprávny 6-miestny PIN kód pre tento účet.');
         }
@@ -628,17 +648,19 @@ export function AppProvider({ children }) {
         }
 
         if (verifyResponse.ok && verifyData.success && verifyData.user) {
+          const userPinHash = verifyData.user.pinHash || (await hashPin(cleanPin, true));
           matchedUser = {
             id:        verifyData.user.id,
             nick:      verifyData.user.nick,
             email:     verifyData.user.email || '',
-            createdAt: verifyData.user.createdAt,
+            createdAt: verifyData.user.createdAt || verifyData.user.created_at,
+            pinHash:   userPinHash,
           };
           // Uložíme do lokálnej pamäte pre budúce bleskové offline prihlásenia
           try {
             const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
             const filtered  = localAccs.filter((a) => a.nick.toLowerCase() !== matchedUser.nick.toLowerCase());
-            filtered.push({ ...matchedUser, pinHash: verifyData.user.pinHash });
+            filtered.push(matchedUser);
             localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
           } catch (e) {}
         }
@@ -652,6 +674,43 @@ export function AppProvider({ children }) {
       }
     }
 
+    // 3. Fallback: Ak /api/verify-pin nebol dostupný (napr. sieťová chyba, offline),
+    // ale Supabase je nakonfigurovaný priamo v prehliadači, overíme priamo cez RPC
+    if (!matchedUser && isSupabaseConfigured && supabase) {
+      try {
+        const saltedHash = await hashPin(cleanPin, true);
+        const unsaltedHash = await hashPin(cleanPin, false);
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('verify_freelancer_pin', {
+          p_nick: cleanIdentifier,
+          p_salted_hash: saltedHash,
+          p_unsalted_hash: unsaltedHash,
+        });
+
+        if (!rpcErr && rpcData?.success && rpcData.user) {
+          const u = rpcData.user;
+          matchedUser = {
+            id:        u.id,
+            nick:      u.nick,
+            email:     u.email || '',
+            createdAt: u.createdAt || u.created_at,
+            pinHash:   u.pinHash || saltedHash,
+          };
+          try {
+            const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+            const filtered  = localAccs.filter((a) => a.nick.toLowerCase() !== matchedUser.nick.toLowerCase());
+            filtered.push(matchedUser);
+            localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+          } catch (e) {}
+        } else if (rpcData && !rpcData.success) {
+          throw new Error(rpcData.error || 'Nesprávny nickname / e-mail alebo PIN kód.');
+        }
+      } catch (directRpcErr) {
+        if (directRpcErr.message?.includes('Nesprávny') || directRpcErr.message?.includes('Chýbajúce')) {
+          throw directRpcErr;
+        }
+      }
+    }
+
     if (!matchedUser) {
       throw new Error(`Účet pre "${identifier.trim()}" sa nenašiel. Skontrolujte zadané meno / e-mail alebo si vytvorte nový účet.`);
     }
@@ -661,6 +720,7 @@ export function AppProvider({ children }) {
 
     // Uloženie session a aktivácia dashboardu
     localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(matchedUser));
+    setSupabaseSessionHeaders({ nick: matchedUser.nick, pinHash: matchedUser.pinHash });
     setCurrentFreelancer(matchedUser);
     closeAuthModal();
     addToast(`Vitajte späť, ${matchedUser.nick}!`, 'success', 'Prihlásený');

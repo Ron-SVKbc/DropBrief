@@ -161,7 +161,7 @@ export default async function handler(req, res) {
     if (!user || !isValid) {
       return res.status(401).json({
         success: false,
-        error:   'Nesprávny nickname alebo PIN kód.',
+        error:   'Nesprávny nickname / e-mail alebo PIN kód.',
       });
     }
 
@@ -174,10 +174,10 @@ export default async function handler(req, res) {
         id:        user.id,
         nick:      user.nick,
         email:     user.email || '',
-        createdAt: user.created_at,
+        createdAt: user.created_at || user.createdAt || new Date().toISOString(),
         // pinHash je poslaný späť iba pre lokálnu cache (offline login) –
-        // přenáša sa cez HTTPS a ukladá iba v localStorage, nikdy v plain texte
-        pinHash:   user.pin_code,
+        // prenáša sa cez HTTPS a ukladá iba v localStorage, nikdy v plain texte
+        pinHash:   user.pin_code || user.pinHash || saltedHash,
       },
     });
 

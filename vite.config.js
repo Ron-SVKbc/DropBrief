@@ -69,27 +69,29 @@ export default defineConfig(({ command, mode }) => {
           };
 
           // ── Route matching s dynamickým načítaním handlerov ──────────────
-          if (req.method === 'POST' && req.url === '/api/send-reminder') {
+          const pathname = req.url ? req.url.split('?')[0].replace(/\/+$/, '') : '';
+
+          if (req.method === 'POST' && pathname === '/api/send-reminder') {
             const { default: sendReminderHandler } = await import('./api/send-reminder.js');
             return runHandler(sendReminderHandler);
           }
 
-          if (req.method === 'POST' && req.url === '/api/verify-pin') {
+          if (req.method === 'POST' && pathname === '/api/verify-pin') {
             const { default: verifyPinHandler } = await import('./api/verify-pin.js');
             return runHandler(verifyPinHandler);
           }
 
-          if (req.method === 'POST' && req.url === '/api/send-auth-pin') {
+          if (req.method === 'POST' && pathname === '/api/send-auth-pin') {
             const { default: sendAuthPinHandler } = await import('./api/send-auth-pin.js');
             return runHandler(sendAuthPinHandler);
           }
 
-          if (req.method === 'POST' && req.url === '/api/reset-pin') {
+          if (req.method === 'POST' && pathname === '/api/reset-pin') {
             const { default: resetPinHandler } = await import('./api/reset-pin.js');
             return runHandler(resetPinHandler);
           }
 
-          if (req.url?.startsWith('/api/cron-purge')) {
+          if (pathname.startsWith('/api/cron-purge')) {
             const { default: cronPurgeHandler } = await import('./api/cron-purge.js');
             return runHandler(cronPurgeHandler);
           }
