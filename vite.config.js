@@ -86,6 +86,11 @@ export default defineConfig(({ command, mode }) => {
             return runHandler(sendAuthPinHandler);
           }
 
+          if (req.method === 'POST' && pathname === '/api/verify-registration') {
+            const { default: verifyRegistrationHandler } = await import('./api/verify-registration.js');
+            return runHandler(verifyRegistrationHandler);
+          }
+
           if (req.method === 'POST' && pathname === '/api/reset-pin') {
             const { default: resetPinHandler } = await import('./api/reset-pin.js');
             return runHandler(resetPinHandler);

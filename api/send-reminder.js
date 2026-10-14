@@ -263,13 +263,21 @@ ${cleanFreelancerName}
 
     // Send via Resend API
     const safeSenderName = cleanFreelancerName.replace(/[<>"'\r\n]/g, '').trim() || 'DropBrief';
-    let resendFrom = process.env.RESEND_FROM;
+    let emailOnly = 'notifications@mail.usedropbrief.xyz';
     if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
-      const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
-      resendFrom = `${safeSenderName} via DropBrief <${emailOnly}>`;
-    } else if (!resendFrom) {
-      resendFrom = `${safeSenderName} via DropBrief <notifications@mail.usedropbrief.xyz>`;
+      emailOnly = process.env.RESEND_FROM_EMAIL.trim();
+    } else if (process.env.RESEND_FROM) {
+      const match = process.env.RESEND_FROM.match(/<([^>]+)>/);
+      if (match) emailOnly = match[1].trim();
     }
+
+    // Striktné zabezpečenie odosielania cez subdoménu
+    if (emailOnly.toLowerCase().endsWith('@usedropbrief.xyz')) {
+      const localPart = emailOnly.split('@')[0];
+      emailOnly = `${localPart}@mail.usedropbrief.xyz`;
+    }
+
+    const resendFrom = `${safeSenderName} via DropBrief <${emailOnly}>`;
 
     const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
     const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifications@mail.usedropbrief.xyz');

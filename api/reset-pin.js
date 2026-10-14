@@ -113,18 +113,31 @@ export default async function handler(req, res) {
 
     if (userFound && newGeneratedPin) {
       if (resendApiKey) {
-        let resendFrom = process.env.RESEND_FROM;
+        let emailToUse = 'notifications@mail.usedropbrief.xyz';
+        let senderName = 'DropBrief';
         const configuredFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+        const configuredFrom = process.env.RESEND_FROM?.trim();
+
         if (configuredFromEmail && configuredFromEmail.includes('@')) {
-          resendFrom = `DropBrief <${configuredFromEmail}>`;
-        } else if (!resendFrom) {
-          resendFrom = `DropBrief <notifications@mail.usedropbrief.xyz>`;
+          emailToUse = configuredFromEmail;
+        } else if (configuredFrom) {
+          const match = configuredFrom.match(/^(.*?)\s*<([^>]+)>$/);
+          if (match) {
+            if (match[1]?.trim()) senderName = match[1].trim();
+            emailToUse = match[2].trim();
+          } else {
+            emailToUse = configuredFrom;
+          }
         }
 
-        const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
-        const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (configuredFromEmail || 'notifications@mail.usedropbrief.xyz');
+        // Vždy garantovať overenú subdoménu
+        if (emailToUse.toLowerCase().endsWith('@usedropbrief.xyz')) {
+          const localPart = emailToUse.split('@')[0];
+          emailToUse = `${localPart}@mail.usedropbrief.xyz`;
+        }
 
-        const replyToEmail = process.env.RESEND_REPLY_TO?.trim() || cleanFromEmail;
+        const resendFrom = `${senderName} <${emailToUse}>`;
+        const replyToEmail = process.env.RESEND_REPLY_TO?.trim() || 'support@usedropbrief.xyz';
 
         // Predmet bez surového čísla PIN kódu kvôli anti-spam filtrom
         const subject = 'DropBrief: Obnova prístupového PIN kódu';

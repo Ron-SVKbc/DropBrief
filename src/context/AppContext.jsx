@@ -123,8 +123,9 @@ export function AppProvider({ children }) {
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'register' | 'pin_reveal'
+  const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'register' | 'verify_register_pin' | 'pin_reveal' | 'forgot_pin'
   const [authRegisteredData, setAuthRegisteredData] = useState(null); // { nick, pin, email }
+  const [pendingRegistration, setPendingRegistration] = useState(null); // { nick, email, challengeToken, expiresAt, devPin }
 
   const [projects, setProjects] = useState(() => {
     try {
@@ -471,7 +472,11 @@ export function AppProvider({ children }) {
     setIsAuthModalOpen(false);
   };
 
-  const registerFreelancer = async (nick, email = '') => {
+  /**
+   * Krok 1 registrácie: Vygenerovanie a odoslanie 6-miestneho PIN kódu s 5-minútovou platnosťou.
+   * Ochrana pred email enumeration: Nezverejňuje, či účet existuje.
+   */
+  const requestRegisterPin = async (nick, email = '') => {
     if (!nick || nick.trim().length < 2) {
       throw new Error('Meno / Nickname musí mať aspoň 2 znaky.');
     }
@@ -480,89 +485,123 @@ export function AppProvider({ children }) {
     const cleanEmail = email ? email.trim().toLowerCase() : '';
 
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      throw new Error('Zadajte platnú e-mailovú adresu pre bezpečné doručenie vášho PIN kódu.');
+      throw new Error('Zadajte platnú e-mailovú adresu pre bezpečné doručenie overovacieho PIN kódu.');
     }
 
-    // 1. Skontrolujeme v cloude dostupnosť mena a e-mailu
-    if (isSupabaseConfigured) {
-      try {
-        const nickAvailable = await isNickAvailable(cleanNick);
-        if (!nickAvailable) {
-          throw new Error('Tento nickname je už obsadený. Zvoľte si iné meno alebo sa prihláste.');
-        }
+    // Odoslanie požiadavky na serverless endpoint /api/send-auth-pin
+    const response = await fetch('/api/send-auth-pin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nick: cleanNick, email: cleanEmail }),
+      signal: AbortSignal.timeout(10000),
+    });
 
-        const emailAvailable = await isEmailAvailable(cleanEmail);
-        if (!emailAvailable) {
-          throw new Error('Tento e-mail je už registrovaný. Prihláste sa alebo použite obnovu PIN kódu.');
-        }
-      } catch (err) {
-        if (err.message && (err.message.includes('obsadený') || err.message.includes('registrovaný'))) {
-          throw err;
-        }
-      }
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Nastala chyba pri odosielaní overovacieho PIN kódu. Skúste to znova.');
     }
 
-    // Vygenerujeme 6-miestny numerický PIN
-    const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
-
-    let freelancerRecord = {
-      id: 'fl-' + Date.now(),
+    const pendingData = {
       nick: cleanNick,
-      pin: generatedPin,
       email: cleanEmail,
-      createdAt: new Date().toISOString(),
+      challengeToken: data.challengeToken,
+      expiresAt: data.expiresAt || (Date.now() + 5 * 60 * 1000),
+      devPin: data.devPin,
     };
 
-    // 2. Uloženie do Supabase cloudu
-    if (isSupabaseConfigured) {
-      try {
-        freelancerRecord = await saveCloudFreelancer(freelancerRecord);
-      } catch (err) {
-        console.warn('Freelancer cloud registration fallback:', err);
-      }
+    setPendingRegistration(pendingData);
+    setAuthModalMode('verify_register_pin');
+
+    addToast('Overovací PIN kód bol odoslaný na váš e-mail.', 'info', 'Skontrolujte e-mail');
+    return pendingData;
+  };
+
+  /**
+   * Opätovné zaslanie PIN kódu v prípade vypršania alebo nedoručenia.
+   */
+  const resendRegisterPin = async () => {
+    if (!pendingRegistration?.email || !pendingRegistration?.nick) {
+      throw new Error('Chýbajúce registračné údaje. Začnite registráciu znova.');
+    }
+    return await requestRegisterPin(pendingRegistration.nick, pendingRegistration.email);
+  };
+
+  /**
+   * Krok 2 registrácie: Overenie 6-miestneho PIN kódu (do 5 minút) a vytvorenie účtu.
+   * Zadaný PIN kód sa stáva trvalým PIN kódom freelancera.
+   */
+  const verifyRegisterPin = async (enteredPin) => {
+    if (!enteredPin || String(enteredPin).trim().length !== 6) {
+      throw new Error('Zadajte 6-miestny numerický PIN kód z vášho e-mailu.');
     }
 
-    const pinHash = freelancerRecord.pinHash || (await hashPin(generatedPin, true));
+    if (!pendingRegistration) {
+      throw new Error('Relácia registrácie vypršala. Zadajte vaše údaje znova.');
+    }
 
-    // 3. Uloženie do lokálnej pamäte prehliadača (iba hash, nie plaintext)
+    const cleanPin = String(enteredPin).trim();
+
+    const response = await fetch('/api/verify-registration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: pendingRegistration.email,
+        nick: pendingRegistration.nick,
+        pin: cleanPin,
+        challengeToken: pendingRegistration.challengeToken,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.success || !data.user) {
+      throw new Error(data.error || 'Overenie PIN kódu zlyhalo. Skontrolujte kód a skúste znova.');
+    }
+
+    const user = data.user;
+    const sessionRecord = {
+      id: user.id,
+      nick: user.nick,
+      email: user.email,
+      createdAt: user.createdAt,
+      pinHash: user.pinHash,
+    };
+
+    // Uloženie do localStorage (session + lokálna pamäť účtov)
     try {
+      localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(sessionRecord));
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-      const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== cleanNick.toLowerCase() && (!a.email || a.email.toLowerCase() !== cleanEmail));
-      filtered.push({ id: freelancerRecord.id, nick: freelancerRecord.nick, email: freelancerRecord.email, createdAt: freelancerRecord.createdAt, pinHash });
+      const filtered = localAccs.filter((a) => a.nick.toLowerCase() !== user.nick.toLowerCase() && (!a.email || a.email.toLowerCase() !== user.email.toLowerCase()));
+      filtered.push(sessionRecord);
       localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
     } catch (e) {
-      console.error('Failed to save to local accounts:', e);
+      console.error('Failed to save session to localStorage:', e);
     }
 
-    // 4. Automatické odoslanie PIN kódu na e-mail cez Resend
-    try {
-      fetch('/api/send-auth-pin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, nick: cleanNick, pin: generatedPin }),
-        signal: AbortSignal.timeout(8000),
-      }).catch((sendErr) => {
-        console.warn('Odoslanie registračného PIN na e-mail zlyhalo:', sendErr);
-      });
-    } catch (err) {}
-
-    // Session nikdy neukladá plaintext PIN, iba bezpečný SHA-256 hash pre autorizáciu PostgREST RLS
-    const sessionRecord = { 
-      id: freelancerRecord.id, 
-      nick: freelancerRecord.nick, 
-      email: freelancerRecord.email, 
-      createdAt: freelancerRecord.createdAt,
-      pinHash: pinHash
-    };
-    localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(sessionRecord));
+    // Nastavenie do stavu aplikácie
+    setCurrentFreelancer(sessionRecord);
     setSupabaseSessionHeaders({ nick: sessionRecord.nick, pinHash: sessionRecord.pinHash });
-    
-    // Nastavíme dáta pre PIN reveal obrazovku
-    setAuthRegisteredData(freelancerRecord);
+
+    setAuthRegisteredData({
+      id: user.id,
+      nick: user.nick,
+      email: user.email,
+      pin: cleanPin,
+    });
+    setPendingRegistration(null);
     setAuthModalMode('pin_reveal');
 
-    addToast(`Účet ${cleanNick} je pripravený! PIN kód sme vám zobrazili aj odoslali na e-mail.`, 'success', 'Registrácia úspešná');
-    return freelancerRecord;
+    addToast(`Účet ${user.nick} bol úspešne overený a vytvorený!`, 'success', 'Vitajte v DropBrief');
+    return user;
+  };
+
+  /**
+   * Spätná kompatibilita pre volania registrácie
+   */
+  const registerFreelancer = async (nick, email = '') => {
+    return await requestRegisterPin(nick, email);
   };
 
   const loginFreelancer = async (identifier, pin) => {
@@ -1570,6 +1609,11 @@ export function AppProvider({ children }) {
         openAuthModal,
         closeAuthModal,
         registerFreelancer,
+        requestRegisterPin,
+        verifyRegisterPin,
+        resendRegisterPin,
+        pendingRegistration,
+        setPendingRegistration,
         loginFreelancer,
         resetFreelancerPin,
         loginAsDemo,
