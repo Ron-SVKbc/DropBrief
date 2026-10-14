@@ -259,6 +259,66 @@ $$;
 revoke all on function public.reset_freelancer_pin(text, text) from public, anon, authenticated;
 grant execute on function public.reset_freelancer_pin(text, text) to service_role;
 
+-- Bezpečné a nezvratné zmazanie účtu a projektov (GDPR čl. 17 - Právo na vymazanie)
+create or replace function public.delete_freelancer_account(
+  p_nick text,
+  p_salted_hash text,
+  p_unsalted_hash text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user record;
+  v_proj record;
+  v_deleted_projects integer := 0;
+  v_slugs text[] := array[]::text[];
+begin
+  if p_nick is null or (p_salted_hash is null and p_unsalted_hash is null) then
+    return jsonb_build_object('success', false, 'error', 'Chýbajúce prihlasovacie údaje pre overenie identity.');
+  end if;
+
+  select id, nick, email, pin_code into v_user
+  from public.freelancers
+  where lower(nick) = lower(trim(p_nick)) or lower(email) = lower(trim(p_nick));
+
+  if not found then
+    return jsonb_build_object('success', false, 'error', 'Používateľský účet sa nenašiel.');
+  end if;
+
+  if v_user.pin_code != p_salted_hash and v_user.pin_code != p_unsalted_hash then
+    return jsonb_build_object('success', false, 'error', 'Nesprávny PIN kód. Z bezpečnostných dôvodov nie je možné účet zmazať.');
+  end if;
+
+  -- Zozbierať projekty a vymazať ich spolu s položkami
+  for v_proj in (
+    select id, slug 
+    from public.projects 
+    where freelancer_id = v_user.id or lower(freelancer_name) = lower(v_user.nick)
+  ) loop
+    v_slugs := array_append(v_slugs, v_proj.slug);
+    delete from public.project_items where project_id = v_proj.id;
+    delete from public.projects where id = v_proj.id;
+    v_deleted_projects := v_deleted_projects + 1;
+  end loop;
+
+  -- Odstrániť samotného freelancera
+  delete from public.freelancers where id = v_user.id;
+
+  return jsonb_build_object(
+    'success', true,
+    'message', 'Účet a všetky súvisiace projekty boli úspešne vymazané.',
+    'deletedProjects', v_deleted_projects,
+    'projectSlugs', to_jsonb(v_slugs),
+    'userNick', v_user.nick
+  );
+end;
+$$;
+
+grant execute on function public.delete_freelancer_account(text, text, text) to anon, authenticated, service_role;
+
 -- Bezpečná kontrola prístupu k položkám projektu
 create or replace function public.can_access_project(p_project_id uuid)
 returns boolean

@@ -109,6 +109,8 @@ Vďaka prepojeniu GitHub ➔ Vercel funguje nasadzovanie **plne automaticky cez 
 | `api/send-reminder.js` | **Serverless funkcia (Vercel & Vite dev):** Odosielanie pripomienok cez moderné transakčné Resend API (3 000 e-mailov/mesiac zadarmo). |
 | `api/verify-pin.js` | **Serverless funkcia:** Bezpečné server-side overenie PIN kódu freelancera s IP rate limitingom. |
 | `api/cron-purge.js` | **Serverless funkcia / Cron:** Automatická GDPR skartácia súborov zo Supabase Storage 30 dní po dokončení projektu. |
+| `api/delete-account.js` | **Serverless funkcia:** Bezpečné a nezvratné zmazanie účtu freelancera, projektov a súborov z cloudu (GDPR čl. 17). |
+| `src/components/AccountModal.jsx` | Modál profilu, bezpečnostného PIN kódu a bezpečného 2-krokového vymazania účtu. |
 | `src/components/EmailPreviewModal.jsx` | Modál náhľadu a odoslania e-mailovej pripomienky klientovi cez Resend. |
 | `.env` | Lokálne API kľúče (Supabase, Resend) (necommitovať). |
 | `.env.example` | Šablóna premenných pre nových vývojárov. |

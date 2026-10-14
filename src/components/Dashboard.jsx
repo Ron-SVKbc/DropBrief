@@ -28,7 +28,8 @@ import {
   TrendingUp,
   ArrowUpRight,
   RefreshCw,
-  Eye
+  Eye,
+  Settings
 } from 'lucide-react';
 
 export default function Dashboard({ onOpenCreateModal }) {
@@ -43,7 +44,8 @@ export default function Dashboard({ onOpenCreateModal }) {
     addToast,
     currentFreelancer,
     seedDemoProjectForFreelancer,
-    toggleProjectType
+    toggleProjectType,
+    openAccountModal
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,15 +138,27 @@ export default function Dashboard({ onOpenCreateModal }) {
           </p>
         </div>
 
-        <button 
-          id="btn-create-project-main"
-          onClick={onOpenCreateModal} 
-          className="btn btn-primary btn-lg btn-pill"
-          style={{ boxShadow: 'var(--glow-accent)', alignSelf: 'flex-start' }}
-        >
-          <Plus size={17} />
-          New Project
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button 
+            id="btn-create-project-main"
+            onClick={onOpenCreateModal} 
+            className="btn btn-primary btn-lg btn-pill"
+            style={{ boxShadow: 'var(--glow-accent)', alignSelf: 'flex-start' }}
+          >
+            <Plus size={17} />
+            New Project
+          </button>
+          <button
+            id="btn-dashboard-account-settings"
+            onClick={openAccountModal}
+            className="btn btn-secondary btn-lg btn-pill"
+            title="Nastavenia profilu, bezpečnosť a zmazanie účtu"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Settings size={16} />
+            Účet & GDPR
+          </button>
+        </div>
       </div>
 
       {/* ── Bento Metrics Grid ────────────────────────────────── */}

@@ -437,6 +437,31 @@ body::after {
   color: #ffffff;
 }
 
+.btn-outline-danger {
+  background: var(--danger-bg);
+  color: var(--danger-light);
+  border-color: var(--danger-border);
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger-bg-hover);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-danger-solid {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 14px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger-solid:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6);
+  transform: translateY(-1px);
+}
+
 .btn-xs {
   padding: 4px 9px;
   font-size: 0.76rem;

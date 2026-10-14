@@ -187,6 +187,7 @@ export function AppProvider({ children }) {
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
   const [exportModalProject, setExportModalProject] = useState(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
 
   // Sync to localStorage as backup/cache (scoped per freelancer)
@@ -818,6 +819,135 @@ export function AppProvider({ children }) {
     setActiveProjectSlug('demo-preview');
     setProjects(INITIAL_DEMO_PROJECTS);
     addToast('Boli ste úspešne odhlásený z dashboardu.', 'info', 'Odhlásený');
+  };
+
+  const openAccountModal = () => setIsAccountModalOpen(true);
+  const closeAccountModal = () => setIsAccountModalOpen(false);
+
+  /**
+   * Bezpečné a trvalé zmazanie účtu freelancera (GDPR Art. 17 - Právo na vymazanie)
+   */
+  const deleteFreelancerAccount = async (enteredPin) => {
+    if (!currentFreelancer) {
+      throw new Error('Nie ste prihlásený k žiadnemu účtu.');
+    }
+
+    const cleanPin = String(enteredPin || '').trim();
+    if (!cleanPin || cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
+      throw new Error('Zadajte váš platný 6-miestny bezpečnostný PIN kód pre potvrdenie vymazania.');
+    }
+
+    const nick = currentFreelancer.nick;
+    const userIdentifier = currentFreelancer.email || currentFreelancer.nick;
+
+    // 1. Ak ide o demo účet (napr. Marko)
+    if (currentFreelancer.id === 'fl-demo-marko') {
+      try {
+        localStorage.removeItem('dropbrief_freelancer_session');
+        localStorage.removeItem('dropbrief_projects_marko');
+        const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+        const filtered = localAccs.filter((a) => a.id !== 'fl-demo-marko' && a.nick?.toLowerCase() !== 'marko');
+        localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+      } catch (e) {}
+
+      setSupabaseSessionHeaders({ nick: null, pinHash: null });
+      setCurrentFreelancer(null);
+      setCurrentView('dashboard');
+      setActiveProjectSlug('demo-preview');
+      setProjects(INITIAL_DEMO_PROJECTS);
+      setIsAccountModalOpen(false);
+      addToast('Demo účet bol úspešne vymazaný a vyresetovaný.', 'info', 'Účet vymazaný');
+      return { success: true };
+    }
+
+    // 2. Skutočný účet v cloude – volanie serverless endpointu /api/delete-account
+    let apiSuccess = false;
+    let apiErrorMsg = '';
+
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: userIdentifier,
+          pin: cleanPin,
+        }),
+        signal: AbortSignal.timeout(15000), // 15 sekúnd pre hromadné zmazanie súborov v cloude
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
+        apiSuccess = true;
+      } else {
+        apiErrorMsg = data.error || 'Zmazanie účtu zlyhalo. Skontrolujte PIN kód a skúste znova.';
+        if (response.status === 401 || response.status === 429) {
+          throw new Error(apiErrorMsg);
+        }
+      }
+    } catch (fetchErr) {
+      if (fetchErr.message && (fetchErr.message.includes('PIN') || fetchErr.message.includes('pokusov'))) {
+        throw fetchErr;
+      }
+      console.warn('API /api/delete-account unreachable, attempting direct RPC fallback:', fetchErr);
+    }
+
+    // 3. Fallback: Priame volanie Postgres RPC delete_freelancer_account (ak API endpoint zlyhal napr. offline)
+    if (!apiSuccess && isSupabaseConfigured && supabase) {
+      try {
+        const saltedHash = await hashPin(cleanPin, true);
+        const unsaltedHash = await hashPin(cleanPin, false);
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('delete_freelancer_account', {
+          p_nick: nick,
+          p_salted_hash: saltedHash,
+          p_unsalted_hash: unsaltedHash,
+        });
+
+        if (!rpcErr && rpcData?.success) {
+          apiSuccess = true;
+        } else if (rpcData && !rpcData.success) {
+          throw new Error(rpcData.error || 'Nesprávny PIN kód.');
+        } else if (rpcErr) {
+          throw new Error(rpcErr.message || 'Chyba databázy pri mazaní účtu.');
+        }
+      } catch (directRpcErr) {
+        throw directRpcErr;
+      }
+    }
+
+    if (!apiSuccess && apiErrorMsg) {
+      throw new Error(apiErrorMsg);
+    }
+
+    // 4. Úplné vyčistenie lokálneho úložiska (localStorage) pre tohto používateľa
+    try {
+      localStorage.removeItem('dropbrief_freelancer_session');
+      if (nick) {
+        localStorage.removeItem(`dropbrief_projects_${nick.toLowerCase()}`);
+      }
+      const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+      const filtered = localAccs.filter((a) => a.nick?.toLowerCase() !== nick.toLowerCase());
+      localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+      localStorage.removeItem('dropbrief_login_attempts');
+    } catch (storageErr) {
+      console.warn('Local storage cleanup warning:', storageErr);
+    }
+
+    // 5. Reset stavov aplikácie a odhlásenie
+    setSupabaseSessionHeaders({ nick: null, pinHash: null });
+    setCurrentFreelancer(null);
+    setCurrentView('dashboard');
+    setActiveProjectSlug('demo-preview');
+    setProjects(INITIAL_DEMO_PROJECTS);
+    setIsAccountModalOpen(false);
+
+    addToast(
+      'Váš účet, všetky projekty a nahraté klientske súbory boli natrvalo vymazané v súlade s GDPR.',
+      'info',
+      'Účet bol zmazaný'
+    );
+
+    return { success: true };
   };
 
   const seedDemoProjectForFreelancer = async () => {
@@ -1626,6 +1756,11 @@ export function AppProvider({ children }) {
         resetFreelancerPin,
         loginAsDemo,
         logoutFreelancer,
+        isAccountModalOpen,
+        setIsAccountModalOpen,
+        openAccountModal,
+        closeAccountModal,
+        deleteFreelancerAccount,
         updateProjectType,
         toggleProjectType,
         updateProjectCadence,

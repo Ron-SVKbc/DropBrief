@@ -10,6 +10,7 @@ import EmailPreviewModal from './components/EmailPreviewModal';
 import ExportModal from './components/ExportModal';
 import LegalModal from './components/LegalModal';
 import AuthModal from './components/AuthModal';
+import AccountModal from './components/AccountModal';
 import ToastContainer from './components/ToastContainer';
 import { FolderSync, ShieldCheck, Lock, Zap } from 'lucide-react';
 
@@ -162,6 +163,7 @@ export default function App() {
       <ExportModal />
       <LegalModal />
       <AuthModal />
+      <AccountModal />
       <ToastContainer />
 
     </div>

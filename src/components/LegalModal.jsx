@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, ShieldCheck, Lock, FileCheck, Server, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { X, ShieldCheck, Lock, FileCheck, Server, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 
 export default function LegalModal() {
-  const { isLegalModalOpen, setIsLegalModalOpen } = useApp();
+  const { isLegalModalOpen, setIsLegalModalOpen, currentFreelancer, openAccountModal } = useApp();
 
   // Close modal on Escape key press (WCAG 2.1.2)
   useEffect(() => {
@@ -127,6 +127,31 @@ export default function LegalModal() {
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               The software is provided on an "as-is" basis. DropBrief assumes no liability for the content of files uploaded by clients or unexpected third-party interruptions. Freelancers are advised to download completed asset packages to their local archives upon completion.
             </p>
+          </div>
+
+          <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid var(--danger-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
+            <strong style={{ color: 'var(--danger-light)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
+              <Trash2 size={17} /> 6. Právo na vymazanie údajov (GDPR čl. 17 – Right to Erasure)
+            </strong>
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+              Každý freelancer má právo kedykoľvek okamžite a natrvalo vymazať svoj používateľský účet. Pri zmazaní účtu systém nevratne skartuje všetky projekty, klientske formuláre aj nahrané súbory zo zabezpečeného cloudu.
+            </p>
+            {currentFreelancer && (
+              <div style={{ marginTop: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLegalModalOpen(false);
+                    openAccountModal();
+                  }}
+                  className="btn btn-outline-danger btn-sm"
+                  style={{ gap: '6px' }}
+                >
+                  <Trash2 size={13} />
+                  Prejsť na správu účtu a zmazanie dát
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

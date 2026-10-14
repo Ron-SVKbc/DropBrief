@@ -14,7 +14,8 @@ import {
   Check,
   Zap,
   Eye,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 
 export default function Navbar({ onOpenCreateModal }) {
@@ -29,6 +30,7 @@ export default function Navbar({ onOpenCreateModal }) {
     currentFreelancer,
     logoutFreelancer,
     openAuthModal,
+    openAccountModal,
     addToast
   } = useApp();
 
@@ -419,17 +421,31 @@ export default function Navbar({ onOpenCreateModal }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
 
               {/* User profile pill */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(255, 255, 255, 0.038)',
-                border: '1px solid var(--border-hairline)',
-                borderRadius: 'var(--radius-full)',
-                padding: '3px 10px 3px 4px',
-                fontSize: '0.815rem',
-                backdropFilter: 'blur(10px)'
-              }}>
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(255, 255, 255, 0.038)',
+                  border: '1px solid var(--border-hairline)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '3px 10px 3px 4px',
+                  fontSize: '0.815rem',
+                  backdropFilter: 'blur(10px)',
+                  cursor: 'pointer',
+                  transition: 'var(--transition)'
+                }}
+                onClick={openAccountModal}
+                title="Profil používateľa a nastavenia účtu"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openAccountModal();
+                  }
+                }}
+              >
                 <div style={{
                   width: '24px', height: '24px',
                   borderRadius: '50%',
@@ -447,7 +463,10 @@ export default function Navbar({ onOpenCreateModal }) {
                 {currentFreelancer.pin && (
                   <button
                     type="button"
-                    onClick={handleCopyMyPin}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyMyPin();
+                    }}
                     aria-label={`Skopírovať PIN kód (${currentFreelancer.pin})`}
                     title="Click to copy PIN code"
                     style={{
@@ -478,6 +497,18 @@ export default function Navbar({ onOpenCreateModal }) {
               >
                 <Plus size={14} aria-hidden="true" />
                 New Project
+              </button>
+
+              {/* Account Settings / Profil */}
+              <button
+                id="btn-nav-account-settings"
+                onClick={openAccountModal}
+                aria-label="Nastavenia profilu a účtu"
+                className="btn btn-secondary btn-sm"
+                title="Profil, bezpečnosť a zmazanie účtu"
+                style={{ padding: '6px 8px', color: 'var(--text-secondary)', borderRadius: 'var(--radius-full)' }}
+              >
+                <Settings size={14} aria-hidden="true" />
               </button>
 
               {/* Logout */}

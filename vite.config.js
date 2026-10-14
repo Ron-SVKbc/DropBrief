@@ -96,6 +96,11 @@ export default defineConfig(({ command, mode }) => {
             return runHandler(resetPinHandler);
           }
 
+          if (req.method === 'POST' && pathname === '/api/delete-account') {
+            const { default: deleteAccountHandler } = await import('./api/delete-account.js');
+            return runHandler(deleteAccountHandler);
+          }
+
           if (pathname.startsWith('/api/cron-purge')) {
             const { default: cronPurgeHandler } = await import('./api/cron-purge.js');
             return runHandler(cronPurgeHandler);
