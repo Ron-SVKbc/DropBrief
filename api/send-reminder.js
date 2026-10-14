@@ -263,7 +263,7 @@ ${cleanFreelancerName}
 
     // Send via Resend API
     const safeSenderName = cleanFreelancerName.replace(/[<>"'\r\n]/g, '').trim() || 'DropBrief';
-    let emailOnly = 'notifications@mail.usedropbrief.xyz';
+    let emailOnly = 'notifikacie@mail.usedropbrief.xyz';
     if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
       emailOnly = process.env.RESEND_FROM_EMAIL.trim();
     } else if (process.env.RESEND_FROM) {
@@ -280,7 +280,7 @@ ${cleanFreelancerName}
     const resendFrom = `${safeSenderName} via DropBrief <${emailOnly}>`;
 
     const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
-    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifications@mail.usedropbrief.xyz');
+    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (process.env.RESEND_FROM_EMAIL || 'notifikacie@mail.usedropbrief.xyz');
 
     const resendPayload = {
       from: resendFrom,

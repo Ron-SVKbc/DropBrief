@@ -41,7 +41,7 @@ function getVerifiedSubdomainSender() {
   const envFrom = process.env.RESEND_FROM?.trim();
   const envEmail = process.env.RESEND_FROM_EMAIL?.trim();
 
-  let email = 'notifications@mail.usedropbrief.xyz';
+  let email = 'notifikacie@mail.usedropbrief.xyz';
   let senderName = 'DropBrief';
 
   if (envEmail && envEmail.includes('@')) {

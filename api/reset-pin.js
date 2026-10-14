@@ -113,7 +113,7 @@ export default async function handler(req, res) {
 
     if (userFound && newGeneratedPin) {
       if (resendApiKey) {
-        let emailToUse = 'notifications@mail.usedropbrief.xyz';
+        let emailToUse = 'notifikacie@mail.usedropbrief.xyz';
         let senderName = 'DropBrief';
         const configuredFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
         const configuredFrom = process.env.RESEND_FROM?.trim();
