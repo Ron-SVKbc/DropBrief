@@ -765,11 +765,12 @@ export function AppProvider({ children }) {
 
   const logoutFreelancer = () => {
     localStorage.removeItem('dropbrief_freelancer_session');
+    setSupabaseSessionHeaders({ nick: null, pinHash: null });
     setCurrentFreelancer(null);
     setCurrentView('dashboard');
     setActiveProjectSlug('demo-preview');
     setProjects(INITIAL_DEMO_PROJECTS);
-    addToast('You have been successfully logged out from the dashboard.', 'info', 'Logged Out');
+    addToast('Boli ste úspešne odhlásený z dashboardu.', 'info', 'Odhlásený');
   };
 
   const seedDemoProjectForFreelancer = async () => {
