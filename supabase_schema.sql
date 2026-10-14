@@ -211,6 +211,48 @@ $$;
 
 grant execute on function public.verify_freelancer_pin(text, text, text) to anon, authenticated, service_role;
 
+-- Bezpečná obnova PINu na serveri pre /api/reset-pin (SECURITY DEFINER obchádza RLS bezpečne)
+create or replace function public.reset_freelancer_pin(
+  p_email text,
+  p_new_pin_hash text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user record;
+begin
+  if p_email is null or p_new_pin_hash is null or length(p_new_pin_hash) != 64 then
+    return jsonb_build_object('success', false, 'error', 'Neplatné vstupné údaje.');
+  end if;
+
+  select id, nick, email into v_user
+  from public.freelancers
+  where lower(email) = lower(trim(p_email));
+
+  if not found then
+    return jsonb_build_object('success', false, 'error', 'Účet s týmto e-mailom sa nenašiel.');
+  end if;
+
+  update public.freelancers
+  set pin_code = p_new_pin_hash
+  where id = v_user.id;
+
+  return jsonb_build_object(
+    'success', true,
+    'user', jsonb_build_object(
+      'id', v_user.id,
+      'nick', v_user.nick,
+      'email', v_user.email
+    )
+  );
+end;
+$$;
+
+grant execute on function public.reset_freelancer_pin(text, text) to anon, authenticated, service_role;
+
 -- Bezpečná kontrola prístupu k položkám projektu
 create or replace function public.can_access_project(p_project_id uuid)
 returns boolean

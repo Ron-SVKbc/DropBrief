@@ -657,12 +657,12 @@ export function AppProvider({ children }) {
             createdAt: found.createdAt,
             pinHash: found.pinHash || computedSalted
           };
-        } else {
-          throw new Error('Nesprávny 6-miestny PIN kód pre tento účet.');
         }
+        // Ak lokálny PIN nesedí (napr. bol obnovený cez e-mail alebo zmenený),
+        // NEVYHADZUJEME chybu, ale prenecháme overenie serveru (/api/verify-pin)
       }
     } catch (e) {
-      if (e.message && e.message.includes('Nesprávny 6-miestny PIN kód')) throw e;
+      // Ignorovať chyby lokálnej cache a prejsť na server
     }
 
     // 2. Ak sa nenašiel lokálne, overiť cez server-side endpoint /api/verify-pin
@@ -771,6 +771,14 @@ export function AppProvider({ children }) {
       throw new Error('Zadajte platnú e-mailovú adresu.');
     }
     const cleanEmail = email.trim().toLowerCase();
+
+    // Vyčistiť zastarané lokálne dáta a počítadlo pokusov, aby nový PIN nebol blokovaný starým lokálnym stavom
+    try {
+      localStorage.removeItem('dropbrief_login_attempts');
+      const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+      const filtered = localAccs.filter((a) => a.email?.toLowerCase() !== cleanEmail);
+      localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+    } catch (e) {}
 
     const response = await fetch('/api/reset-pin', {
       method: 'POST',

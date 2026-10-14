@@ -86,25 +86,46 @@ export default async function handler(req, res) {
     if (supabaseUrl && supabaseKey) {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Vyhľadanie používateľa podľa e-mailu
-      const { data: dbUser, error } = await supabase
-        .from('freelancers')
-        .select('id, nick, email')
-        .ilike('email', cleanEmail)
-        .maybeSingle();
+      // Generovanie nového 6-miestneho PIN kódu a hashu
+      newGeneratedPin = Math.floor(100000 + Math.random() * 900000).toString();
+      const newSaltedHash = hashPin(newGeneratedPin, true);
 
-      if (!error && dbUser) {
-        userFound = true;
-        userNick = dbUser.nick || 'Freelancer';
-        // Generovanie nového 6-miestneho PIN kódu
-        newGeneratedPin = Math.floor(100000 + Math.random() * 900000).toString();
-        const newSaltedHash = hashPin(newGeneratedPin, true);
+      // 1. Primárne: Bezpečná RPC funkcia (SECURITY DEFINER obchádza RLS a funguje s anon aj service_role)
+      let rpcSuccess = false;
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('reset_freelancer_pin', {
+          p_email: cleanEmail,
+          p_new_pin_hash: newSaltedHash,
+        });
 
-        // Aktualizácia v databáze
-        await supabase
+        if (!rpcErr && rpcRes?.success) {
+          rpcSuccess = true;
+          userFound = true;
+          userNick = rpcRes.user?.nick || 'Freelancer';
+        }
+      } catch (rpcEx) {
+        console.warn('reset-pin RPC warning:', rpcEx);
+      }
+
+      // 2. Sekundárne (fallback): Priamy dotaz cez service-role kľúč
+      if (!rpcSuccess) {
+        const { data: dbUser, error } = await supabase
           .from('freelancers')
-          .update({ pin_code: newSaltedHash })
-          .eq('id', dbUser.id);
+          .select('id, nick, email')
+          .ilike('email', cleanEmail)
+          .maybeSingle();
+
+        if (!error && dbUser) {
+          const { error: updErr } = await supabase
+            .from('freelancers')
+            .update({ pin_code: newSaltedHash })
+            .eq('id', dbUser.id);
+
+          if (!updErr) {
+            userFound = true;
+            userNick = dbUser.nick || 'Freelancer';
+          }
+        }
       }
     }
 
