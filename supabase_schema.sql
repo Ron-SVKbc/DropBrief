@@ -211,7 +211,7 @@ $$;
 
 grant execute on function public.verify_freelancer_pin(text, text, text) to anon, authenticated, service_role;
 
--- Bezpečná obnova PINu na serveri pre /api/reset-pin (SECURITY DEFINER obchádza RLS bezpečne)
+-- Bezpečná obnova PINu na serveri pre /api/reset-pin (VÝHRADNE service_role, NIKDY anon!)
 create or replace function public.reset_freelancer_pin(
   p_email text,
   p_new_pin_hash text
@@ -224,6 +224,11 @@ as $$
 declare
   v_user record;
 begin
+  -- Absolútny zákaz volania z verejného frontendu / anon:
+  if auth.role() != 'service_role' then
+    return jsonb_build_object('success', false, 'error', 'Neoprávnený prístup. Vyžaduje sa service_role.');
+  end if;
+
   if p_email is null or p_new_pin_hash is null or length(p_new_pin_hash) != 64 then
     return jsonb_build_object('success', false, 'error', 'Neplatné vstupné údaje.');
   end if;
@@ -251,7 +256,8 @@ begin
 end;
 $$;
 
-grant execute on function public.reset_freelancer_pin(text, text) to anon, authenticated, service_role;
+revoke all on function public.reset_freelancer_pin(text, text) from public, anon, authenticated;
+grant execute on function public.reset_freelancer_pin(text, text) to service_role;
 
 -- Bezpečná kontrola prístupu k položkám projektu
 create or replace function public.can_access_project(p_project_id uuid)
