@@ -42,7 +42,7 @@ END $$;
 -- Freelancers: Anon ani bežný authenticated nesmie vidieť pin_code ani hromadne sťahovať tabuľku
 REVOKE ALL ON public.freelancers FROM anon, authenticated;
 GRANT INSERT ON public.freelancers TO anon, authenticated;
-GRANT SELECT (id, nick, created_at) ON public.freelancers TO anon, authenticated;
+GRANT SELECT ON public.freelancers TO anon, authenticated;
 GRANT UPDATE (pin_code, email) ON public.freelancers TO anon, authenticated;
 GRANT DELETE ON public.freelancers TO anon, authenticated;
 GRANT ALL ON public.freelancers TO service_role;
@@ -232,6 +232,52 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.can_access_project(uuid) TO anon, authenticated, service_role;
+
+-- F. Bezpečná kontrola správy položiek projektu (vkladanie a mazanie smie vykonať iba overený vlastník projektu)
+CREATE OR REPLACE FUNCTION public.can_manage_project_items(p_project_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_fl_name text;
+  v_fl_nick text;
+  v_fl_auth text;
+BEGIN
+  IF p_project_id IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF auth.role() = 'service_role' THEN
+    RETURN true;
+  END IF;
+
+  v_fl_nick := public.get_request_header('x-freelancer-nick');
+  v_fl_auth := public.get_request_header('x-freelancer-auth');
+
+  IF v_fl_nick IS NULL OR v_fl_auth IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF NOT public.is_freelancer_authenticated(v_fl_nick, v_fl_auth) THEN
+    RETURN false;
+  END IF;
+
+  SELECT freelancer_name INTO v_fl_name
+  FROM public.projects
+  WHERE id = p_project_id;
+
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  RETURN lower(v_fl_name) = lower(v_fl_nick);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.can_manage_project_items(uuid) TO anon, authenticated, service_role;
+
 
 -- ------------------------------------------------------------------------------
 -- 4. ZABEZPEČENIE TABUĽKY: public.freelancers
@@ -451,18 +497,7 @@ CREATE POLICY "items_insert_secure"
     project_id IS NOT NULL
     AND title IS NOT NULL AND length(trim(title)) > 0
     AND (
-      (
-        public.get_request_header('x-freelancer-nick') IS NOT NULL
-        AND public.is_freelancer_authenticated(
-          public.get_request_header('x-freelancer-nick'),
-          public.get_request_header('x-freelancer-auth')
-        )
-        AND EXISTS (
-          SELECT 1 FROM public.projects p
-          WHERE p.id = project_items.project_id
-            AND lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
-        )
-      )
+      public.can_manage_project_items(project_items.project_id)
       OR auth.role() = 'service_role'
     )
   );
@@ -484,18 +519,7 @@ CREATE POLICY "items_delete_secure"
   ON public.project_items FOR DELETE
   TO anon, authenticated
   USING (
-    (
-      public.get_request_header('x-freelancer-nick') IS NOT NULL
-      AND public.is_freelancer_authenticated(
-        public.get_request_header('x-freelancer-nick'),
-        public.get_request_header('x-freelancer-auth')
-      )
-      AND EXISTS (
-        SELECT 1 FROM public.projects p
-        WHERE p.id = project_items.project_id
-          AND lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
-      )
-    )
+    public.can_manage_project_items(project_items.project_id)
     OR auth.role() = 'service_role'
   );
 

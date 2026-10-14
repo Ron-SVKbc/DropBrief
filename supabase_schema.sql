@@ -99,7 +99,7 @@ grant execute on function public.get_request_header(text) to anon, authenticated
 -- ─── Bezpečné pomocné funkcie (SECURITY DEFINER) ──────────────────────────────
 revoke all on public.freelancers from anon, authenticated;
 grant insert on public.freelancers to anon, authenticated;
-grant select (id, nick, created_at) on public.freelancers to anon, authenticated;
+grant select on public.freelancers to anon, authenticated;
 grant update (pin_code, email) on public.freelancers to anon, authenticated;
 grant delete on public.freelancers to anon, authenticated;
 
@@ -256,6 +256,52 @@ end;
 $$;
 
 grant execute on function public.can_access_project(uuid) to anon, authenticated, service_role;
+
+-- Bezpečná kontrola správy položiek projektu (vkladanie a mazanie smie vykonať iba overený vlastník projektu)
+create or replace function public.can_manage_project_items(p_project_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_fl_name text;
+  v_fl_nick text;
+  v_fl_auth text;
+begin
+  if p_project_id is null then
+    return false;
+  end if;
+
+  if auth.role() = 'service_role' then
+    return true;
+  end if;
+
+  v_fl_nick := public.get_request_header('x-freelancer-nick');
+  v_fl_auth := public.get_request_header('x-freelancer-auth');
+
+  if v_fl_nick is null or v_fl_auth is null then
+    return false;
+  end if;
+
+  if not public.is_freelancer_authenticated(v_fl_nick, v_fl_auth) then
+    return false;
+  end if;
+
+  select freelancer_name into v_fl_name
+  from public.projects
+  where id = p_project_id;
+
+  if not found then
+    return false;
+  end if;
+
+  return lower(v_fl_name) = lower(v_fl_nick);
+end;
+$$;
+
+grant execute on function public.can_manage_project_items(uuid) to anon, authenticated, service_role;
+
 
 create policy "freelancers_insert_policy"
   on public.freelancers for insert
@@ -428,18 +474,7 @@ create policy "items_insert_secure"
     project_id is not null
     and title is not null and length(trim(title)) > 0
     and (
-      (
-        public.get_request_header('x-freelancer-nick') is not null
-        and public.is_freelancer_authenticated(
-          public.get_request_header('x-freelancer-nick'),
-          public.get_request_header('x-freelancer-auth')
-        )
-        and exists (
-          select 1 from public.projects p
-          where p.id = project_items.project_id
-            and lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
-        )
-      )
+      public.can_manage_project_items(project_items.project_id)
       or auth.role() = 'service_role'
     )
   );
@@ -458,18 +493,7 @@ create policy "items_delete_secure"
   on public.project_items for delete
   to anon, authenticated
   using (
-    (
-      public.get_request_header('x-freelancer-nick') is not null
-      and public.is_freelancer_authenticated(
-        public.get_request_header('x-freelancer-nick'),
-        public.get_request_header('x-freelancer-auth')
-      )
-      and exists (
-        select 1 from public.projects p
-        where p.id = project_items.project_id
-          and lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
-      )
-    )
+    public.can_manage_project_items(project_items.project_id)
     or auth.role() = 'service_role'
   );
 
