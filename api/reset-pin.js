@@ -114,14 +114,24 @@ export default async function handler(req, res) {
     if (userFound && newGeneratedPin) {
       if (resendApiKey) {
         let resendFrom = process.env.RESEND_FROM;
-        if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
-          const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
-          resendFrom = `DropBrief Bezpečnosť <${emailOnly}>`;
+        const configuredFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+        if (configuredFromEmail && configuredFromEmail.includes('@')) {
+          resendFrom = `DropBrief <${configuredFromEmail}>`;
         } else if (!resendFrom) {
           resendFrom = `DropBrief <onboarding@resend.dev>`;
         }
 
-        const subject = `DropBrief: Váš nový prístupový PIN kód: ${newGeneratedPin}`;
+        const replyToEmail = process.env.RESEND_REPLY_TO?.trim() ||
+          (configuredFromEmail && configuredFromEmail.includes('@') ? configuredFromEmail : 'support@usedropbrief.xyz');
+
+        // Predmet bez surového čísla PIN kódu kvôli anti-spam filtrom
+        const subject = 'DropBrief: Obnova prístupového PIN kódu';
+
+        const uniqueRef = createHash('sha256')
+          .update(`${cleanEmail}-${Date.now()}-${newGeneratedPin}`)
+          .digest('hex')
+          .substring(0, 8)
+          .toUpperCase();
 
         const plainTextContent = `Ahoj ${userNick},
 
@@ -130,99 +140,107 @@ Na základe vašej žiadosti sme pre váš účet vygenerovali nový 6-miestny P
 VÁŠ NOVÝ PRÍSTUPOVÝ PIN KÓD:
 ${newGeneratedPin}
 
-Do svojho dashboardu sa môžete ihneď prihlásiť zadaním vášho mena (${userNick}) alebo vášho e-mailu (${cleanEmail}) a tohto nového PIN kódu:
+Do svojho dashboardu sa môžete kedykoľvek prihlásiť zadaním vášho mena (${userNick}) alebo vášho e-mailu (${cleanEmail}) a tohto nového PIN kódu na adrese:
 https://usedropbrief.xyz
 
-DÔLEŽITÉ BEZPEČNOSTNÉ UPOZORNENIE:
-Ak ste o zmenu PIN kódu nežiadali, odporúčame prihlásiť sa do dashboardu a overiť svoje údaje. Pôvodný PIN kód bol zneplatnený a nový PIN kód bol doručený iba do tejto e-mailovej schránky.
+Pôvodný PIN kód bol z bezpečnostných dôvodov zneplatnený.
 
+S pozdravom,
 Tím DropBrief
 https://usedropbrief.xyz
+Ref: DB-RESET-${uniqueRef}
 `;
 
         const htmlContent = `<!DOCTYPE html>
-<html lang="sk">
+<html lang="sk" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(subject)}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0f19; padding: 36px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background: #111827; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
           
           <!-- Header -->
           <tr>
-            <td style="padding: 28px 32px 20px 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(17, 24, 39, 0) 100%);">
-              <div style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-                DropBrief
-              </div>
-              <div style="font-size: 13px; color: #f59e0b; margin-top: 4px; font-weight: 600;">
-                Obnova prístupového PIN kódu
-              </div>
+            <td style="padding: 28px 32px; background-color: #ffffff; border-bottom: 1px solid #f1f5f9;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <span style="font-size: 20px; font-weight: 800; color: #4f46e5; letter-spacing: -0.02em;">DropBrief</span>
+                  </td>
+                  <td align="right">
+                    <span style="font-size: 12px; font-weight: 600; color: #d97706; background-color: #fef3c7; padding: 4px 10px; border-radius: 20px;">Obnova PIN kódu</span>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Main Content -->
           <tr>
-            <td style="padding: 32px 32px 24px 32px;">
-              <p style="font-size: 16px; line-height: 1.5; color: #f8fafc; margin: 0 0 16px 0; font-weight: 600;">
+            <td style="padding: 32px 32px 28px 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
                 Ahoj ${escapeHtml(userNick)},
-              </p>
+              </h1>
               
-              <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px 0;">
-                Na základe vašej žiadosti o obnovu prístupu sme pre váš účet vygenerovali nový 6-miestny numerický PIN kód. Váš predchádzajúci PIN kód bol z bezpečnostných dôvodov zneplatnený:
+              <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                Na základe vašej žiadosti sme pre váš účet vygenerovali nový 6-miestny numerický PIN kód. Váš predchádzajúci PIN kód bol z bezpečnostných dôvodov zneplatnený:
               </p>
 
-              <!-- Glowing PIN Box -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 26px;">
+              <!-- Clean Monospace PIN Box -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
                 <tr>
-                  <td align="center" style="background: rgba(0, 0, 0, 0.45); border: 2px dashed #f59e0b; border-radius: 10px; padding: 24px 16px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
+                  <td align="center" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 22px 16px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">
                       VÁŠ NOVÝ PIN KÓD
                     </div>
-                    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; text-shadow: 0 0 16px rgba(245, 158, 11, 0.7);">
+                    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0f172a;">
                       ${escapeHtml(newGeneratedPin)}
                     </div>
                   </td>
                 </tr>
               </table>
 
-              <p style="font-size: 13.5px; line-height: 1.6; color: #cbd5e1; margin: 0 0 18px 0;">
-                <strong>Ako sa prihlásiť:</strong><br>
-                Zadajte vaše prihlasovacie meno <code>${escapeHtml(userNick)}</code> alebo váš e-mail <code>${escapeHtml(cleanEmail)}</code> a vyššie uvedený nový PIN kód.
-              </p>
+              <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; border-left: 3px solid #4f46e5;">
+                <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #334155;">
+                  <strong>Ako sa prihlásiť:</strong> Zadajte vaše prihlasovacie meno <strong>${escapeHtml(userNick)}</strong> alebo e-mail <strong>${escapeHtml(cleanEmail)}</strong> a tento nový PIN kód.
+                </p>
+              </div>
 
-              <!-- Warning Card -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px; margin-bottom: 24px;">
-                <tr>
-                  <td style="padding: 12px 14px;">
-                    <div style="font-size: 12.5px; color: #fca5a5; line-height: 1.5;">
-                      <strong>Bezpečnostné upozornenie:</strong> Ak ste o túto zmenu nežiadali, odporúčame prihlásiť sa do dashboardu. Pôvodný PIN bol okamžite zrušený a nový kód bol doručený iba do tejto vašej e-mailovej schránky.
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <!-- Button CTA -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                 <tr>
                   <td align="left">
-                    <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 6px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+                    <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px;">
                       Prihlásiť sa do DropBrief &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
+
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                Ak ste o obnovu PIN kódu nežiadali, odporúčame prihlásiť sa a overiť svoje projekty. Kód bol doručený iba do tejto vašej e-mailovej schránky.
+              </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background: #0d121f; border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 16px 32px; font-size: 11.5px; color: #64748b; line-height: 1.5;">
-              <div>
-                Tento e-mail je bezpečnostnou transakčnou správou pre obnovu účtu na <strong>DropBrief</strong>.
-              </div>
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    DropBrief &bull; <a href="https://usedropbrief.xyz" style="color: #64748b; text-decoration: underline;">usedropbrief.xyz</a>
+                  </td>
+                  <td align="right">
+                    Ref: DB-RESET-${uniqueRef}
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -242,9 +260,15 @@ https://usedropbrief.xyz
           body: JSON.stringify({
             from: resendFrom,
             to: [cleanEmail],
+            reply_to: replyToEmail,
             subject,
             text: plainTextContent,
             html: htmlContent,
+            headers: {
+              'X-Entity-Ref-ID': `DB-RESET-${uniqueRef}`,
+              'Auto-Submitted': 'auto-generated',
+              'X-Auto-Response-Suppress': 'All',
+            },
           }),
           signal: AbortSignal.timeout(8000),
         }).catch((err) => console.warn('Resend reset-pin error:', err));

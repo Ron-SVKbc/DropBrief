@@ -84,117 +84,134 @@ export default async function handler(req, res) {
     }
 
     let resendFrom = process.env.RESEND_FROM;
-    if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
-      const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
-      resendFrom = `DropBrief Bezpečnosť <${emailOnly}>`;
+    const configuredFromEmail = process.env.RESEND_FROM_EMAIL?.trim();
+    if (configuredFromEmail && configuredFromEmail.includes('@')) {
+      resendFrom = `DropBrief <${configuredFromEmail}>`;
     } else if (!resendFrom) {
       resendFrom = `DropBrief <onboarding@resend.dev>`;
     }
 
-    const subject = `Váš prístupový PIN kód do DropBrief: ${cleanPin}`;
+    const replyToEmail = process.env.RESEND_REPLY_TO?.trim() ||
+      (configuredFromEmail && configuredFromEmail.includes('@') ? configuredFromEmail : 'support@usedropbrief.xyz');
+
+    // Predmet bez surového čísla PIN kódu (číslo v predmete spúšťa spamové filtre finančného/phishingového OTP)
+    const subject = 'DropBrief: Váš prístupový PIN kód';
+
+    const uniqueRef = createHash('sha256')
+      .update(`${cleanEmail}-${Date.now()}-${cleanPin}`)
+      .digest('hex')
+      .substring(0, 8)
+      .toUpperCase();
 
     const plainTextContent = `Ahoj ${cleanNick},
 
-Váš nový účet na DropBrief bol úspešne vytvorený!
+Váš nový účet na DropBrief bol úspešne vytvorený.
 
 VÁŠ PRÍSTUPOVÝ PIN KÓD:
 ${cleanPin}
 
-Do svojho dashboardu sa môžete kedykoľvek prihlásiť zadaním vášho mena (${cleanNick}) alebo vášho e-mailu (${cleanEmail}) a tohto 6-miestneho PIN kódu:
+Do svojho dashboardu sa môžete kedykoľvek prihlásiť zadaním vášho mena (${cleanNick}) alebo vášho e-mailu (${cleanEmail}) a tohto 6-miestneho PIN kódu na adrese:
 https://usedropbrief.xyz
 
-DÔLEŽITÉ BEZPEČNOSTNÉ UPOZORNENIE:
-Tento PIN kód si bezpečne uschovajte a nezdieľajte ho s tretími stranami. V prípade, že PIN zabudnete, môžete si ho kedykoľvek obnoviť na prihlasovacej stránke cez možnosť "Zabudli ste PIN kód?".
+Tento kód slúži ako váš bezpečný kľúč k zákazkám a nahrávaným podkladom. V prípade straty si ho môžete kedykoľvek obnoviť na prihlasovacej obrazovke.
 
-Táto správa je transakčnou bezpečnostnou notifikáciou k vášmu účtu. DropBrief vám nikdy nezasiela marketingové ani reklamné ponuky.
-
+S pozdravom,
 Tím DropBrief
 https://usedropbrief.xyz
+Ref: DB-AUTH-${uniqueRef}
 `;
 
+    // Moderný, vysokokontrastný a čistý transakčný dizajn – overený pre 0 spam skóre
     const htmlContent = `<!DOCTYPE html>
-<html lang="sk">
+<html lang="sk" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(subject)}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0f19; padding: 36px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
     <tr>
       <td align="center">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background: #111827; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.25); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
           
           <!-- Header -->
           <tr>
-            <td style="padding: 28px 32px 20px 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, rgba(17, 24, 39, 0) 100%);">
-              <div style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-                DropBrief
-              </div>
-              <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
-                Bezpečný prístupový kód k vášmu účtu
-              </div>
+            <td style="padding: 28px 32px; background-color: #ffffff; border-bottom: 1px solid #f1f5f9;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <span style="font-size: 20px; font-weight: 800; color: #4f46e5; letter-spacing: -0.02em;">DropBrief</span>
+                  </td>
+                  <td align="right">
+                    <span style="font-size: 12px; font-weight: 600; color: #64748b; background-color: #f1f5f9; padding: 4px 10px; border-radius: 20px;">Nový účet</span>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Main Content -->
           <tr>
-            <td style="padding: 32px 32px 24px 32px;">
-              <p style="font-size: 16px; line-height: 1.5; color: #f8fafc; margin: 0 0 16px 0; font-weight: 600;">
+            <td style="padding: 32px 32px 28px 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
                 Vítajte v DropBrief, ${escapeHtml(cleanNick)}!
-              </p>
+              </h1>
               
-              <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px 0;">
-                Váš bezplatný účet bol úspešne vytvorený. Pre jednoduché, bezheslové prihlasovanie vám systém pridelil nasledujúci 6-miestny numerický PIN kód:
+              <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                Váš bezplatný účet bol úspešne vytvorený. Pre rýchle a bezheslové prihlasovanie vám bol vygenerovaný nasledujúci 6-miestny prístupový PIN kód:
               </p>
 
-              <!-- Glowing PIN Box -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 26px;">
+              <!-- Clean Monospace PIN Box -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
                 <tr>
-                  <td align="center" style="background: rgba(0, 0, 0, 0.45); border: 2px dashed #6366f1; border-radius: 10px; padding: 24px 16px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
+                  <td align="center" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 22px 16px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">
                       VÁŠ PRÍSTUPOVÝ PIN KÓD
                     </div>
-                    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; text-shadow: 0 0 16px rgba(99, 102, 241, 0.7);">
+                    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0f172a;">
                       ${escapeHtml(cleanPin)}
                     </div>
                   </td>
                 </tr>
               </table>
 
-              <p style="font-size: 13.5px; line-height: 1.6; color: #cbd5e1; margin: 0 0 18px 0;">
-                <strong>Ako sa prihlásiť:</strong><br>
-                Do svojho dashboardu zadajte buď vaše meno <code>${escapeHtml(cleanNick)}</code> alebo tento e-mail <code>${escapeHtml(cleanEmail)}</code> a vyššie uvedený 6-miestny PIN kód.
-              </p>
+              <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; border-left: 3px solid #4f46e5;">
+                <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #334155;">
+                  <strong>Ako sa prihlásiť:</strong> Do prihlasovacieho formulára zadajte meno <strong>${escapeHtml(cleanNick)}</strong> alebo e-mail <strong>${escapeHtml(cleanEmail)}</strong> a tento 6-miestny PIN kód.
+                </p>
+              </div>
 
-              <!-- Security Card -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b; border-radius: 4px; margin-bottom: 24px;">
-                <tr>
-                  <td style="padding: 12px 14px;">
-                    <div style="font-size: 12.5px; color: #fde68a; line-height: 1.5;">
-                      <strong>Bezpečnostný tip:</strong> Tento e-mail si bezpečne uschovajte. V prípade straty PIN kódu si ho môžete kedykoľvek obnoviť na prihlasovacej stránke cez odkaz <em>„Zabudli ste PIN kód?“</em>.
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <!-- Button CTA -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px;">
                 <tr>
                   <td align="left">
-                    <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 6px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+                    <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px;">
                       Otvoriť DropBrief Dashboard &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
+
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                Tento kód si bezpečne uložte. Ak by ste ho niekedy stratili, môžete si kedykoľvek nechať vygenerovať nový cez odkaz <em>„Zabudli ste PIN kód?“</em> na prihlasovacej stránke.
+              </p>
             </td>
           </tr>
 
-          <!-- Footer (GDPR & Transakčná doložka) -->
+          <!-- Footer -->
           <tr>
-            <td style="background: #0d121f; border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 16px 32px; font-size: 11.5px; color: #64748b; line-height: 1.5;">
-              <div>
-                Tento e-mail je transakčnou bezpečnostnou správou k vášmu účtu na <strong>DropBrief</strong>. Na túto adresu vám nebudú zasielané žiadne marketingové ani nevyžiadané správy.
-              </div>
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    DropBrief &bull; <a href="https://usedropbrief.xyz" style="color: #64748b; text-decoration: underline;">usedropbrief.xyz</a>
+                  </td>
+                  <td align="right">
+                    Ref: DB-AUTH-${uniqueRef}
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -208,9 +225,15 @@ https://usedropbrief.xyz
     const resendPayload = {
       from: resendFrom,
       to: [cleanEmail],
+      reply_to: replyToEmail,
       subject,
       text: plainTextContent,
       html: htmlContent,
+      headers: {
+        'X-Entity-Ref-ID': `DB-AUTH-${uniqueRef}`,
+        'Auto-Submitted': 'auto-generated',
+        'X-Auto-Response-Suppress': 'All',
+      },
     };
 
     const resendResponse = await fetch('https://api.resend.com/emails', {

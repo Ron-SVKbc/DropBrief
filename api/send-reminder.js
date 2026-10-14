@@ -262,10 +262,11 @@ ${cleanFreelancerName}
     }
 
     // Send via Resend API
+    const safeSenderName = cleanFreelancerName.replace(/[<>"'\r\n]/g, '').trim() || 'DropBrief';
     let resendFrom = process.env.RESEND_FROM;
     if (process.env.RESEND_FROM_EMAIL && process.env.RESEND_FROM_EMAIL.includes('@')) {
       const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
-      resendFrom = `${cleanFreelancerName} via DropBrief <${emailOnly}>`;
+      resendFrom = `${safeSenderName} via DropBrief <${emailOnly}>`;
     } else if (!resendFrom) {
       resendFrom = `DropBrief <onboarding@resend.dev>`;
     }
@@ -281,6 +282,8 @@ ${cleanFreelancerName}
       html: htmlContent,
       headers: {
         'X-Entity-Ref-ID': `DB-${uniqueRef}`,
+        'Auto-Submitted': 'auto-generated',
+        'X-Auto-Response-Suppress': 'All',
         'List-Unsubscribe': `<mailto:${cleanFromEmail}?subject=Unsubscribe>`,
       },
     };
