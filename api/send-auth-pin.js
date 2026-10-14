@@ -88,11 +88,14 @@ export default async function handler(req, res) {
     if (configuredFromEmail && configuredFromEmail.includes('@')) {
       resendFrom = `DropBrief <${configuredFromEmail}>`;
     } else if (!resendFrom) {
-      resendFrom = `DropBrief <onboarding@resend.dev>`;
+      // Vždy používame overenú subdoménu z Resend
+      resendFrom = `DropBrief <notifications@mail.usedropbrief.xyz>`;
     }
 
-    const replyToEmail = process.env.RESEND_REPLY_TO?.trim() ||
-      (configuredFromEmail && configuredFromEmail.includes('@') ? configuredFromEmail : 'support@usedropbrief.xyz');
+    const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
+    const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (configuredFromEmail || 'notifications@mail.usedropbrief.xyz');
+
+    const replyToEmail = process.env.RESEND_REPLY_TO?.trim() || cleanFromEmail;
 
     // Predmet bez surového čísla PIN kódu (číslo v predmete spúšťa spamové filtre finančného/phishingového OTP)
     const subject = 'DropBrief: Váš prístupový PIN kód';

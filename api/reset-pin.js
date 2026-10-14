@@ -118,11 +118,13 @@ export default async function handler(req, res) {
         if (configuredFromEmail && configuredFromEmail.includes('@')) {
           resendFrom = `DropBrief <${configuredFromEmail}>`;
         } else if (!resendFrom) {
-          resendFrom = `DropBrief <onboarding@resend.dev>`;
+          resendFrom = `DropBrief <notifications@mail.usedropbrief.xyz>`;
         }
 
-        const replyToEmail = process.env.RESEND_REPLY_TO?.trim() ||
-          (configuredFromEmail && configuredFromEmail.includes('@') ? configuredFromEmail : 'support@usedropbrief.xyz');
+        const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
+        const cleanFromEmail = fromEmailMatch ? fromEmailMatch[1] : (configuredFromEmail || 'notifications@mail.usedropbrief.xyz');
+
+        const replyToEmail = process.env.RESEND_REPLY_TO?.trim() || cleanFromEmail;
 
         // Predmet bez surového čísla PIN kódu kvôli anti-spam filtrom
         const subject = 'DropBrief: Obnova prístupového PIN kódu';

@@ -268,7 +268,7 @@ ${cleanFreelancerName}
       const emailOnly = process.env.RESEND_FROM_EMAIL.trim();
       resendFrom = `${safeSenderName} via DropBrief <${emailOnly}>`;
     } else if (!resendFrom) {
-      resendFrom = `DropBrief <onboarding@resend.dev>`;
+      resendFrom = `${safeSenderName} via DropBrief <notifications@mail.usedropbrief.xyz>`;
     }
 
     const fromEmailMatch = resendFrom.match(/<([^>]+)>/);
