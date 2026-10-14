@@ -291,7 +291,8 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.delete_freelancer_account(text, text, text) TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.delete_freelancer_account(text, text, text) FROM public, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_freelancer_account(text, text, text) TO service_role;
 
 -- E. Bezpečná kontrola prístupu k položkám projektu
 CREATE OR REPLACE FUNCTION public.can_access_project(p_project_id uuid)
@@ -641,6 +642,7 @@ ON CONFLICT (id) DO UPDATE SET public = true;
 GRANT ALL ON storage.objects TO anon, authenticated, service_role;
 GRANT ALL ON storage.buckets TO anon, authenticated, service_role;
 
+DROP POLICY IF EXISTS "Verejná aktualizácia v bucket" ON storage.objects;
 DROP POLICY IF EXISTS "Verejné nahrávanie podkladov klientmi" ON storage.objects;
 DROP POLICY IF EXISTS "Verejné čítanie a sťahovanie podkladov" ON storage.objects;
 DROP POLICY IF EXISTS "Odstránenie podkladov" ON storage.objects;
@@ -649,44 +651,86 @@ DROP POLICY IF EXISTS "storage_select_secure" ON storage.objects;
 DROP POLICY IF EXISTS "storage_update_secure" ON storage.objects;
 DROP POLICY IF EXISTS "storage_delete_secure" ON storage.objects;
 
--- A. Nahrávanie súborov: Povolené do bucketu client-uploads (chráni interné _profiles)
+-- A. Nahrávanie súborov: Povolené do bucketu client-uploads do klientskych priečinkov
 CREATE POLICY "storage_upload_secure"
   ON storage.objects FOR INSERT
   TO anon, authenticated
   WITH CHECK (
     bucket_id = 'client-uploads'
-    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+    AND left(name, 1) != '_'
+    AND position('/' in name) > 1
   );
 
--- B. Čítanie súborov: Povolené pre klientske súbory (chráni interné _profiles)
+-- B. Čítanie a listing súborov: Zákaz plošného zoznamovania celého disku
 CREATE POLICY "storage_select_secure"
   ON storage.objects FOR SELECT
   TO anon, authenticated
   USING (
-    bucket_id = 'client-uploads'
-    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    OR (
+      bucket_id = 'client-uploads'
+      AND public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      AND EXISTS (
+        SELECT 1 FROM public.projects p
+        WHERE lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          AND split_part(name, '/', 1) IN (p.slug, p.id::text)
+      )
+    )
+    OR (
+      bucket_id = 'client-uploads'
+      AND public.get_request_header('x-project-slug') IS NOT NULL
+      AND split_part(name, '/', 1) = public.get_request_header('x-project-slug')
+    )
   );
 
--- C. Prepísanie súborov (upsert): Povolené pre klientske súbory a metadáta
+-- C. Prepísanie súborov (upsert): Povolené iba pre overeného vlastníka projektu alebo service_role
 CREATE POLICY "storage_update_secure"
   ON storage.objects FOR UPDATE
   TO anon, authenticated
   USING (
-    bucket_id = 'client-uploads'
-    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    OR (
+      bucket_id = 'client-uploads'
+      AND public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      AND EXISTS (
+        SELECT 1 FROM public.projects p
+        WHERE lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          AND split_part(name, '/', 1) IN (p.slug, p.id::text)
+      )
+    )
   )
   WITH CHECK (
     bucket_id = 'client-uploads'
-    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+    AND left(name, 1) != '_'
   );
 
--- D. Mazanie súborov: Povolené pre klientske súbory a metadáta
+-- D. Mazanie súborov: Povolené iba pre overeného vlastníka projektu alebo service_role (GDPR skartácia)
 CREATE POLICY "storage_delete_secure"
   ON storage.objects FOR DELETE
   TO anon, authenticated
   USING (
-    bucket_id = 'client-uploads'
-    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    OR (
+      bucket_id = 'client-uploads'
+      AND public.get_request_header('x-freelancer-nick') IS NOT NULL
+      AND public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      AND EXISTS (
+        SELECT 1 FROM public.projects p
+        WHERE lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          AND split_part(name, '/', 1) IN (p.slug, p.id::text)
+      )
+    )
   );
 
 -- ------------------------------------------------------------------------------

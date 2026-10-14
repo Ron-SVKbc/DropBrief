@@ -1,6 +1,46 @@
+import { createClient } from '@supabase/supabase-js';
+
+/**
+ * 🔒 In-memory rate limiter pre odosielanie e-mailových pripomienok (max 10 e-mailov za 10 minút na IP).
+ * Chráni pred vyčerpaním Resend kvóty a pred použitím ako spam relay.
+ */
+const reminderAttempts = new Map();
+const WINDOW_MS = 10 * 60 * 1_000;
+const MAX_ATTEMPTS = 10;
+
+function checkReminderRateLimit(ip) {
+  const now = Date.now();
+  const record = reminderAttempts.get(ip);
+  if (!record || now - record.since > WINDOW_MS) {
+    reminderAttempts.set(ip, { count: 1, since: now });
+    return { allowed: true };
+  }
+  if (record.count >= MAX_ATTEMPTS) {
+    const waitSec = Math.ceil((WINDOW_MS - (now - record.since)) / 1000);
+    return { allowed: false, waitSec };
+  }
+  record.count += 1;
+  return { allowed: true };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
+  }
+
+  // ── 1. IP Rate Limiting ────────────────────────────────────────────────────
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip']?.trim() ||
+    req.socket?.remoteAddress ||
+    'unknown';
+
+  const rl = checkReminderRateLimit(ip);
+  if (!rl.allowed) {
+    return res.status(429).json({
+      success: false,
+      error: `Príliš veľa odoslaných e-mailových pripomienok. Skúste to znova o ${Math.ceil(rl.waitSec / 60)} minút.`
+    });
   }
 
   try {
@@ -30,6 +70,37 @@ export default async function handler(req, res) {
 
     if (!projectTitle) {
       return res.status(400).json({ success: false, error: 'Missing project title.' });
+    }
+
+    // ── 2. Ochrana pred Open Email Relay (Overenie príjemcu voči DB) ───────────
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+    if (supabaseUrl && supabaseKey && projectId) {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId);
+        let query = supabase.from('projects').select('id, client_email, freelancer_name');
+        if (isUuid) {
+          query = query.eq('id', projectId);
+        } else {
+          query = query.ilike('slug', projectId);
+        }
+        const { data: dbProj } = await query.maybeSingle();
+
+        if (dbProj && dbProj.client_email) {
+          // Striktná kontrola: e-mail príjemcu musí zodpovedať klientovi uloženému v zákazke!
+          if (dbProj.client_email.trim().toLowerCase() !== clientEmail.trim().toLowerCase()) {
+            console.warn(`[send-reminder] Blocked phishing relay attempt: ${clientEmail} does not match DB ${dbProj.client_email}`);
+            return res.status(403).json({
+              success: false,
+              error: 'Bezpečnostná chyba: E-mailová adresa príjemcu sa nezhoduje s registrovaným e-mailom klienta v projekte.'
+            });
+          }
+        }
+      } catch (dbCheckErr) {
+        console.warn('[send-reminder] DB project verification check warning:', dbCheckErr.message);
+      }
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;

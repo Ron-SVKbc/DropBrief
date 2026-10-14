@@ -122,21 +122,7 @@ export async function getCloudFreelancer(nick) {
         };
       }
       // Ak tabuľka existuje a vrátila null, používateľ s týmto nickom v DB neexistuje.
-      // Netreba robiť pomalé zbytočné volanie do Storage (404 Object not found).
       return null;
-    }
-  } catch (e) {}
-
-  // 2. Iba ak SQL tabuľka vyhodila chybu (napr. neexistuje tabuľka v DB), skúsime Storage fallback
-  try {
-    const filePath = `_profiles/fl_${safeNick}.json`;
-    const { data: fileData, error: dErr } = await supabase.storage
-      .from('client-uploads')
-      .download(filePath);
-
-    if (!dErr && fileData) {
-      const text = await fileData.text();
-      return JSON.parse(text);
     }
   } catch (e) {}
 
@@ -243,28 +229,6 @@ export async function saveCloudFreelancer(freelancer) {
       }
     } catch (e) {
       console.warn('saveCloudFreelancer bare insert exception:', e);
-    }
-  }
-
-  // 3. Fallback do Storage (ak by databáza vôbec nereagovala)
-  if (!savedUserRecord) {
-    try {
-      const safeNick = rawNick.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      const filePath = `profiles/fl_${safeNick}.json`;
-      const safePayload = {
-        id: freelancer.id,
-        nick: rawNick,
-        pinHash: pinHash,
-        email: rawEmail,
-        createdAt: freelancer.createdAt || new Date().toISOString(),
-      };
-
-      const blob = new Blob([JSON.stringify(safePayload, null, 2)], { type: 'application/json' });
-      await supabase.storage
-        .from('client-uploads')
-        .upload(filePath, blob, { contentType: 'application/json', upsert: true });
-    } catch (e) {
-      console.warn('Storage fallback sync failed:', e);
     }
   }
 

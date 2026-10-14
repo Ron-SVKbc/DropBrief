@@ -348,30 +348,6 @@ export function AppProvider({ children }) {
             mapped.projectType = storedTypes[cleanSlug];
           }
 
-          // Also check storage metadata if DB columns don't exist yet
-          try {
-            const { data: ptBlob } = await supabase.storage
-              .from('client-uploads')
-              .download(`_meta/pt_${cleanSlug}.json`);
-            if (ptBlob) {
-              const ptText = await ptBlob.text();
-              const ptData = JSON.parse(ptText);
-              if (ptData?.projectType) mapped.projectType = ptData.projectType;
-              if (ptData?.cadenceDays) mapped.cadenceDays = ptData.cadenceDays;
-            }
-          } catch (e) {}
-
-          try {
-            const { data: bBlob } = await supabase.storage
-              .from('client-uploads')
-              .download(`_meta/batches_${cleanSlug}.json`);
-            if (bBlob) {
-              const bText = await bBlob.text();
-              const bData = JSON.parse(bText);
-              if (Array.isArray(bData) && bData.length > 0) mapped.batches = bData;
-            }
-          } catch (e) {}
-
           setProjects((prev) => {
             const exists = prev.some((p) => p.slug === data.slug || p.id === data.id);
             const prevProj = prev.find((p) => p.slug === data.slug || p.id === data.id);
@@ -389,25 +365,6 @@ export function AppProvider({ children }) {
           });
           return mapped;
         }
-
-        // Storage fallback if row is not in table directly
-        try {
-          const { data: storageBlob, error: sErr } = await supabase.storage
-            .from('client-uploads')
-            .download(`_meta/proj_${cleanSlug}.json`);
-          if (!sErr && storageBlob) {
-            const text = await storageBlob.text();
-            const parsed = JSON.parse(text);
-            if (parsed && parsed.slug) {
-              setProjects((prev) => {
-                const exists = prev.some((p) => p.slug === parsed.slug || p.id === parsed.id);
-                if (exists) return prev.map((p) => (p.slug === parsed.slug || p.id === parsed.id ? parsed : p));
-                return [parsed, ...prev];
-              });
-              return parsed;
-            }
-          }
-        } catch (storageErr) {}
       } catch (err) {
         console.error('Failed to load project by slug:', err);
       }
@@ -1031,18 +988,6 @@ export function AppProvider({ children }) {
     // Save to Supabase (if configured)
     if (isSupabaseConfigured && supabase) {
       try {
-        // Also save to Storage for cross-device persistence
-        try {
-          supabase.storage
-            .from('client-uploads')
-            .upload(`_meta/pt_${randomSlug}.json`, new Blob([JSON.stringify({ projectType, cadenceDays: newProject.cadenceDays })], { type: 'application/json' }), { upsert: true })
-            .catch(() => {});
-          supabase.storage
-            .from('client-uploads')
-            .upload(`_meta/proj_${randomSlug}.json`, new Blob([JSON.stringify(newProject)], { type: 'application/json' }), { upsert: true })
-            .catch(() => {});
-        } catch (e) {}
-
         let insertPayload = {
           slug: randomSlug,
           title: newProjData.title,
@@ -1105,22 +1050,6 @@ export function AppProvider({ children }) {
           const { error: iErr } = await supabase.from('project_items').insert(itemsToInsert);
           if (iErr) throw iErr;
 
-          // Update storage mirror with the generated Supabase project ID and item IDs
-          try {
-            const finalMetaProject = {
-              ...newProject,
-              id: insertedProj.id,
-              items: newProject.items.map((it, idx) => ({
-                ...it,
-                id: (itemsToInsert[idx] && itemsToInsert[idx].id) || it.id
-              }))
-            };
-            supabase.storage
-              .from('client-uploads')
-              .upload(`_meta/proj_${randomSlug}.json`, new Blob([JSON.stringify(finalMetaProject)], { type: 'application/json' }), { upsert: true })
-              .catch(() => {});
-          } catch (e) {}
-
           fetchSupabaseProjects();
         }
       } catch (err) {
@@ -1161,14 +1090,6 @@ export function AppProvider({ children }) {
         }
         await q;
       } catch (e) {}
-
-      try {
-        const target = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
-        const targetSlug = target?.slug || projectIdOrSlug;
-        await supabase.storage
-          .from('client-uploads')
-          .upload(`_meta/pt_${targetSlug}.json`, new Blob([JSON.stringify({ projectType: newType })], { type: 'application/json' }), { upsert: true });
-      } catch (e) {}
     }
 
     addToast(`Project engagement set to ${newType === 'ongoing' ? 'Ongoing / Retainer' : 'One-off Project'}.`, 'success', 'Engagement Updated');
@@ -1202,15 +1123,6 @@ export function AppProvider({ children }) {
           q = q.ilike('slug', projectIdOrSlug);
         }
         await q;
-      } catch (e) {}
-
-      try {
-        const target = projects.find((p) => p.id === projectIdOrSlug || p.slug === projectIdOrSlug);
-        const targetSlug = target?.slug || projectIdOrSlug;
-        const currentMeta = { projectType: target?.projectType || 'ongoing', cadenceDays: days };
-        await supabase.storage
-          .from('client-uploads')
-          .upload(`_meta/pt_${targetSlug}.json`, new Blob([JSON.stringify(currentMeta)], { type: 'application/json' }), { upsert: true });
       } catch (e) {}
     }
 
@@ -1292,16 +1204,6 @@ export function AppProvider({ children }) {
         } catch (dbErr) {
           console.warn('DB update for batches:', dbErr);
         }
-
-        try {
-          await supabase.storage
-            .from('client-uploads')
-            .upload(
-              `_meta/batches_${projectSlug}.json`,
-              new Blob([JSON.stringify(existingBatches)], { type: 'application/json' }),
-              { upsert: true }
-            );
-        } catch (stErr) {}
       } catch (err) {
         console.error('Failed to sync batch to Supabase:', err);
       }
@@ -1315,8 +1217,17 @@ export function AppProvider({ children }) {
     try {
       const resp = await fetch('/api/cron-purge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: projectSlug, force: true }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-freelancer-nick': currentFreelancer?.nick || '',
+          'x-freelancer-auth': currentFreelancer?.pinHash || '',
+        },
+        body: JSON.stringify({ 
+          slug: projectSlug, 
+          force: true,
+          nick: currentFreelancer?.nick,
+          pinHash: currentFreelancer?.pinHash,
+        }),
         signal: AbortSignal.timeout(12000), // 12s bezpečný timeout
       });
       const data = await resp.json();
@@ -1484,7 +1395,11 @@ export function AppProvider({ children }) {
 
     const response = await fetch('/api/send-reminder', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-freelancer-nick': currentFreelancer?.nick || '',
+        'x-freelancer-auth': currentFreelancer?.pinHash || '',
+      },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(12000), // 12s bezpečný timeout
     });

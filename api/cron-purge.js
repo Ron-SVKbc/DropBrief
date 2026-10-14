@@ -37,14 +37,19 @@ export default async function handler(req, res) {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const cronSecret = process.env.CRON_SECRET;
   const isVercelCron = req.headers['x-vercel-cron'] === '1' || (req.headers['user-agent'] && req.headers['user-agent'].includes('vercel-cron'));
+  const isMasterAuthorized = isVercelCron || (Boolean(cronSecret) && providedSecret === cronSecret);
 
-  // V produkcii chránime hromadný výmaz (keď nie je špecifikovaný konkrétny slug):
-  if (isProduction && !targetSlug) {
-    const isAuthorized = isVercelCron || (Boolean(cronSecret) && providedSecret === cronSecret);
-    if (!isAuthorized) {
-      console.warn('[cron-purge] Unauthorized attempt to trigger bulk purge.');
-      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing cron secret.' });
-    }
+  // Získanie prihlasovacích údajov freelancera pri manuálnom spustení z dashboardu
+  const reqNick = (req.headers['x-freelancer-nick'] || bodyData.nick || '').trim();
+  const reqAuth = (req.headers['x-freelancer-auth'] || bodyData.pinHash || '').trim();
+
+  // Neautorizované volanie bez CRON tajomstva a bez prihláseného freelancera je prísne zakázané
+  if (!isMasterAuthorized && (!targetSlug || !reqNick || !reqAuth)) {
+    console.warn('[cron-purge] Unauthorized attempt to trigger purge without valid secret or freelancer credentials.');
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Unauthorized: Pre spustenie skartácie sa vyžaduje platný CRON_SECRET alebo overenie freelancera.' 
+    });
   }
 
   // ── 3. Inicializácia Supabase ──────────────────────────────────────────────
@@ -71,7 +76,7 @@ export default async function handler(req, res) {
     // ── 4. Výber kandidátov na purge (so striktným limitom stránkovania) ──────
     let query = supabase
       .from('projects')
-      .select('id, slug, title, status, completed_at, created_at, files_purged, purged_at, batches');
+      .select('id, slug, title, status, completed_at, created_at, files_purged, purged_at, batches, freelancer_name');
 
     if (targetSlug) {
       query = query.ilike('slug', targetSlug).limit(1);
@@ -84,6 +89,28 @@ export default async function handler(req, res) {
     if (fetchErr) {
       console.error('[cron-purge] Failed to fetch projects:', fetchErr.message);
       return res.status(500).json({ success: false, error: fetchErr.message });
+    }
+
+    // ── 4b. Overenie vlastníctva pri manuálnom purge bez CRON_SECRET ─────────
+    if (!isMasterAuthorized && targetSlug) {
+      const targetProj = candidateProjects?.[0];
+      if (!targetProj) {
+        return res.status(404).json({ success: false, error: 'Projekt pre skartáciu sa nenašiel.' });
+      }
+      if (!targetProj.freelancer_name || targetProj.freelancer_name.trim().toLowerCase() !== reqNick.toLowerCase()) {
+        console.warn(`[cron-purge] Unauthorized purge attempt: ${reqNick} does not own project ${targetSlug}`);
+        return res.status(403).json({ success: false, error: 'Nemáte oprávnenie skartovať tento projekt.' });
+      }
+
+      // Overenie PIN hashu v databáze
+      const { data: isAuthValid } = await supabase.rpc('is_freelancer_authenticated', {
+        p_nick: reqNick,
+        p_pin_hash: reqAuth,
+      });
+
+      if (!isAuthValid) {
+        return res.status(401).json({ success: false, error: 'Neplatné overenie PIN kódu freelancera.' });
+      }
     }
 
     const eligibleProjects = (candidateProjects || []).filter((proj) => {
