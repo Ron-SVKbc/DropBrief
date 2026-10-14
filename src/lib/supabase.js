@@ -333,7 +333,7 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     .from('client-uploads')
     .upload(filePath, file, {
       cacheControl: '3600',
-      upsert: true,
+      upsert: false,
       contentType: mimeType,
     });
 

@@ -502,13 +502,24 @@ insert into storage.buckets (id, name, public)
 values ('client-uploads', 'client-uploads', true)
 on conflict (id) do update set public = true;
 
--- Politiky pre úložisko súborov (zákaz nahrávania a čítania _profiles)
+grant all on storage.objects to anon, authenticated, service_role;
+grant all on storage.buckets to anon, authenticated, service_role;
+
+drop policy if exists "Verejné nahrávanie podkladov klientmi" on storage.objects;
+drop policy if exists "Verejné čítanie a sťahovanie podkladov" on storage.objects;
+drop policy if exists "Odstránenie podkladov" on storage.objects;
+drop policy if exists "storage_upload_secure" on storage.objects;
+drop policy if exists "storage_select_secure" on storage.objects;
+drop policy if exists "storage_update_secure" on storage.objects;
+drop policy if exists "storage_delete_secure" on storage.objects;
+
+-- Politiky pre úložisko súborov (povolené klientske súbory a _meta, zákaz _profiles)
 create policy "storage_upload_secure"
   on storage.objects for insert
   to anon, authenticated
   with check (
     bucket_id = 'client-uploads'
-    and not (name like '_%')
+    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
   );
 
 create policy "storage_select_secure"
@@ -516,12 +527,28 @@ create policy "storage_select_secure"
   to anon, authenticated
   using (
     bucket_id = 'client-uploads'
-    and not (name like '_%')
+    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
   );
 
-drop policy if exists "Verejné nahrávanie podkladov klientmi" on storage.objects;
-drop policy if exists "Verejné čítanie a sťahovanie podkladov" on storage.objects;
-drop policy if exists "Odstránenie podkladov" on storage.objects;
+create policy "storage_update_secure"
+  on storage.objects for update
+  to anon, authenticated
+  using (
+    bucket_id = 'client-uploads'
+    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+  )
+  with check (
+    bucket_id = 'client-uploads'
+    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+  );
+
+create policy "storage_delete_secure"
+  on storage.objects for delete
+  to anon, authenticated
+  using (
+    bucket_id = 'client-uploads'
+    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+  );
 
 -- 6. Integritné triggery (Ochrana citlivých polí pri aktualizácii klientom)
 create or replace function public.enforce_project_update_integrity()

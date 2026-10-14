@@ -526,28 +526,59 @@ CREATE POLICY "items_delete_secure"
 -- ------------------------------------------------------------------------------
 -- 7. ZABEZPEČENIE STORAGE BUCKETU: client-uploads
 -- ------------------------------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('client-uploads', 'client-uploads', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+GRANT ALL ON storage.objects TO anon, authenticated, service_role;
+GRANT ALL ON storage.buckets TO anon, authenticated, service_role;
+
 DROP POLICY IF EXISTS "Verejné nahrávanie podkladov klientmi" ON storage.objects;
 DROP POLICY IF EXISTS "Verejné čítanie a sťahovanie podkladov" ON storage.objects;
 DROP POLICY IF EXISTS "Odstránenie podkladov" ON storage.objects;
 DROP POLICY IF EXISTS "storage_upload_secure" ON storage.objects;
 DROP POLICY IF EXISTS "storage_select_secure" ON storage.objects;
+DROP POLICY IF EXISTS "storage_update_secure" ON storage.objects;
+DROP POLICY IF EXISTS "storage_delete_secure" ON storage.objects;
 
--- A. Nahrávanie súborov: Povolené len do bucketu client-uploads, zákaz interných _ ciest
+-- A. Nahrávanie súborov: Povolené do bucketu client-uploads (chráni interné _profiles)
 CREATE POLICY "storage_upload_secure"
   ON storage.objects FOR INSERT
   TO anon, authenticated
   WITH CHECK (
     bucket_id = 'client-uploads'
-    AND NOT (name LIKE '_%')
+    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
   );
 
--- B. Čítanie súborov: Povolené pre klientske súbory, chráni všetky interné súbory začínajúce na _ (_profiles, _meta) pred neoprávneným čítaním
+-- B. Čítanie súborov: Povolené pre klientske súbory (chráni interné _profiles)
 CREATE POLICY "storage_select_secure"
   ON storage.objects FOR SELECT
   TO anon, authenticated
   USING (
     bucket_id = 'client-uploads'
-    AND NOT (name LIKE '_%')
+    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+  );
+
+-- C. Prepísanie súborov (upsert): Povolené pre klientske súbory a metadáta
+CREATE POLICY "storage_update_secure"
+  ON storage.objects FOR UPDATE
+  TO anon, authenticated
+  USING (
+    bucket_id = 'client-uploads'
+    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+  )
+  WITH CHECK (
+    bucket_id = 'client-uploads'
+    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
+  );
+
+-- D. Mazanie súborov: Povolené pre klientske súbory a metadáta
+CREATE POLICY "storage_delete_secure"
+  ON storage.objects FOR DELETE
+  TO anon, authenticated
+  USING (
+    bucket_id = 'client-uploads'
+    AND (left(name, 1) != '_' OR left(name, 6) = '_meta/')
   );
 
 -- ------------------------------------------------------------------------------
