@@ -53,7 +53,7 @@ const createInitialDemoProject = () => ({
   projectType: 'one-off',
   clientName: 'Peter Novak (Bistro & Cafe Aurora)',
   clientEmail: 'peter.novak@auroracafe.com',
-  freelancerName: 'Studio Creative / Marko',
+  freelancerName: 'Studio Creative / Alex',
   freelancerEmail: 'contact@studio-creative.com',
   deadline: '2026-10-30',
   reminderFrequency: 3,
