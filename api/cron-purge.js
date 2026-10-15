@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * 🧹 DropBrief - Automated 14-Day Storage Purge Endpoint (Vercel Cron & Manual Trigger)
+ * 🧹 DropBrief - Automated 30-Day Storage Purge Endpoint (Vercel Cron & Manual Trigger)
  *
  * Fulfills GDPR Article 5(1)(e) (storage limitation):
  * Permanently deletes files from Supabase Storage bucket 'client-uploads' for all
- * projects in 'completed' status older than 14 days.
+ * projects in 'completed' status older than 30 days.
  *
  * Podpora:
  * - Vercel Cron (GET /api/cron-purge cez CRON_SECRET)
@@ -65,10 +65,9 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 14-day retention cycle keeps free storage lean and adheres strictly to GDPR
-  const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
   const now = Date.now();
-  const cutoffDate = new Date(now - FOURTEEN_DAYS_MS);
+  const cutoffDate = new Date(now - THIRTY_DAYS_MS);
 
   const FUNCTION_START_MS = Date.now();
   const MAX_EXECUTION_TIME_MS = 8000; // 8s safe time budget (Vercel Hobby limit is 10s)
@@ -132,7 +131,7 @@ export default async function handler(req, res) {
       if (!completionDate) return false;
 
       const completionMs = new Date(completionDate).getTime();
-      return (now - completionMs) >= FOURTEEN_DAYS_MS;
+      return (now - completionMs) >= THIRTY_DAYS_MS;
     });
 
     console.log(`[cron-purge] Found ${eligibleProjects.length} projects eligible for auto-purge.`);

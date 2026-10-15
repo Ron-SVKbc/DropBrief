@@ -99,10 +99,10 @@ export default function LegalModal() {
 
           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
-              3. Automated Storage Purge (14-day Retention)
+              3. Automated Storage Purge (30-day Retention)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
-              Unlike open cloud drives where client files linger indefinitely, DropBrief runs an automated daily cron job that permanently deletes all uploaded files from cloud storage 14 days following project completion (or immediately on-demand by the freelancer), strictly complying with GDPR Art. 5(1)(e) storage limitation.
+              Unlike open cloud drives where client files linger indefinitely, DropBrief runs an automated daily cron job that permanently deletes all uploaded files from cloud storage 30 days following project completion (or immediately on-demand by the freelancer), strictly complying with GDPR Art. 5(1)(e) storage limitation.
             </p>
           </div>
 

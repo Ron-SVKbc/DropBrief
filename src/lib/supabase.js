@@ -268,14 +268,14 @@ const ALLOWED_MIME_TYPES = [
   'audio/mpeg', 'audio/wav', 'audio/x-m4a', 'audio/mp4',
 ];
 
-const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB (protects free cloud tier)
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export async function uploadClientFile(file, projectSlug, itemId) {
   if (!supabase) throw new Error('Supabase is not configured');
 
   // File size validation
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error(`File is too large. Maximum allowed size is 15 MB (current size: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+    throw new Error(`File is too large. Maximum allowed size is 50 MB (current size: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
   }
 
   // File type validation (whitelist)
