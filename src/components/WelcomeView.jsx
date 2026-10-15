@@ -427,7 +427,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   { strong: '1 permanent link:', rest: 'Clients click and upload instantly with zero login or password.' },
                   { strong: 'Uncompressed originals:', rest: 'Files retain 100% original quality in encrypted cloud storage.' },
                   { strong: 'Live image previews:', rest: 'Instant browser verification of submitted photos and deliverables.' },
-                  { strong: 'Automated reminders:', rest: 'Polite Resend email notifications keep deadlines on track.' }
+                  { strong: 'Automated reminders:', rest: 'Polite automated email notifications keep deadlines on track.' }
                 ].map(({ strong, rest }, i) => (
                   <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                     <Check size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />

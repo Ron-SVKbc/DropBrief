@@ -520,7 +520,7 @@ export default function ProjectDetailView() {
                   color: '#fff',
                   fontWeight: 700
                 }}
-                title="Send reminder to client via Resend"
+                title="Send reminder to client"
                 aria-label={`Send reminder to client (${missingCount} pending)`}
               >
                 <Send size={14} aria-hidden="true" />

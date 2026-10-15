@@ -79,8 +79,8 @@ export default function EmailPreviewModal() {
       });
       setSendSuccess(true);
     } catch (err) {
-      console.error('Failed to send reminder via Resend:', err);
-      setErrorMessage(err.message || 'Failed to send email via Resend.');
+      console.error('Failed to send reminder:', err);
+      setErrorMessage(err.message || 'Failed to send email reminder.');
     } finally {
       setIsSending(false);
     }
@@ -156,10 +156,10 @@ export default function EmailPreviewModal() {
             </div>
             <div>
               <h2 id="email-preview-modal-title" style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
-                Send Reminder via Resend
+                Send Reminder
               </h2>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Transactional Email API &bull; High inbox deliverability
+                Direct notification &bull; High inbox deliverability
               </span>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function EmailPreviewModal() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.825rem', color: '#7dd3fc' }}>
             <ShieldCheck size={16} color="#38bdf8" />
-            <span><strong>Resend API Active:</strong> Official DKIM & SPF verification &bull; 3,000 free emails/month</span>
+            <span><strong>Verified Delivery:</strong> Automated email sent directly to client inbox</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -225,7 +225,7 @@ export default function EmailPreviewModal() {
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <strong>Sender:</strong> DropBrief (Resend API)
+              <strong>Sender:</strong> DropBrief Notifications
             </div>
             <div>
               <strong>Recipient:</strong> {previewEmailProject.clientName} &lt;<span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{clientEmail}</span>&gt;
@@ -376,7 +376,7 @@ export default function EmailPreviewModal() {
               </p>
 
               <div style={{ marginTop: '24px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', fontSize: '0.75rem', color: '#94a3b8' }}>
-                Delivered via DropBrief &bull; Resend Infrastructure
+                Delivered via DropBrief &bull; Secure Client Portal
               </div>
             </div>
           ) : (
@@ -443,7 +443,7 @@ export default function EmailPreviewModal() {
               </div>
 
               <div style={{ borderTop: '1px solid #f1f5f9', background: '#f8fafc', padding: '12px 24px', fontSize: '0.75rem', color: '#94a3b8' }}>
-                Sender: {freelancerName} &bull; DropBrief (Resend)
+                Sender: {freelancerName} &bull; via DropBrief
               </div>
             </div>
           )}
@@ -464,7 +464,7 @@ export default function EmailPreviewModal() {
             }}>
               <CheckCircle2 size={20} />
               <div>
-                <strong>Email successfully sent via Resend!</strong> Reminder sent to <u>{clientEmail}</u>.
+                <strong>Email successfully sent!</strong> Reminder sent to <u>{clientEmail}</u>.
               </div>
             </div>
           )}
@@ -538,7 +538,7 @@ export default function EmailPreviewModal() {
               {isSending ? (
                 <>
                   <Loader2 size={15} className="animate-spin" />
-                  Sending via Resend...
+                  Sending Reminder...
                 </>
               ) : sendSuccess ? (
                 <>
@@ -548,7 +548,7 @@ export default function EmailPreviewModal() {
               ) : (
                 <>
                   <Send size={15} />
-                  Send Email via Resend
+                  Send Reminder
                 </>
               )}
             </button>

@@ -697,7 +697,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                         aria-label={`Send email reminder for ${proj.title}`}
                         className="btn btn-secondary btn-sm btn-pill"
                         style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem', gap: '6px' }}
-                        title="Preview and send follow-up reminder via Resend"
+                        title="Preview and send follow-up reminder"
                       >
                         <Send size={13} aria-hidden="true" />
                         <span>{proj.lastReminderSent ? `Send Again (${proj.lastReminderSent})` : 'Send Reminder'}</span>
@@ -754,7 +754,7 @@ export default function Dashboard({ onOpenCreateModal }) {
               desc: 'Clients click the link and upload immediately. No forgotten passwords, accounts, or friction.' },
             { icon: BellRing, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)',
               title: 'Automated Friendly Reminders',
-              desc: 'The system gently follows up on missing items via Resend. No more awkward manual follow-ups.' },
+              desc: 'The system gently follows up on missing items automatically. No more awkward manual follow-ups.' },
             { icon: Shield, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
               title: 'Bank-Grade Encryption + GDPR',
               desc: 'Files are encrypted AES-256, hosted in the EU (Ireland/Frankfurt) with automated 30-day purge.' }

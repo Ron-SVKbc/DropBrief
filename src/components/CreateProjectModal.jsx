@@ -518,7 +518,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <BellRing size={16} color="var(--warning)" />
               <strong style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                Automated Email Follow-up (Resend API)
+                Automated Email Follow-up
               </strong>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
