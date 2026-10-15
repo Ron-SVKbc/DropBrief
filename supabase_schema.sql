@@ -613,6 +613,7 @@ on conflict (id) do update set public = true;
 grant all on storage.objects to anon, authenticated, service_role;
 grant all on storage.buckets to anon, authenticated, service_role;
 
+drop policy if exists "Verejná aktualizácia v bucket" on storage.objects;
 drop policy if exists "Verejné nahrávanie podkladov klientmi" on storage.objects;
 drop policy if exists "Verejné čítanie a sťahovanie podkladov" on storage.objects;
 drop policy if exists "Odstránenie podkladov" on storage.objects;
@@ -621,41 +622,86 @@ drop policy if exists "storage_select_secure" on storage.objects;
 drop policy if exists "storage_update_secure" on storage.objects;
 drop policy if exists "storage_delete_secure" on storage.objects;
 
--- Politiky pre úložisko súborov (povolené klientske súbory a _meta, zákaz _profiles)
+-- A. Nahrávanie súborov: Povolené do bucketu client-uploads do klientskych priečinkov
 create policy "storage_upload_secure"
   on storage.objects for insert
   to anon, authenticated
   with check (
     bucket_id = 'client-uploads'
-    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+    and left(name, 1) != '_'
+    and position('/' in name) > 1
   );
 
+-- B. Čítanie a listing súborov: Zákaz plošného zoznamovania celého disku
 create policy "storage_select_secure"
   on storage.objects for select
   to anon, authenticated
   using (
-    bucket_id = 'client-uploads'
-    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    or (
+      bucket_id = 'client-uploads'
+      and public.get_request_header('x-freelancer-nick') is not null
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      and exists (
+        select 1 from public.projects p
+        where lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          and split_part(name, '/', 1) in (p.slug, p.id::text)
+      )
+    )
+    or (
+      bucket_id = 'client-uploads'
+      and public.get_request_header('x-project-slug') is not null
+      and split_part(name, '/', 1) = public.get_request_header('x-project-slug')
+    )
   );
 
+-- C. Prepísanie súborov (upsert): Povolené iba pre overeného vlastníka projektu alebo service_role
 create policy "storage_update_secure"
   on storage.objects for update
   to anon, authenticated
   using (
-    bucket_id = 'client-uploads'
-    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    or (
+      bucket_id = 'client-uploads'
+      and public.get_request_header('x-freelancer-nick') is not null
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      and exists (
+        select 1 from public.projects p
+        where lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          and split_part(name, '/', 1) in (p.slug, p.id::text)
+      )
+    )
   )
   with check (
     bucket_id = 'client-uploads'
-    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+    and left(name, 1) != '_'
   );
 
+-- D. Mazanie súborov: Povolené iba pre overeného vlastníka projektu alebo service_role (GDPR skartácia)
 create policy "storage_delete_secure"
   on storage.objects for delete
   to anon, authenticated
   using (
-    bucket_id = 'client-uploads'
-    and (left(name, 1) != '_' or left(name, 6) = '_meta/')
+    auth.role() = 'service_role'
+    or (
+      bucket_id = 'client-uploads'
+      and public.get_request_header('x-freelancer-nick') is not null
+      and public.is_freelancer_authenticated(
+        public.get_request_header('x-freelancer-nick'),
+        public.get_request_header('x-freelancer-auth')
+      )
+      and exists (
+        select 1 from public.projects p
+        where lower(p.freelancer_name) = lower(public.get_request_header('x-freelancer-nick'))
+          and split_part(name, '/', 1) in (p.slug, p.id::text)
+      )
+    )
   );
 
 -- 6. Integritné triggery (Ochrana citlivých polí pri aktualizácii klientom)

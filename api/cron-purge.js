@@ -36,8 +36,9 @@ export default async function handler(req, res) {
 
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const cronSecret = process.env.CRON_SECRET;
-  const isVercelCron = req.headers['x-vercel-cron'] === '1' || (req.headers['user-agent'] && req.headers['user-agent'].includes('vercel-cron'));
-  const isMasterAuthorized = isVercelCron || (Boolean(cronSecret) && providedSecret === cronSecret);
+  // Bezpečná autorizácia: Vercel Cron odosiela 'Authorization: Bearer <CRON_SECRET>'
+  // Nikdy sa nespoliehame na 'user-agent', ktorý môže útočník jednoducho podvrhnúť
+  const isMasterAuthorized = Boolean(cronSecret) && providedSecret === cronSecret;
 
   // Získanie prihlasovacích údajov freelancera pri manuálnom spustení z dashboardu
   const reqNick = (req.headers['x-freelancer-nick'] || bodyData.nick || '').trim();

@@ -76,7 +76,11 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-    if (supabaseUrl && supabaseKey && projectId) {
+    if (!projectId) {
+      return res.status(400).json({ success: false, error: 'Chýba identifikátor zákazky (projectId).' });
+    }
+
+    if (supabaseUrl && supabaseKey) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId);
@@ -86,20 +90,29 @@ export default async function handler(req, res) {
         } else {
           query = query.ilike('slug', projectId);
         }
-        const { data: dbProj } = await query.maybeSingle();
+        const { data: dbProj, error: dbErr } = await query.maybeSingle();
 
-        if (dbProj && dbProj.client_email) {
-          // Striktná kontrola: e-mail príjemcu musí zodpovedať klientovi uloženému v zákazke!
-          if (dbProj.client_email.trim().toLowerCase() !== clientEmail.trim().toLowerCase()) {
-            console.warn(`[send-reminder] Blocked phishing relay attempt: ${clientEmail} does not match DB ${dbProj.client_email}`);
-            return res.status(403).json({
-              success: false,
-              error: 'Bezpečnostná chyba: E-mailová adresa príjemcu sa nezhoduje s registrovaným e-mailom klienta v projekte.'
-            });
-          }
+        if (dbErr || !dbProj) {
+          return res.status(404).json({
+            success: false,
+            error: 'Zákazka s týmto identifikátorom sa nenašla v databáze.'
+          });
+        }
+
+        // Striktná kontrola: e-mail príjemcu musí zodpovedať klientovi uloženému v zákazke!
+        if (!dbProj.client_email || dbProj.client_email.trim().toLowerCase() !== clientEmail.trim().toLowerCase()) {
+          console.warn(`[send-reminder] Blocked phishing relay attempt: ${clientEmail} does not match DB ${dbProj.client_email}`);
+          return res.status(403).json({
+            success: false,
+            error: 'Bezpečnostná chyba: E-mailová adresa príjemcu sa nezhoduje s registrovaným e-mailom klienta v projekte.'
+          });
         }
       } catch (dbCheckErr) {
         console.warn('[send-reminder] DB project verification check warning:', dbCheckErr.message);
+        return res.status(500).json({
+          success: false,
+          error: 'Chyba overenia zákazky v databáze.'
+        });
       }
     }
 
