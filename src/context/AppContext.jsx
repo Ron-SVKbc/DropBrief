@@ -296,7 +296,7 @@ export function AppProvider({ children }) {
           });
 
           // Pre zabudovaný demo účet ('fl-demo-marko') zachovať v pamäti aj ukážkové demo projekty
-          if (flId === 'fl-demo-marko' || cleanNick.toLowerCase() === 'marko') {
+          if (flId === 'fl-demo-marko') {
             const remoteSlugs = mappedRemote.map((rp) => rp.slug);
             const missingDemos = INITIAL_DEMO_PROJECTS.filter((dp) => !remoteSlugs.includes(dp.slug));
             return [...mappedRemote, ...missingDemos];
