@@ -1,6 +1,6 @@
 /**
- * Helper utility pre správu pravidelného zberu podkladov (cadence / ongoing batches)
- * Umožňuje jednoduché denné, 2-dňové, týždenné či mesačné cykly zberu podkladov.
+ * Helper utility for managing recurring asset collection (cadence / ongoing batches)
+ * Enables daily, 2-day, weekly, or monthly asset collection cycles.
  */
 
 export function getTodayDateString() {
@@ -97,7 +97,7 @@ export function isTodaySubmitted(project) {
 }
 
 /**
- * Vypočíta stav 30-dňovej retencie a GDPR auto-purge pre projekt
+ * Calculates 30-day retention status and GDPR auto-purge for a project
  */
 export function getRetentionStatus(project) {
   if (!project) return null;

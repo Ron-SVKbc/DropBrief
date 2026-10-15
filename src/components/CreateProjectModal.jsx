@@ -33,7 +33,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
   const [projectType, setProjectType] = useState('one-off'); // 'one-off' | 'ongoing'
-  const [cadenceDays, setCadenceDays] = useState(1); // 1 = denne, 2, 7 = týždenne, 30 = mesačne
+  const [cadenceDays, setCadenceDays] = useState(1); // 1 = daily, 2, 7 = weekly, 30 = monthly
   const [title, setTitle] = useState('Website Design & Development for Client');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -189,7 +189,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <button 
             id="btn-close-modal"
             onClick={onClose} 
-            aria-label="Zatvoriť dialógové okno vytvorenia projektu"
+            aria-label="Close project creation modal"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
@@ -205,7 +205,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
               1. Choose Industry Template
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Výber šablóny">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Template selection">
               {PROJECT_TEMPLATES.map((tpl) => {
                 const IconComponent = ICONS_MAP[tpl.icon] || Globe;
                 const isSelected = selectedTemplateId === tpl.id;
@@ -265,7 +265,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
               <span>2. Engagement Type *</span>
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Typ spolupráce">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }} role="radiogroup" aria-label="Engagement type">
               {/* Option 1: One-off */}
               <button 
                 id="btn-select-one-off"
@@ -606,7 +606,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
-                    aria-label={`Odstrániť požiadavku ${item.title || idx + 1}`}
+                    aria-label={`Remove requirement ${item.title || idx + 1}`}
                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
                     title="Remove item"
                   >

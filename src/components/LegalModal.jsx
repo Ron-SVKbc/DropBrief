@@ -68,7 +68,7 @@ export default function LegalModal() {
           <button 
             id="btn-close-legal-modal"
             onClick={() => setIsLegalModalOpen(false)}
-            aria-label="Zatvoriť informácie o GDPR a bezpečnosti"
+            aria-label="Close GDPR and security information"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >

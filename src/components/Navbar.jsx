@@ -64,7 +64,7 @@ export default function Navbar({ onOpenCreateModal }) {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
-    // Iba zabudovaný demo účet Marko má prístup k lokálnym ukážkovým demo projektom
+    // Only built-in demo account Marko has access to sample demo projects
     if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;
   });
@@ -117,7 +117,7 @@ export default function Navbar({ onOpenCreateModal }) {
         <button 
           type="button"
           onClick={openDashboard}
-          aria-label="DropBrief - Prejsť na hlavný panel"
+          aria-label="DropBrief - Go to main dashboard"
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -181,7 +181,7 @@ export default function Navbar({ onOpenCreateModal }) {
         </button>
 
         {/* ── View Switcher ──────────────────────────────────── */}
-        <div className="segmented-control navbar-segmented" role="navigation" aria-label="Prepínač pohľadov">
+        <div className="segmented-control navbar-segmented" role="navigation" aria-label="View switcher">
           <button
             id="nav-dashboard-tab"
             onClick={handleDashboardClick}
@@ -203,7 +203,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 onClick={() => setIsClientDropdownOpen((prev) => !prev)}
                 aria-expanded={isClientDropdownOpen}
                 aria-haspopup="true"
-                aria-label="Výber projektu pre klientsky náhľad"
+                aria-label="Select project for client preview"
                 className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ 
                   border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
@@ -235,7 +235,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 <div 
                   className="animate-fade-in"
                   role="menu"
-                  aria-label="Zoznam projektov pre klientsky náhľad"
+                  aria-label="List of projects for client preview"
                   style={{
                     position: 'absolute',
                     top: 'calc(100% + 8px)',
@@ -408,7 +408,7 @@ export default function Navbar({ onOpenCreateModal }) {
           <button
             id="btn-security-info"
             onClick={() => setIsLegalModalOpen(true)}
-            aria-label="Informácie o bezpečnosti údajov a GDPR"
+            aria-label="Data security and GDPR information"
             className="btn btn-secondary btn-sm btn-pill"
             title="Data security & GDPR information"
             style={{ gap: '5px' }}
@@ -436,7 +436,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   transition: 'var(--transition)'
                 }}
                 onClick={openAccountModal}
-                title="Profil používateľa a nastavenia účtu"
+                title="User profile and account settings"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -467,7 +467,7 @@ export default function Navbar({ onOpenCreateModal }) {
                       e.stopPropagation();
                       handleCopyMyPin();
                     }}
-                    aria-label={`Skopírovať PIN kód (${currentFreelancer.pin})`}
+                    aria-label={`Copy PIN code (${currentFreelancer.pin})`}
                     title="Click to copy PIN code"
                     style={{
                       background: 'rgba(99, 102, 241, 0.14)',
@@ -499,13 +499,13 @@ export default function Navbar({ onOpenCreateModal }) {
                 New Project
               </button>
 
-              {/* Account Settings / Profil */}
+              {/* Account Settings / Profile */}
               <button
                 id="btn-nav-account-settings"
                 onClick={openAccountModal}
-                aria-label="Nastavenia profilu a účtu"
+                aria-label="Profile and account settings"
                 className="btn btn-secondary btn-sm"
-                title="Profil, bezpečnosť a zmazanie účtu"
+                title="Profile, security, and account deletion"
                 style={{ padding: '6px 8px', color: 'var(--text-secondary)', borderRadius: 'var(--radius-full)' }}
               >
                 <Settings size={14} aria-hidden="true" />
@@ -515,7 +515,7 @@ export default function Navbar({ onOpenCreateModal }) {
               <button
                 id="btn-nav-logout"
                 onClick={logoutFreelancer}
-                aria-label="Odhlásiť sa z účtu"
+                aria-label="Log out of account"
                 className="btn btn-secondary btn-sm"
                 title="Log out"
                 style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)' }}

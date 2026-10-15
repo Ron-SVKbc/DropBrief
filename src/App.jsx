@@ -63,7 +63,7 @@ export default function App() {
       
       {/* Accessibility: Skip to Main Content Link (WCAG 2.4.1) */}
       <a href="#main-content" className="skip-link">
-        Preskočiť na hlavný obsah
+        Skip to main content
       </a>
 
       {/* Top Navigation */}
@@ -132,7 +132,7 @@ export default function App() {
             <button 
               type="button"
               onClick={() => setIsLegalModalOpen(true)}
-              aria-label="Informácie o GDPR a bezpečnosti osobných údajov"
+              aria-label="GDPR and data privacy information"
               style={{
                 background: 'none',
                 border: 'none',

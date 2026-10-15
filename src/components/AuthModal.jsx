@@ -49,7 +49,7 @@ export default function AuthModal() {
   const [isResending, setIsResending] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
 
-  // 5-minútový odpočet a cooldown pre znovuzaslanie
+  // 5-minute countdown and resend cooldown
   const [timeLeft, setTimeLeft] = useState(300);
   const [resendCooldown, setResendCooldown] = useState(30);
 
@@ -70,7 +70,7 @@ export default function AuthModal() {
     }
   }, [isAuthModalOpen, authModalMode]);
 
-  // Odpočet 5-minútovej platnosti PIN kódu
+  // 5-minute expiration countdown
   useEffect(() => {
     if (!isAuthModalOpen || authModalMode !== 'verify_register_pin' || !pendingRegistration?.expiresAt) return;
 
@@ -84,7 +84,7 @@ export default function AuthModal() {
     return () => clearInterval(interval);
   }, [isAuthModalOpen, authModalMode, pendingRegistration?.expiresAt]);
 
-  // Cooldown pre znovuzaslanie kódu (30s)
+  // Resend cooldown timer (30s)
   useEffect(() => {
     if (!isAuthModalOpen || authModalMode !== 'verify_register_pin') return;
     setResendCooldown(30);
@@ -94,7 +94,7 @@ export default function AuthModal() {
     return () => clearInterval(interval);
   }, [isAuthModalOpen, authModalMode, pendingRegistration?.challengeToken]);
 
-  // Zatvorenie na Escape klávesu (WCAG 2.1.2)
+  // Close on Escape key press (WCAG 2.1.2)
   useEffect(() => {
     if (!isAuthModalOpen) return;
     const handleKeyDown = (e) => {
@@ -121,13 +121,13 @@ export default function AuthModal() {
       setNick('');
       setPin('');
     } catch (err) {
-      setErrorMessage(err.message || 'Prihlásenie zlyhalo. Skontrolujte zadané meno/e-mail a PIN kód.');
+      setErrorMessage(err.message || 'Login failed. Please check your username/email and PIN code.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Krok 1: Žiadosť o zaslanie overovacieho PIN kódu na e-mail
+  // Step 1: Request verification PIN code via email
   const handleRegisterRequestSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -136,13 +136,13 @@ export default function AuthModal() {
       await requestRegisterPin(nick, email);
       setVerifyPin('');
     } catch (err) {
-      setErrorMessage(err.message || 'Odoslanie overovacieho kódu zlyhalo.');
+      setErrorMessage(err.message || 'Failed to send verification PIN code.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Krok 2: Overenie zadaného PIN kódu a dokončenie registrácie
+  // Step 2: Verify entered PIN code and complete registration
   const handleVerifyPinSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -153,13 +153,13 @@ export default function AuthModal() {
       setNick('');
       setEmail('');
     } catch (err) {
-      setErrorMessage(err.message || 'Overenie PIN kódu zlyhalo. Skontrolujte zadaný kód.');
+      setErrorMessage(err.message || 'PIN verification failed. Please check the code.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Opätovné zaslanie overovacieho PIN kódu
+  // Resend verification PIN code
   const handleResendPin = async () => {
     setErrorMessage('');
     setIsResending(true);
@@ -167,7 +167,7 @@ export default function AuthModal() {
       await resendRegisterPin();
       setVerifyPin('');
     } catch (err) {
-      setErrorMessage(err.message || 'Nepodarilo sa znovu odoslať overovací PIN kód.');
+      setErrorMessage(err.message || 'Failed to resend verification PIN code.');
     } finally {
       setIsResending(false);
     }
@@ -180,9 +180,9 @@ export default function AuthModal() {
     setIsSubmitting(true);
     try {
       const res = await resetFreelancerPin(forgotEmail);
-      setForgotSuccess(res.message || 'Pokiaľ je tento e-mail u nás registrovaný, nový PIN kód bol práve odoslaný do vašej schránky.');
+      setForgotSuccess(res.message || 'If this email is registered, a new PIN code has been sent to your inbox.');
     } catch (err) {
-      setErrorMessage(err.message || 'Obnova PIN kódu zlyhala. Skúste to prosím znova.');
+      setErrorMessage(err.message || 'PIN recovery failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -191,7 +191,7 @@ export default function AuthModal() {
   const handleCopyPin = (pinToCopy) => {
     navigator.clipboard.writeText(pinToCopy);
     setCopiedPin(true);
-    addToast('PIN kód bol skopírovaný do schránky!', 'success', 'Skopírované');
+    addToast('PIN code copied to clipboard!', 'success', 'Copied');
     setTimeout(() => setCopiedPin(false), 3000);
   };
 
@@ -244,16 +244,16 @@ export default function AuthModal() {
             </div>
             <div>
               <h3 id="auth-modal-title" style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-                {authModalMode === 'pin_reveal' ? '🎉 Váš účet je pripravený!' : 
-                 authModalMode === 'verify_register_pin' ? 'Overenie e-mailu (Zadajte PIN)' :
-                 authModalMode === 'register' ? 'Nový účet freelancera' : 
-                 authModalMode === 'forgot_pin' ? 'Obnova PIN kódu' : 'Prihlásenie do Dashboardu'}
+                {authModalMode === 'pin_reveal' ? '🎉 Your account is ready!' : 
+                 authModalMode === 'verify_register_pin' ? 'Verify Email (Enter PIN)' :
+                 authModalMode === 'register' ? 'New Freelancer Account' : 
+                 authModalMode === 'forgot_pin' ? 'Reset PIN Code' : 'Log In to Dashboard'}
               </h3>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                {authModalMode === 'pin_reveal' ? 'Váš účet je overený a pripravený' :
-                 authModalMode === 'verify_register_pin' ? 'Zadajte 6-miestny PIN odoslaný na váš e-mail (platí 5 minút)' :
-                 authModalMode === 'register' ? 'Overený a bezpečný účet za menej ako minútu' : 
-                 authModalMode === 'forgot_pin' ? 'Zadajte registrovaný e-mail pre zaslanie nového PINu' : 'Zadajte vaše meno / e-mail a 6-miestny PIN'}
+                {authModalMode === 'pin_reveal' ? 'Your account is verified and ready' :
+                 authModalMode === 'verify_register_pin' ? 'Enter the 6-digit PIN sent to your email (valid for 5 minutes)' :
+                 authModalMode === 'register' ? 'Verified and secure account in under a minute' : 
+                 authModalMode === 'forgot_pin' ? 'Enter your registered email to receive a new PIN' : 'Enter your name / email and 6-digit PIN'}
               </span>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function AuthModal() {
           <button 
             id="btn-close-auth-modal"
             onClick={closeAuthModal}
-            aria-label="Zatvoriť prihlasovacie okno"
+            aria-label="Close authentication modal"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
@@ -288,10 +288,10 @@ export default function AuthModal() {
             </div>
 
             <h4 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '6px' }}>
-              Vítajte v DropBrief, {authRegisteredData.nick}!
+              Welcome to DropBrief, {authRegisteredData.nick}!
             </h4>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '22px', lineHeight: 1.5 }}>
-              Váš e-mail bol úspešne overený a účet je aktivovaný. Váš overený 6-miestny PIN kód vám ostáva ako váš stály prístupový kód pre prihlásenie:
+              Your email was verified and your account is active. Your verified 6-digit PIN code serves as your permanent password for future logins:
             </p>
 
             {/* Glowing PIN Display Box */}
@@ -306,7 +306,7 @@ export default function AuthModal() {
               overflow: 'hidden'
             }}>
               <span style={{ fontSize: '0.72rem', color: '#c7d2fe', display: 'block', marginBottom: '10px', letterSpacing: '0.1em', fontWeight: 800 }}>
-                VÁŠ TRVALÝ PRÍSTUPOVÝ PIN KÓD
+                YOUR PERMANENT ACCESS PIN
               </span>
               <div style={{
                 fontFamily: 'var(--font-mono)',
@@ -324,12 +324,12 @@ export default function AuthModal() {
                 id="btn-copy-pin"
                 type="button"
                 onClick={() => handleCopyPin(authRegisteredData.pin)}
-                aria-label="Skopírovať PIN kód do schránky"
+                aria-label="Copy PIN code to clipboard"
                 className={`btn btn-sm btn-pill ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ margin: '0 auto', fontSize: '0.85rem', padding: '8px 20px', gap: '6px' }}
               >
                 {copiedPin ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
-                {copiedPin ? 'Skopírované!' : 'Skopírovať PIN kód'}
+                {copiedPin ? 'Copied!' : 'Copy PIN Code'}
               </button>
             </div>
 
@@ -348,7 +348,7 @@ export default function AuthModal() {
             }}>
               <ShieldCheck size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong style={{ color: 'var(--warning)' }}>Tip pre prihlásenie:</strong> Tento PIN kód máte uložený vo svojej e-mailovej schránke (<strong>{authRegisteredData.email}</strong>). Prihlásiť sa môžete kedykoľvek zadaním vášho mena alebo e-mailu a tohto PIN kódu.
+                <strong style={{ color: 'var(--warning)' }}>Login Tip:</strong> This PIN code has been sent to your email inbox (<strong>{authRegisteredData.email}</strong>). You can log in anytime by entering your name or email along with this PIN code.
               </div>
             </div>
 
@@ -359,7 +359,7 @@ export default function AuthModal() {
               className="btn btn-primary btn-lg btn-pill"
               style={{ width: '100%', justifyContent: 'center' }}
             >
-              Vstúpiť do Dashboardu <ArrowRight size={18} />
+              Enter Dashboard <ArrowRight size={18} />
             </button>
           </div>
         )}
@@ -382,7 +382,7 @@ export default function AuthModal() {
                   className={`btn btn-sm btn-pill ${authModalMode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
                 >
-                  <LogIn size={15} /> Prihlásenie
+                  <LogIn size={15} /> Log In
                 </button>
                 <button
                   type="button"
@@ -390,7 +390,7 @@ export default function AuthModal() {
                   className={`btn btn-sm btn-pill ${authModalMode === 'register' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '8px' }}
                 >
-                  <UserPlus size={15} /> Nový účet (Zadarmo)
+                  <UserPlus size={15} /> Sign Up Free
                 </button>
               </div>
             )}
@@ -419,13 +419,13 @@ export default function AuthModal() {
               <form onSubmit={handleLoginSubmit} style={{ padding: '26px' }}>
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="login-nick-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Vaše meno / Nickname alebo E-mail
+                    Your Name / Nickname or Email
                   </label>
                   <input
                     id="login-nick-input"
                     type="text"
                     className="input"
-                    placeholder="napr. AlexDesign alebo alex@design.com"
+                    placeholder="e.g. AlexDesign or alex@design.com"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
                     required
@@ -436,16 +436,16 @@ export default function AuthModal() {
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <label htmlFor="login-pin-input" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                      6-miestny numerický PIN
+                      6-digit numeric PIN
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
-                      aria-label={showPin ? 'Skryť PIN kód' : 'Zobraziť PIN kód'}
+                      aria-label={showPin ? 'Hide PIN code' : 'Show PIN code'}
                       style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
                       {showPin ? <EyeOff size={13} aria-hidden="true" /> : <Eye size={13} aria-hidden="true" />}
-                      {showPin ? 'Skryť' : 'Zobraziť'}
+                      {showPin ? 'Hide' : 'Show'}
                     </button>
                   </div>
                   <input
@@ -490,7 +490,7 @@ export default function AuthModal() {
                       opacity: 0.95
                     }}
                   >
-                    Zabudli ste PIN kód?
+                    Forgot your PIN code?
                   </button>
                 </div>
 
@@ -501,48 +501,48 @@ export default function AuthModal() {
                   className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  {isSubmitting ? 'Overujem...' : 'Prihlásiť sa do Dashboardu'}
+                  {isSubmitting ? 'Verifying...' : 'Log In to Dashboard'}
                 </button>
               </form>
             )}
 
-            {/* FORM 2: REGISTER (Krok 1 - Meno a E-mail) */}
+            {/* FORM 2: REGISTER (Step 1 - Name & Email) */}
             {authModalMode === 'register' && (
               <form onSubmit={handleRegisterRequestSubmit} style={{ padding: '26px' }}>
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="register-nick-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Vaše meno alebo Názov štúdia <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                    Your Name or Studio Name <span style={{ color: 'var(--accent-primary)' }}>*</span>
                   </label>
                   <input
                     id="register-nick-input"
                     type="text"
                     className="input"
-                    placeholder="napr. AlexDesign alebo StudioAlfa"
+                    placeholder="e.g. AlexDesign or AlfaStudio"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
                     required
                     autoFocus
                   />
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Toto meno uvidia vaši klienti v hlavičke portálu.
+                    Your clients will see this name in the portal header.
                   </span>
                 </div>
 
                 <div style={{ marginBottom: '22px' }}>
                   <label htmlFor="register-email-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Váš e-mail pre overenie a prihlásenie <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                    Your email for verification and login <span style={{ color: 'var(--accent-primary)' }}>*</span>
                   </label>
                   <input
                     id="register-email-input"
                     type="email"
                     className="input"
-                    placeholder="vas@email.com"
+                    placeholder="you@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '5px', lineHeight: 1.45 }}>
-                    🔒 Na tento e-mail vám zašleme 6-miestny overovací PIN kód s platnosťou 5 minút. Žiadny marketing ani reklama.
+                    🔒 We'll send a 6-digit verification PIN valid for 5 minutes to this email. No spam, ever.
                   </span>
                 </div>
 
@@ -556,9 +556,9 @@ export default function AuthModal() {
                   color: 'var(--text-secondary)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)', fontWeight: 700, marginBottom: '4px' }}>
-                    <KeyRound size={15} /> Bezpečné dvojfázové overenie e-mailu
+                    <KeyRound size={15} /> Secure Two-Factor Email Verification
                   </div>
-                  Na zadaný e-mail vám zašleme kód, ktorý opíšete v ďalšom kroku. Tento kód sa po overení stane vaším trvalým prístupovým heslom.
+                  We will send a code to your email that you'll enter in the next step. Once verified, this code becomes your permanent access PIN.
                 </div>
 
                 <button
@@ -568,12 +568,12 @@ export default function AuthModal() {
                   className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  {isSubmitting ? 'Generujem a odosielam PIN...' : 'Zaslať overovací PIN kód →'}
+                  {isSubmitting ? 'Generating & sending PIN...' : 'Send Verification PIN →'}
                 </button>
               </form>
             )}
 
-            {/* FORM 2B: VERIFY REGISTER PIN (Krok 2 - Zadanie PIN kódu s 5m limitom) */}
+            {/* FORM 2B: VERIFY REGISTER PIN (Step 2 - PIN entry with 5m limit) */}
             {authModalMode === 'verify_register_pin' && (
               <form onSubmit={handleVerifyPinSubmit} style={{ padding: '26px' }}>
                 {/* Email Confirmation Badge */}
@@ -590,7 +590,7 @@ export default function AuthModal() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
                     <Mail size={16} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Kód odoslaný na:</span>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>Code sent to:</span>
                       <strong style={{ fontSize: '0.86rem', color: 'var(--text-primary)' }}>{pendingRegistration?.email || email}</strong>
                     </div>
                   </div>
@@ -602,9 +602,9 @@ export default function AuthModal() {
                     }}
                     className="btn btn-secondary btn-sm"
                     style={{ fontSize: '0.74rem', padding: '4px 8px', gap: '4px' }}
-                    title="Zmeniť e-mail"
+                    title="Change email"
                   >
-                    <Edit2 size={12} /> Upraviť
+                    <Edit2 size={12} /> Edit
                   </button>
                 </div>
 
@@ -623,9 +623,9 @@ export default function AuthModal() {
                   <Clock size={16} color={timeLeft > 0 ? 'var(--accent-primary)' : 'var(--danger)'} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: timeLeft > 0 ? 'var(--text-primary)' : '#fca5a5' }}>
                     {timeLeft > 0 ? (
-                      <>Platnosť kódu: <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '1rem', letterSpacing: '1px', color: 'var(--accent-primary)' }}>{formatTime(timeLeft)}</strong></>
+                      <>Code expires in: <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '1rem', letterSpacing: '1px', color: 'var(--accent-primary)' }}>{formatTime(timeLeft)}</strong></>
                     ) : (
-                      'Platnosť kódu vypršala. Požiadajte o nový kód.'
+                      'Code has expired. Please request a new one.'
                     )}
                   </span>
                 </div>
@@ -633,7 +633,7 @@ export default function AuthModal() {
                 {/* 6-digit PIN Input */}
                 <div style={{ marginBottom: '22px' }}>
                   <label htmlFor="verify-pin-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textAlign: 'center' }}>
-                    Zadajte 6-miestny PIN kód z e-mailu
+                    Enter the 6-digit PIN from your email
                   </label>
                   <input
                     id="verify-pin-input"
@@ -660,11 +660,11 @@ export default function AuthModal() {
                     }}
                   />
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px', textAlign: 'center' }}>
-                    💡 Tento PIN kód vám ostáva ako váš stály prístupový kód pre prihlásenie.
+                    💡 This PIN will serve as your permanent access code for logging in.
                   </span>
                 </div>
 
-                {/* Dev Mode Helper (iba lokálne bez Resend kľúča) */}
+                {/* Dev Mode Helper (local only without Resend key) */}
                 {pendingRegistration?.devPin && (
                   <div style={{
                     marginBottom: '16px',
@@ -676,7 +676,7 @@ export default function AuthModal() {
                     color: '#fef08a',
                     textAlign: 'center'
                   }}>
-                    🔧 Vývojový režim: Váš PIN kód je <strong>{pendingRegistration.devPin}</strong>
+                    🔧 Dev Mode: Your PIN code is <strong>{pendingRegistration.devPin}</strong>
                   </div>
                 )}
 
@@ -688,7 +688,7 @@ export default function AuthModal() {
                   className="btn btn-primary btn-lg btn-pill"
                   style={{ width: '100%', justifyContent: 'center', marginBottom: '16px' }}
                 >
-                  {isSubmitting ? 'Overujem a vytváram účet...' : 'Overiť PIN a vytvoriť účet →'}
+                  {isSubmitting ? 'Verifying & creating account...' : 'Verify PIN & Create Account →'}
                 </button>
 
                 {/* Resend and Back Actions */}
@@ -710,7 +710,7 @@ export default function AuthModal() {
                       gap: '5px'
                     }}
                   >
-                    <ArrowLeft size={13} /> Zmeniť údaje
+                    <ArrowLeft size={13} /> Change details
                   </button>
 
                   <button
@@ -730,7 +730,7 @@ export default function AuthModal() {
                     }}
                   >
                     <RefreshCw size={12} className={isResending ? 'spin' : ''} />
-                    {resendCooldown > 0 ? `Zaslať znova (${resendCooldown}s)` : 'Zaslať kód znova'}
+                    {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend code'}
                   </button>
                 </div>
               </form>
@@ -750,9 +750,9 @@ export default function AuthModal() {
                   lineHeight: 1.5
                 }}>
                   <strong style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                    <KeyRound size={15} /> Obnova zabudnutého PIN kódu
+                    <KeyRound size={15} /> Reset Forgotten PIN Code
                   </strong>
-                  Zadajte e-mail, ktorý ste použili pri registrácii. Systém vám vygeneruje nový bezpečný 6-miestny PIN kód a obratom vám ho zašle do schránky.
+                  Enter the email you used when signing up. The system will generate a secure new 6-digit PIN and send it to your inbox immediately.
                 </div>
 
                 {forgotSuccess ? (
@@ -768,7 +768,7 @@ export default function AuthModal() {
                   }}>
                     <Check size={32} color="var(--success)" style={{ margin: '0 auto 10px', display: 'block' }} />
                     <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '6px', color: '#fff' }}>
-                      E-mail s novým PINom bol odoslaný!
+                      Email with new PIN has been sent!
                     </strong>
                     <p style={{ margin: '0 0 18px', fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                       {forgotSuccess}
@@ -783,20 +783,20 @@ export default function AuthModal() {
                       className="btn btn-primary btn-md btn-pill"
                       style={{ margin: '0 auto' }}
                     >
-                      Prejsť na prihlásenie
+                      Go to Log In
                     </button>
                   </div>
                 ) : (
                   <>
                     <div style={{ marginBottom: '22px' }}>
                       <label htmlFor="forgot-email-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                        Váš registrovaný e-mail <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                        Your registered email <span style={{ color: 'var(--accent-primary)' }}>*</span>
                       </label>
                       <input
                         id="forgot-email-input"
                         type="email"
                         className="input"
-                        placeholder="vas@email.com"
+                        placeholder="you@email.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         required
@@ -811,7 +811,7 @@ export default function AuthModal() {
                       className="btn btn-primary btn-lg btn-pill"
                       style={{ width: '100%', justifyContent: 'center', marginBottom: '16px' }}
                     >
-                      {isSubmitting ? 'Generujem a odosielam nový PIN...' : 'Odoslať nový PIN kód na e-mail'}
+                      {isSubmitting ? 'Generating & sending new PIN...' : 'Send New PIN to Email'}
                     </button>
 
                     <div style={{ textAlign: 'center' }}>
@@ -833,7 +833,7 @@ export default function AuthModal() {
                           gap: '6px'
                         }}
                       >
-                        <ArrowLeft size={14} /> Späť na prihlásenie
+                        <ArrowLeft size={14} /> Back to Log In
                       </button>
                     </div>
                   </>

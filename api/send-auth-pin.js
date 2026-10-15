@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash, createHmac } from 'crypto';
 
 /**
- * In-memory rate limiter pre odosielanie registračných e-mailov (max 5 pokusov za 60s z jednej IP).
+ * In-memory rate limiter for registration email dispatch (max 5 attempts per 60s per IP).
  */
 const sendAttempts = new Map();
 const WINDOW_MS = 60 * 1_000;
@@ -34,8 +34,8 @@ function escapeHtml(str) {
 }
 
 /**
- * Zabezpečenie odosielania e-mailov VÝHRADNE cez overenú subdoménu (mail.usedropbrief.xyz).
- * Tým sa predchádza označeniu za spam a garantuje sa SPF, DKIM a DMARC validácia.
+ * Ensures email dispatch EXCLUSIVELY via verified subdomain (mail.usedropbrief.xyz).
+ * Prevents spam marking and guarantees SPF, DKIM, and DMARC validation.
  */
 function getVerifiedSubdomainSender() {
   const envFrom = process.env.RESEND_FROM?.trim();
@@ -56,7 +56,7 @@ function getVerifiedSubdomainSender() {
     }
   }
 
-  // Ak je doména koreňová usedropbrief.xyz, striktne ju presmerujeme na overenú subdoménu mail.usedropbrief.xyz
+  // If root domain usedropbrief.xyz is configured, redirect to verified subdomain mail.usedropbrief.xyz
   if (email.toLowerCase().endsWith('@usedropbrief.xyz')) {
     const localPart = email.split('@')[0];
     email = `${localPart}@mail.usedropbrief.xyz`;
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     if (!rl.allowed) {
       return res.status(429).json({
         success: false,
-        error: `Príliš veľa žiadostí. Skúste znova o ${rl.waitSec} sekúnd.`
+        error: `Too many requests. Please try again in ${rl.waitSec} seconds.`
       });
     }
 
@@ -96,14 +96,14 @@ export default async function handler(req, res) {
     const { email, nick } = bodyData;
 
     if (!email || typeof email !== 'string' || !email.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      return res.status(400).json({ success: false, error: 'Zadajte platnú e-mailovú adresu.' });
+      return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanNick = String(nick || 'Freelancer').replace(/[\r\n\t"]/g, '').trim();
 
     if (!cleanNick || cleanNick.length < 2) {
-      return res.status(400).json({ success: false, error: 'Meno / Nickname musí mať aspoň 2 znaky.' });
+      return res.status(400).json({ success: false, error: 'Name / Nickname must have at least 2 characters.' });
     }
 
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // 1. Kontrola, či už e-mail existuje (priamy SELECT so service_role kľúčom)
+        // 1. Check if email already exists (direct SELECT with service_role key)
         try {
           const { data: dbEmailUser } = await supabase
             .from('freelancers')
@@ -133,7 +133,7 @@ export default async function handler(req, res) {
           }
         } catch (e) {}
 
-        // Fallback cez bezpečnú RPC funkciu (funguje s anon kľúčom a zapnutým RLS)
+        // Fallback via secure RPC function (works with anon key under RLS)
         if (!existingUser) {
           try {
             const { data: isAvailable, error: rpcErr } = await supabase.rpc('check_email_available', {
@@ -167,11 +167,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Ak je nickname obsadený niekým iným, informujeme používateľa (nickname je verejný identifikátor)
+    // If nickname is taken by someone else, inform user (nickname is a public identifier)
     if (nickTaken) {
       return res.status(400).json({
         success: false,
-        error: 'Tento nickname je už obsadený. Zvoľte si prosím iné meno alebo názov štúdia.'
+        error: 'This nickname is already taken. Please choose another name or studio title.'
       });
     }
 
@@ -182,12 +182,11 @@ export default async function handler(req, res) {
       .toUpperCase();
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // SCENÁR A: E-MAIL UŽ V DATABÁZE EXISTUJE (Anti-Enumeration & Bezpečnostné GDPR Upozornenie)
-    // ─────────────────────────────────────────────────────────────────────────────
-    // Používateľovi v rozhraní NEPREZRÁDZAME, že e-mail existuje.
-    // Zobrazíme identickú hlášku o odoslaní kódu.
-    // Na daný e-mail však namiesto registračného PINu pošleme bezpečnostné upozornenie,
-    // že sa niekto pokúsil zaregistrovať s jeho e-mailom a odkaz na prihlásenie.
+    // SCENARIO A: EMAIL ALREADY EXISTS IN DATABASE (Anti-Enumeration & Security Notice)
+    // We do NOT disclose to client UI that email exists.
+    // We show identical success response about sending code.
+    // Instead of registration PIN, we send a security notice to the email
+    // informing them of the registration attempt with a login link.
     if (existingUser) {
       const dummyExp = Date.now() + 5 * 60 * 1000;
       const dummySig = createHmac('sha256', SECRET)
@@ -205,26 +204,26 @@ export default async function handler(req, res) {
       ).toString('base64url');
 
       if (resendApiKey) {
-        const securitySubject = 'DropBrief: Bezpečnostné upozornenie k vášmu účtu';
-        const securityPlainText = `Ahoj ${existingUser.nick || cleanNick},
+        const securitySubject = 'DropBrief: Security Notice - Account Already Exists';
+        const securityPlainText = `Hi ${existingUser.nick || cleanNick},
 
-Zaznamenali sme pokus o vytvorenie nového účtu na DropBrief s vašou e-mailovou adresou (${cleanEmail}).
+We noticed an attempt to create a new DropBrief account with your email address (${cleanEmail}).
 
-Váš účet už v DropBrief existuje. Pokiaľ ste to boli vy a chceli ste sa prihlásiť, môžete sa kedykoľvek prihlásiť so svojím existujúcim PIN kódom na:
+Your account already exists on DropBrief. If this was you trying to log in, you can log in anytime with your existing PIN code at:
 https://usedropbrief.xyz
 
-Pokiaľ ste svoj PIN kód zabudli, môžete si ho bezpečne obnoviť pomocou možnosti „Zabudli ste PIN kód?“ na prihlasovacej stránke.
+If you forgot your PIN code, you can reset it securely using the "Forgot your PIN code?" option on the login page.
 
-Pokiaľ ste tento pokus nevykonali vy, nemusíte robiť vôbec nič. Váš účet aj všetky vaše zákazky a podklady zostávajú v úplnom bezpečí.
+If you did not initiate this request, no action is needed. Your account, client deliverables, and projects remain completely safe.
 
-S pozdravom,
-Tím DropBrief
+Best regards,
+The DropBrief Team
 https://usedropbrief.xyz
 Ref: DB-SEC-${uniqueRef}
 `;
 
         const securityHtml = `<!DOCTYPE html>
-<html lang="sk" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -245,7 +244,7 @@ Ref: DB-SEC-${uniqueRef}
                     <span style="font-size: 20px; font-weight: 800; color: #4f46e5; letter-spacing: -0.02em;">DropBrief</span>
                   </td>
                   <td align="right">
-                    <span style="font-size: 12px; font-weight: 600; color: #d97706; background-color: #fef3c7; padding: 4px 10px; border-radius: 20px;">Bezpečnosť účtu</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #d97706; background-color: #fef3c7; padding: 4px 10px; border-radius: 20px;">Account Security</span>
                   </td>
                 </tr>
               </table>
@@ -256,19 +255,19 @@ Ref: DB-SEC-${uniqueRef}
           <tr>
             <td style="padding: 32px 32px 28px 32px;">
               <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
-                Bezpečnostné upozornenie k účtu
+                Account Security Notice
               </h1>
               
               <p style="margin: 0 0 18px 0; font-size: 15px; line-height: 1.6; color: #475569;">
-                Ahoj <strong>${escapeHtml(existingUser.nick || cleanNick)}</strong>, zaznamenali sme pokus o vytvorenie nového účtu na DropBrief s vašou e-mailovou adresou (<strong>${escapeHtml(cleanEmail)}</strong>).
+                Hello <strong>${escapeHtml(existingUser.nick || cleanNick)}</strong>, we noticed an attempt to create a new DropBrief account with your email address (<strong>${escapeHtml(cleanEmail)}</strong>).
               </p>
 
               <div style="background-color: #f8fafc; border-radius: 8px; padding: 16px 18px; margin-bottom: 24px; border-left: 4px solid #4f46e5;">
                 <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #0f172a;">
-                  Váš účet už existuje
+                  Your account already exists
                 </p>
                 <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #475569;">
-                  Pokiaľ ste sa pokúšali prihlásiť, použite prihlasovací formulár so svojím pôvodným PIN kódom. Pokiaľ ste PIN zabudli, kliknite na <em>„Zabudli ste PIN kód?“</em> na prihlasovacej obrazovke.
+                  If you were trying to log in, please use the login form with your original PIN code. If you forgot your PIN, click on <em>"Forgot your PIN code?"</em> on the login screen.
                 </p>
               </div>
 
@@ -277,14 +276,14 @@ Ref: DB-SEC-${uniqueRef}
                 <tr>
                   <td align="left">
                     <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px;">
-                      Prejsť na prihlásenie do DropBrief &rarr;
+                      Log In to DropBrief &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
-                Ak ste tento pokus nevykonali vy, tento e-mail môžete pokojne ignorovať. Váš účet aj všetky vaše zákazky a súbory sú v bezpečí.
+                If you did not initiate this request, you can safely ignore this email. Your account, client projects, and uploaded assets are secure.
               </p>
             </td>
           </tr>
@@ -335,23 +334,23 @@ Ref: DB-SEC-${uniqueRef}
           signal: AbortSignal.timeout(8000),
         }).catch((err) => console.warn('[send-auth-pin] Resend security alert err:', err.message));
       } else {
-        console.warn(`[DEV AUTH] Účet ${cleanEmail} už existuje. Bezpečnostná simulácia prebehla.`);
+        console.warn(`[DEV AUTH] Account ${cleanEmail} already exists. Security simulation completed.`);
       }
 
-      // Vrátime IDENTICKÚ odpoveď pre klienta (ochrana pred enumeráciou e-mailov)
+      // Return identical response to client (email enumeration protection)
       return res.status(200).json({
         success: true,
         challengeToken: dummyChallengeToken,
         expiresAt: dummyExp,
-        message: 'Overovací PIN kód bol odoslaný na váš e-mail.'
+        message: 'Verification PIN has been sent to your email.'
       });
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // SCENÁR B: NOVÝ POUŽÍVATEĽ (Generovanie 6-miestneho PINu s 5-minútovou platnosťou)
+    // SCENARIO B: NEW USER (Generate 6-digit PIN with 5-minute validity)
     // ─────────────────────────────────────────────────────────────────────────────
     const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minút
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
     const pinSignature = createHmac('sha256', SECRET)
       .update(`${cleanEmail}:${cleanNick}:${generatedPin}:${expiresAt}`)
@@ -366,30 +365,30 @@ Ref: DB-SEC-${uniqueRef}
       })
     ).toString('base64url');
 
-    // Predmet bez surového čísla PIN kódu (čísla v predmete spúšťajú spamové filtre finančného/phishingového OTP)
-    const subject = 'DropBrief: Váš overovací PIN kód';
+    // Subject without raw PIN number to avoid anti-spam filters
+    const subject = 'DropBrief: Your Verification PIN Code';
 
-    const plainTextContent = `Ahoj ${cleanNick},
+    const plainTextContent = `Hi ${cleanNick},
 
-Ďakujeme za záujem o DropBrief. Pre vytvorenie a overenie vášho účtu zadajte nasledujúci 6-miestny PIN kód:
+Thank you for your interest in DropBrief. To complete your account setup and verify your email, enter the following 6-digit PIN code:
 
-VÁŠ OVEROVACÍ A PRÍSTUPOVÝ PIN KÓD:
+YOUR VERIFICATION & ACCESS PIN:
 ${generatedPin}
 
-Tento kód platí nasledujúcich 5 minút.
+This code is valid for the next 5 minutes.
 
-Po jeho zadaní do registračného formulára bude váš účet aktivovaný. Tento istý PIN kód vám zároveň ostáva ako váš trvalý prístupový kód pre prihlásenie do vášho dashboardu na adrese:
+Once entered into the registration form, your account will be activated. This same PIN also serves as your permanent access code for logging into your dashboard at:
 https://usedropbrief.xyz
 
-Tento kód slúži ako váš bezpečný kľúč k zákazkám a nahrávaným podkladom.
+This code acts as your secure key to projects and client uploads.
 
-S pozdravom,
-Tím DropBrief
+Best regards,
+The DropBrief Team
 https://usedropbrief.xyz
 Ref: DB-VERIF-${uniqueRef}
 `;
 
-    // Moderný, vysokokontrastný a čistý transakčný dizajn cez overenú subdoménu
+    // Modern, high-contrast transactional design via verified subdomain
     const htmlContent = `<!DOCTYPE html>
 <html lang="sk" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -423,11 +422,11 @@ Ref: DB-VERIF-${uniqueRef}
           <tr>
             <td style="padding: 32px 32px 28px 32px;">
               <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
-                Overovací kód pre ${escapeHtml(cleanNick)}
+                Verification Code for ${escapeHtml(cleanNick)}
               </h1>
               
               <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
-                Pre dokončenie registrácie a overenie vášho e-mailu zadajte nasledujúci 6-miestny PIN kód do aplikácie:
+                To complete your registration and verify your email, enter the following 6-digit PIN code in the application:
               </p>
 
               <!-- Clean Monospace PIN Box -->
@@ -435,13 +434,13 @@ Ref: DB-VERIF-${uniqueRef}
                 <tr>
                   <td align="center" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 22px 16px;">
                     <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">
-                      VÁŠ PRÍSTUPOVÝ PIN KÓD
+                      YOUR ACCESS PIN CODE
                     </div>
                     <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0f172a;">
                       ${escapeHtml(generatedPin)}
                     </div>
                     <div style="font-size: 12px; color: #d97706; margin-top: 6px; font-weight: 600;">
-                      ⏱ Platnosť kódu vyprší o 5 minút
+                      ⏱ Code expires in 5 minutes
                     </div>
                   </td>
                 </tr>
@@ -449,12 +448,12 @@ Ref: DB-VERIF-${uniqueRef}
 
               <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; border-left: 3px solid #4f46e5;">
                 <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #334155;">
-                  <strong>Dôležité:</strong> Po overení bude váš účet vytvorený a tento PIN kód vám ostáva ako váš stály prístupový kód pre prihlásenie.
+                  <strong>Important:</strong> Once verified, your account will be activated and this PIN serves as your permanent access code for future logins.
                 </p>
               </div>
 
               <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
-                Ak ste o registráciu na DropBrief nežiadali, tento e-mail môžete ignorovať. Účet nebude bez overenia tohto kódu aktivovaný.
+                If you did not request a DropBrief account, you can safely ignore this email. No account will be created without verifying this code.
               </p>
             </td>
           </tr>
@@ -482,16 +481,16 @@ Ref: DB-VERIF-${uniqueRef}
 </body>
 </html>`;
 
-    // Lokálny / fallback režim ak nie je nakonfigurovaný RESEND_API_KEY
+    // Local / fallback mode if RESEND_API_KEY is not configured
     if (!resendApiKey) {
-      console.warn(`[DEV AUTH PIN] RESEND_API_KEY chýba. Overovací PIN pre ${cleanEmail}: ${generatedPin}`);
+      console.warn(`[DEV AUTH PIN] RESEND_API_KEY missing. Verification PIN for ${cleanEmail}: ${generatedPin}`);
       return res.status(200).json({
         success: true,
         simulated: true,
         challengeToken,
         expiresAt,
         devPin: generatedPin,
-        message: 'Overovací PIN bol vygenerovaný (vývojový režim).'
+        message: 'Verification PIN generated (development mode).'
       });
     }
 
@@ -531,7 +530,7 @@ Ref: DB-VERIF-${uniqueRef}
         expiresAt,
         sent: false,
         warning: errText,
-        message: 'Overovací PIN bol odoslaný na váš e-mail.'
+        message: 'Verification PIN has been sent to your email.'
       });
     }
 
@@ -541,14 +540,14 @@ Ref: DB-VERIF-${uniqueRef}
       expiresAt,
       sent: true,
       messageId: resendData.id,
-      message: 'Overovací PIN bol úspešne odoslaný na váš e-mail.'
+      message: 'Verification PIN was successfully sent to your email.'
     });
 
   } catch (error) {
     console.error('send-auth-pin error:', error);
     return res.status(500).json({
       success: false,
-      error: error.message || 'Nastala chyba pri odosielaní e-mailu.',
+      error: error.message || 'An error occurred while sending the email.',
     });
   }
 }

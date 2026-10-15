@@ -560,7 +560,7 @@ export default function ExportModal() {
             {/* Close */}
             <button
               onClick={closeExportModal}
-              aria-label="Zatvoriť okno exportu podkladov"
+              aria-label="Close export modal"
               className="btn btn-secondary"
               style={{ borderRadius: 'var(--radius-full)', padding: '7px' }}
               title="Close window"
@@ -886,7 +886,7 @@ export default function ExportModal() {
                                         {isImg && f.url ? (
                                           <img 
                                             src={f.url} 
-                                            alt={f.fileName || 'Náhľad odovzdaného obrázka'} 
+                                            alt={f.fileName || 'Preview of uploaded image'} 
                                             style={{
                                               width: '32px', height: '32px',
                                               objectFit: 'cover',

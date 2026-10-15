@@ -636,7 +636,7 @@ export default function ProjectDetailView() {
         </div>
       </div>
 
-      {/* ── Pravidelný zber (Cadence Hub & Daily Batches) ─────────────────── */}
+      {/* ── Recurring Collection (Cadence Hub & Daily Batches) ─────────────────── */}
       {project.projectType === 'ongoing' && (
         <div className="glass-card" style={{
           padding: '24px 28px',
@@ -1449,7 +1449,7 @@ export default function ProjectDetailView() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          MODAL: PRIDAŤ NOVÚ POŽIADAVKU (ADD ITEM)
+          MODAL: ADD NEW REQUIREMENT (ADD ITEM)
           ══════════════════════════════════════════════════════════ */}
       {isAddItemModalOpen && (
         <div 
@@ -1648,7 +1648,7 @@ export default function ProjectDetailView() {
       )}
 
       {/* ══════════════════════════════════════════════════════════
-          MODAL: UPRAVIŤ POŽIADAVKU (EDIT ITEM)
+          MODAL: EDIT REQUIREMENT (EDIT ITEM)
           ══════════════════════════════════════════════════════════ */}
       {isEditItemModalOpen && editingItem && (
         <div 

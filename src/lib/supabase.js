@@ -15,8 +15,8 @@ export const supabase = isSupabaseConfigured
   : null;
 
 /**
- * Nastavenie autorizačných a kontextových hlavičiek pre Supabase PostgREST (RLS)
- * Zabezpečuje, že klient posiela overený x-project-slug alebo x-freelancer-nick + x-freelancer-auth.
+ * Configure authorization and context headers for Supabase PostgREST (RLS)
+ * Ensures client sends verified x-project-slug or x-freelancer-nick + x-freelancer-auth.
  */
 export function setSupabaseSessionHeaders({ nick, pinHash, slug } = {}) {
   if (!supabase || !supabase.rest || !supabase.rest.headers) return;
@@ -41,13 +41,13 @@ export function setSupabaseSessionHeaders({ nick, pinHash, slug } = {}) {
 }
 
 /**
- * Bezpečná kontrola dostupnosti nicku cez RPC funkciu (chráni pred únikom hashov a e-mailov)
+ * Secure check of nickname availability via RPC function (prevents hash and email leakage)
  */
 export async function isNickAvailable(nick) {
   if (!supabase || !nick) return true;
   const cleanNick = nick.trim().toLowerCase();
 
-  // 1. Primárne vyskúšať bezpečnú Postgres RPC funkciu (SECURITY DEFINER)
+  // 1. Primarily try secure Postgres RPC function (SECURITY DEFINER)
   try {
     const { data, error } = await supabase.rpc('check_nick_available', { check_nick: cleanNick });
     if (!error && typeof data === 'boolean') {
@@ -55,7 +55,7 @@ export async function isNickAvailable(nick) {
     }
   } catch (e) {}
 
-  // 2. Fallback pre spätnú kompatibilitu ak RPC ešte nie je v DB nasadené
+  // 2. Fallback for backward compatibility if RPC is not yet deployed in DB
   try {
     const existing = await getCloudFreelancer(cleanNick);
     return !existing;
@@ -65,13 +65,13 @@ export async function isNickAvailable(nick) {
 }
 
 /**
- * Bezpečná kontrola dostupnosti e-mailu (chráni pred duplicitnou registráciou a kolíziami)
+ * Secure check of email availability (prevents duplicate registrations and collisions)
  */
 export async function isEmailAvailable(email) {
   if (!supabase || !email) return true;
   const cleanEmail = email.trim().toLowerCase();
 
-  // 1. Primárne vyskúšať bezpečnú Postgres RPC funkciu
+  // 1. Primarily try secure Postgres RPC function
   try {
     const { data, error } = await supabase.rpc('check_email_available', { check_email: cleanEmail });
     if (!error && typeof data === 'boolean') {
@@ -98,14 +98,14 @@ export async function isEmailAvailable(email) {
 
 
 /**
- * Získanie účtu freelancera z cloudu (DB tabuľka alebo Storage profil)
+ * Retrieve freelancer account from cloud (DB table or Storage profile)
  */
 export async function getCloudFreelancer(nick) {
   if (!supabase || !nick) return null;
   const cleanNick = nick.trim().toLowerCase();
   const safeNick = cleanNick.replace(/[^a-z0-9]/g, '_');
 
-  // 1. Skúsiť primárne SQL tabuľku v Supabase
+  // 1. Primarily try SQL table in Supabase
   try {
     const { data: dbUser, error } = await supabase
       .from('freelancers')
@@ -121,7 +121,7 @@ export async function getCloudFreelancer(nick) {
           createdAt: dbUser.created_at,
         };
       }
-      // Ak tabuľka existuje a vrátila null, používateľ s týmto nickom v DB neexistuje.
+      // If table exists and returned null, user with this nickname does not exist in DB.
       return null;
     }
   } catch (e) {}
@@ -130,7 +130,7 @@ export async function getCloudFreelancer(nick) {
 }
 
 /**
- * Bezpečné hashovanie PIN kódu pomocou SHA-256 so soľou
+ * Secure PIN code hashing using SHA-256 with salt
  */
 export async function hashPin(pin, useSalt = true) {
   if (!pin) return '';
@@ -145,7 +145,7 @@ export async function hashPin(pin, useSalt = true) {
 }
 
 /**
- * Overenie PIN kódu voči uloženému profilu
+ * Verify PIN code against stored profile
  */
 export async function verifyCloudPin(inputPin, storedUser) {
   if (!inputPin || !storedUser) return false;
@@ -153,11 +153,11 @@ export async function verifyCloudPin(inputPin, storedUser) {
   const targetHash = storedUser.pinHash || storedUser.pin || storedUser.pin_code;
   if (!targetHash) return false;
 
-  // 1. Primárne overenie: SHA-256 so soľou
+  // 1. Primary verification: SHA-256 with salt
   const saltedHash = await hashPin(cleanInput, true);
   if (targetHash === saltedHash) return true;
 
-  // 2. Spätná kompatibilita: SHA-256 bez soli (napr. manuálny záznam v DB)
+  // 2. Backward compatibility: SHA-256 without salt (e.g. manual DB record)
   const unsaltedHash = await hashPin(cleanInput, false);
   if (targetHash === unsaltedHash) return true;
 
@@ -165,7 +165,7 @@ export async function verifyCloudPin(inputPin, storedUser) {
 }
 
 /**
- * Uloženie nového účtu freelancera do cloudu (DB + šifrovaný Storage profil fallback)
+ * Save new freelancer account to cloud (DB + encrypted Storage profile fallback)
  */
 export async function saveCloudFreelancer(freelancer) {
   if (!supabase || !freelancer) return freelancer;
@@ -173,18 +173,18 @@ export async function saveCloudFreelancer(freelancer) {
   const rawEmail = freelancer.email ? freelancer.email.trim().toLowerCase() : '';
   const pinHash = await hashPin(freelancer.pin, true);
 
-  // 🛡️ Nastaviť autorizačné hlavičky pred zápisom, aby PostgREST RLS politika na SELECT (RETURNING) nezlyhala
+  // 🛡️ Set authorization headers before writing so PostgREST RLS policy on SELECT (RETURNING) does not fail
   setSupabaseSessionHeaders({ nick: rawNick, pinHash });
 
   let savedUserRecord = null;
 
-  // 1. Primárny pokus: INSERT s návratom vygenerovaného ID a created_at
+  // 1. Primary attempt: INSERT returning generated ID and created_at
   try {
     const { data: insertedUser, error: insertErr } = await supabase
       .from('freelancers')
       .insert({
         nick: rawNick,
-        pin_code: pinHash, // Ukladáme len hash, nie čistý PIN
+        pin_code: pinHash, // Store hash only, never plaintext PIN
         email: rawEmail,
       })
       .select('id, nick, created_at')
@@ -199,7 +199,7 @@ export async function saveCloudFreelancer(freelancer) {
     console.warn('saveCloudFreelancer insert.select exception:', e);
   }
 
-  // 2. Sekundárny pokus: Čistý INSERT bez .select() (pre prípad, že RLS SELECT policy nepovolila čítanie)
+  // 2. Secondary attempt: Bare INSERT without .select() (in case RLS SELECT policy disallowed reading)
   if (!savedUserRecord) {
     try {
       const { error: bareInsertErr } = await supabase
@@ -211,7 +211,7 @@ export async function saveCloudFreelancer(freelancer) {
         });
 
       if (!bareInsertErr) {
-        // Po úspešnom čistom vložení načítame oficiálne ID a dátum vytvorenia cez RPC
+        // After successful bare insert, fetch official ID and creation timestamp via RPC
         try {
           const { data: rpcData } = await supabase.rpc('verify_freelancer_pin', {
             p_nick: rawNick,
@@ -241,11 +241,11 @@ export async function saveCloudFreelancer(freelancer) {
 }
 
 /**
- * Nahranie súboru do Supabase Storage bucketu 'client-uploads'
+ * Upload file to Supabase Storage bucket 'client-uploads'
  */
-// Povolené typy súborov (whitelist)
+// Allowed file types (whitelist)
 const ALLOWED_MIME_TYPES = [
-  // Obrázky
+  // Images
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/heic', 'image/heif',
   // Dokumenty
   'application/pdf',
@@ -257,12 +257,12 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   // Text
   'text/plain', 'text/csv',
-  // Archívy
+  // Archives
   'application/zip', 'application/x-zip-compressed',
   'application/x-rar-compressed', 'application/x-7z-compressed',
   // Dizajn
   'application/postscript', 'image/vnd.adobe.photoshop',
-  // Videá
+  // Videos
   'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo',
   // Audio
   'audio/mpeg', 'audio/wav', 'audio/x-m4a', 'audio/mp4',
@@ -284,11 +284,11 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     throw new Error(`File type "${mimeType}" is not allowed. We accept images, videos, PDFs, Office documents, and archives.`);
   }
 
-  // ✅ Sanitizácia názvu súboru
+  // ✅ File name sanitization
   const safeName = file.name
-    .replace(/[^a-zA-Z0-9._-]/g, '_') // len bezpečné znaky
-    .replace(/\.{2,}/g, '.')           // zabrání path traversal (../../)
-    .substring(0, 200);                // max dĺžka názvu
+    .replace(/[^a-zA-Z0-9._-]/g, '_') // safe characters only
+    .replace(/\.{2,}/g, '.')           // prevent path traversal (../../)
+    .substring(0, 200);                // max name length
 
   const uniqueId = Math.random().toString(36).substring(2, 7);
   const filePath = `${projectSlug}/${itemId}-${Date.now()}-${uniqueId}-${safeName}`;
@@ -306,7 +306,7 @@ export async function uploadClientFile(file, projectSlug, itemId) {
     throw error;
   }
 
-  // Získanie verejnej URL adresy pre stiahnutie
+  // Get public URL for download
   const { data: publicUrlData } = supabase.storage
     .from('client-uploads')
     .getPublicUrl(filePath);

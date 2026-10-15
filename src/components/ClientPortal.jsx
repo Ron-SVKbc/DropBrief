@@ -204,7 +204,7 @@ export default function ClientPortal() {
     );
 
     if (!existsInMemory) {
-      // Prevencia nekonečného opakovaného dopytovania neexistujúceho projektu
+      // Prevent infinite repeated querying of non-existent project
       if (attemptedSlugsRef.current.has(cleanActiveSlug)) {
         setHasAttemptedFetch(true);
         return;
@@ -288,7 +288,7 @@ export default function ClientPortal() {
 
   const MAX_STAGED_FILES_PER_ITEM = 20;
 
-  // 1. Stage local files (chránené limitom počtu súborov)
+  // 1. Stage local files (guarded by file count limit)
   const handleStageFiles = (itemId, filesInput) => {
     if (isFreelancerReadOnly) {
       addToast('As a freelancer, you are viewing a preview. Files and text are uploaded exclusively by the client.', 'warning', 'Client Only');
@@ -303,7 +303,7 @@ export default function ClientPortal() {
     setStagedFiles((prev) => {
       const current = prev[itemId] || [];
       if (current.length + fileArray.length > MAX_STAGED_FILES_PER_ITEM) {
-        addToast(`Maximálne ${MAX_STAGED_FILES_PER_ITEM} súborov na položku povolených.`, 'warning', 'Limit dosiahnutý');
+        addToast(`Maximum ${MAX_STAGED_FILES_PER_ITEM} files per item allowed.`, 'warning', 'Limit Reached');
         const allowedSlice = fileArray.slice(0, Math.max(0, MAX_STAGED_FILES_PER_ITEM - current.length));
         return {
           ...prev,
@@ -932,7 +932,7 @@ export default function ClientPortal() {
                   aria-valuenow={progressPercent}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`Priebeh odovzdávania podkladov: ${progressPercent}%`}
+                  aria-label={`Asset submission progress: ${progressPercent}%`}
                 >
                   <div 
                     className="progress-fill" 
@@ -1167,7 +1167,7 @@ export default function ClientPortal() {
                               }}
                               tabIndex={0}
                               role="button"
-                              aria-label={`Kliknite alebo stlačte Enter na výber súborov pre: ${item.title}`}
+                              aria-label={`Click or press Enter to choose files for: ${item.title}`}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault();
@@ -1408,12 +1408,12 @@ export default function ClientPortal() {
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           title="Click to open full size image"
-                                          aria-label={`Zobraziť obrázok ${f.fileName || 'v plnej veľkosti'}`}
+                                          aria-label={`View image ${f.fileName || 'in full size'}`}
                                           style={{ display: 'block', flexShrink: 0 }}
                                         >
                                           <img 
                                             src={f.url} 
-                                            alt={f.fileName || 'Náhľad odovzdaného obrázka'}
+                                            alt={f.fileName || 'Preview of uploaded image'}
                                             style={{
                                               width: '48px',
                                               height: '48px',
@@ -1474,7 +1474,7 @@ export default function ClientPortal() {
                                           className="btn btn-secondary btn-sm btn-pill"
                                           style={{ padding: '5px 10px', fontSize: '0.78rem' }}
                                           title="Download / View full size file"
-                                          aria-label={`Stiahnuť súbor ${f.fileName || ''}`}
+                                          aria-label={`Download file ${f.fileName || ''}`}
                                         >
                                           <Download size={13} aria-hidden="true" /> View
                                         </a>
@@ -1486,7 +1486,7 @@ export default function ClientPortal() {
                                           className="btn btn-secondary btn-sm"
                                           style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
                                           title={isDemoMode ? "Remove this file from preview" : "Remove this file from cloud"}
-                                          aria-label={`Odstrániť súbor ${f.fileName || 'z projektu'}`}
+                                          aria-label={`Remove file ${f.fileName || 'from project'}`}
                                         >
                                           <X size={14} aria-hidden="true" />
                                         </button>
@@ -1551,7 +1551,7 @@ export default function ClientPortal() {
                                       {isImg && previewUrl ? (
                                         <img 
                                           src={previewUrl} 
-                                          alt={f.name || 'Náhľad vybraného súboru'}
+                                          alt={f.name || 'Preview of selected file'}
                                           style={{
                                             width: '48px',
                                             height: '48px',
@@ -1604,7 +1604,7 @@ export default function ClientPortal() {
                                       className="btn btn-secondary btn-sm"
                                       style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
                                       title="Remove from selection"
-                                      aria-label={`Odstrániť vybraný súbor ${f.name}`}
+                                      aria-label={`Remove selected file ${f.name}`}
                                     >
                                       <X size={14} aria-hidden="true" />
                                     </button>
@@ -1622,7 +1622,7 @@ export default function ClientPortal() {
                                 }}
                                 tabIndex={0}
                                 role="button"
-                                aria-label={`Pridať ďalšie súbory pre: ${item.title}`}
+                                aria-label={`Add more files for: ${item.title}`}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
@@ -1774,7 +1774,7 @@ export default function ClientPortal() {
                               className="textarea"
                               rows={3}
                               placeholder="Type requested details, links, or copy here..."
-                              aria-label={`Zadanie textu pre položku ${item.title}`}
+                              aria-label={`Enter text for item ${item.title}`}
                               value={textInputs[item.id] || ''}
                               onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
                               style={{ marginBottom: '12px', borderRadius: 'var(--radius-lg)' }}
@@ -1782,7 +1782,7 @@ export default function ClientPortal() {
                             <button 
                               id={`btn-save-text-${item.id}`}
                               onClick={() => handleTextSave(item.id)}
-                              aria-label={`Uložiť text pre položku ${item.title}`}
+                              aria-label={`Save text for item ${item.title}`}
                               className="btn btn-primary btn-sm btn-pill"
                             >
                               <CheckCircle2 size={15} aria-hidden="true" /> Save & Submit Copy

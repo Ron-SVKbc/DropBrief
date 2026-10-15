@@ -9,7 +9,7 @@ import { createHash } from 'crypto';
  * protecting a 6-digit PIN this is a significant improvement over localStorage-only.
  */
 const loginAttempts = new Map();
-const WINDOW_MS = 60 * 1_000; // 60 sekúnd
+const WINDOW_MS = 60 * 1_000; // 60 seconds
 const MAX_ATTEMPTS = 5;
 
 function rateLimitKey(ip, nick) {
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
   }
 
-  // ── Získanie IP adresy klienta ─────────────────────────────────────────────
+  // ── Get client IP address ─────────────────────────────────────────────
   const ip =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
     req.headers['x-real-ip']?.trim() ||
@@ -70,17 +70,17 @@ export default async function handler(req, res) {
   const { pin } = bodyData;
 
   if (!rawIdentifier || typeof rawIdentifier !== 'string' || !pin || typeof pin !== 'string') {
-    return res.status(400).json({ success: false, error: 'Chýba prihlasovacie meno (alebo e-mail) a PIN.' });
+    return res.status(400).json({ success: false, error: 'Missing username (or email) and PIN.' });
   }
 
   const cleanNick = rawIdentifier.trim().toLowerCase();
   const cleanPin  = pin.trim();
 
   if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-    return res.status(400).json({ success: false, error: 'PIN musí mať 6 číslic.' });
+    return res.status(400).json({ success: false, error: 'PIN must have 6 digits.' });
   }
 
-  // ── Server-side rate limiting (podľa IP + nick) ────────────────────────────
+  // ── Server-side rate limiting (by IP + nick) ────────────────────────────
   const rlKey    = rateLimitKey(ip, cleanNick);
   const rlResult = checkRateLimit(rlKey);
 
@@ -88,11 +88,11 @@ export default async function handler(req, res) {
     return res.status(429).json({
       success:     false,
       rateLimited: true,
-      error:       `Príliš veľa neúspešných pokusov. Skúste znovu o ${rlResult.waitSec} sekúnd.`,
+      error:       `Too many failed attempts. Please try again in ${rlResult.waitSec} seconds.`,
     });
   }
 
-  // ── Pripojenie na Supabase (service-role key obchádza RLS pre čítanie hash) ─
+  // ── Connect to Supabase (service-role key bypasses RLS for reading hash) ─
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('verify-pin: Missing Supabase env vars.');
-    return res.status(500).json({ success: false, error: 'Server nie je nakonfigurovaný.' });
+    return res.status(500).json({ success: false, error: 'Server is not configured.' });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
         ),
       ]);
 
-    // 1. Primárne skúsiť priamy SELECT (keď je k dispozícii service-role kľúč)
+    // 1. Primarily try direct SELECT (when service-role key is available)
     try {
       const { data: dbUser, error } = await withTimeout(
         supabase
@@ -135,10 +135,10 @@ export default async function handler(req, res) {
         isValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
       }
     } catch (selectErr) {
-      // Ignorovať chybu RLS a prejsť na RPC fallback
+      // Ignore RLS error and fall through to RPC fallback
     }
 
-    // 2. Fallback: Bezpečná RPC funkcia (funguje aj s anon kľúčom pri zapnutom striktnom RLS)
+    // 2. Fallback: Secure RPC function (works even with anon key under strict RLS)
     if (!user) {
       try {
         const { data: rpcData, error: rpcErr } = await withTimeout(
@@ -161,11 +161,11 @@ export default async function handler(req, res) {
     if (!user || !isValid) {
       return res.status(401).json({
         success: false,
-        error:   'Nesprávny nickname / e-mail alebo PIN kód.',
+        error:   'Incorrect nickname / email or PIN code.',
       });
     }
 
-    // ── Úspech: vymazať rate-limit záznam pre túto IP+nick kombináciu ─────────
+    // ── Success: clear rate-limit entry for this IP+nick combination ─────────
     clearRateLimit(rlKey);
 
     return res.status(200).json({
@@ -175,14 +175,14 @@ export default async function handler(req, res) {
         nick:      user.nick,
         email:     user.email || '',
         createdAt: user.created_at || user.createdAt || new Date().toISOString(),
-        // pinHash je poslaný späť iba pre lokálnu cache (offline login) –
-        // prenáša sa cez HTTPS a ukladá iba v localStorage, nikdy v plain texte
+        // pinHash is returned only for local cache (offline login) –
+        // transferred over HTTPS and stored only in localStorage, never in plaintext
         pinHash:   user.pin_code || user.pinHash || saltedHash,
       },
     });
 
   } catch (err) {
     console.error('verify-pin: Unexpected error:', err);
-    return res.status(500).json({ success: false, error: 'Interná chyba servera.' });
+    return res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 }

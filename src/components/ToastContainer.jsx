@@ -11,7 +11,7 @@ export default function ToastContainer() {
     <div 
       role="region"
       aria-live="polite"
-      aria-label="Systémové oznámenia"
+      aria-label="System notifications"
       style={{
         position: 'fixed',
         bottom: '24px',
@@ -69,7 +69,7 @@ export default function ToastContainer() {
 
             <button
               onClick={() => removeToast(toast.id)}
-              aria-label="Zatvoriť oznámenie"
+              aria-label="Close notification"
               style={{
                 background: 'none',
                 border: 'none',

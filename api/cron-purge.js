@@ -3,13 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 /**
  * 🧹 DropBrief - Automated 30-Day Storage Purge Endpoint (Vercel Cron & Manual Trigger)
  *
- * Plní GDPR článok 5(1)(e) (obmedzenie uloženia):
- * Trvalo maže súbory zo Supabase Storage bucketu 'client-uploads' pre všetky
- * projekty, ktoré sú v stave 'completed' po dobu dlhšiu ako 30 dní.
+ * Fulfills GDPR Article 5(1)(e) (storage limitation):
+ * Permanently deletes files from Supabase Storage bucket 'client-uploads' for all
+ * projects in 'completed' status older than 30 days.
  *
  * Podpora:
  * - Vercel Cron (GET /api/cron-purge cez CRON_SECRET)
- * - Manuálny trigger / webhook (POST /api/cron-purge s { slug, force: true })
+ * - Manual trigger / webhook (POST /api/cron-purge with { slug, force: true })
  * - Dry-run testovanie (GET /api/cron-purge?dry_run=true)
  */
 export default async function handler(req, res) {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   const targetSlug = urlObj?.searchParams.get('slug') || bodyData.slug;
   const forceImmediate = (urlObj?.searchParams.get('force') === 'true') || Boolean(bodyData.force);
 
-  // ── 2. Overenie oprávnenia (Security check) ─────────────────────────────────
+  // ── 2. Security check ─────────────────────────────────
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   const querySecret = urlObj?.searchParams.get('secret') || urlObj?.searchParams.get('token');
@@ -36,24 +36,24 @@ export default async function handler(req, res) {
 
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
   const cronSecret = process.env.CRON_SECRET;
-  // Bezpečná autorizácia: Vercel Cron odosiela 'Authorization: Bearer <CRON_SECRET>'
-  // Nikdy sa nespoliehame na 'user-agent', ktorý môže útočník jednoducho podvrhnúť
+  // Secure authorization: Vercel Cron sends 'Authorization: Bearer <CRON_SECRET>'
+  // Never rely on 'user-agent' which can be easily spoofed by an attacker
   const isMasterAuthorized = Boolean(cronSecret) && providedSecret === cronSecret;
 
-  // Získanie prihlasovacích údajov freelancera pri manuálnom spustení z dashboardu
+  // Get freelancer credentials upon manual trigger from dashboard
   const reqNick = (req.headers['x-freelancer-nick'] || bodyData.nick || '').trim();
   const reqAuth = (req.headers['x-freelancer-auth'] || bodyData.pinHash || '').trim();
 
-  // Neautorizované volanie bez CRON tajomstva a bez prihláseného freelancera je prísne zakázané
+  // Unauthorized call without CRON secret and without logged-in freelancer is strictly prohibited
   if (!isMasterAuthorized && (!targetSlug || !reqNick || !reqAuth)) {
     console.warn('[cron-purge] Unauthorized attempt to trigger purge without valid secret or freelancer credentials.');
     return res.status(401).json({ 
       success: false, 
-      error: 'Unauthorized: Pre spustenie skartácie sa vyžaduje platný CRON_SECRET alebo overenie freelancera.' 
+      error: 'Unauthorized: Valid CRON_SECRET or verified freelancer session required to trigger purge.' 
     });
   }
 
-  // ── 3. Inicializácia Supabase ──────────────────────────────────────────────
+  // ── 3. Initialize Supabase ──────────────────────────────────────────────
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = serviceRoleKey || process.env.VITE_SUPABASE_ANON_KEY;
@@ -70,11 +70,11 @@ export default async function handler(req, res) {
   const cutoffDate = new Date(now - THIRTY_DAYS_MS);
 
   const FUNCTION_START_MS = Date.now();
-  const MAX_EXECUTION_TIME_MS = 8000; // 8s bezpečný časový rozpočet (Vercel Hobby limit je 10s)
-  const MAX_CANDIDATES_LIMIT = 25;   // Limit stránkovania kandidátov na jeden beh
+  const MAX_EXECUTION_TIME_MS = 8000; // 8s safe time budget (Vercel Hobby limit is 10s)
+  const MAX_CANDIDATES_LIMIT = 25;   // Candidate pagination limit per run
 
   try {
-    // ── 4. Výber kandidátov na purge (so striktným limitom stránkovania) ──────
+    // ── 4. Candidate selection (with strict pagination limit) ──────
     let query = supabase
       .from('projects')
       .select('id, slug, title, status, completed_at, created_at, files_purged, purged_at, batches, freelancer_name');
@@ -92,41 +92,41 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: fetchErr.message });
     }
 
-    // ── 4b. Overenie vlastníctva pri manuálnom purge bez CRON_SECRET ─────────
+    // ── 4b. Ownership verification for manual purge without CRON_SECRET ─────────
     if (!isMasterAuthorized && targetSlug) {
       const targetProj = candidateProjects?.[0];
       if (!targetProj) {
-        return res.status(404).json({ success: false, error: 'Projekt pre skartáciu sa nenašiel.' });
+        return res.status(404).json({ success: false, error: 'Project for purging was not found.' });
       }
       if (!targetProj.freelancer_name || targetProj.freelancer_name.trim().toLowerCase() !== reqNick.toLowerCase()) {
         console.warn(`[cron-purge] Unauthorized purge attempt: ${reqNick} does not own project ${targetSlug}`);
-        return res.status(403).json({ success: false, error: 'Nemáte oprávnenie skartovať tento projekt.' });
+        return res.status(403).json({ success: false, error: 'You do not have permission to purge this project.' });
       }
 
-      // Overenie PIN hashu v databáze
+      // Verify PIN hash in database
       const { data: isAuthValid } = await supabase.rpc('is_freelancer_authenticated', {
         p_nick: reqNick,
         p_pin_hash: reqAuth,
       });
 
       if (!isAuthValid) {
-        return res.status(401).json({ success: false, error: 'Neplatné overenie PIN kódu freelancera.' });
+        return res.status(401).json({ success: false, error: 'Invalid freelancer PIN verification.' });
       }
     }
 
     const eligibleProjects = (candidateProjects || []).filter((proj) => {
-      // Už skartované projekty preskočíme
+      // Skip already purged projects
       if (proj.files_purged || proj.purged_at) return false;
 
-      // Ak ide o manuálny force purge konkrétneho projektu
+      // If manual force purge for a specific project
       if (forceImmediate && targetSlug && proj.slug?.toLowerCase() === targetSlug.toLowerCase()) {
         return true;
       }
 
-      // Musí byť v stave completed
+      // Must be in completed status
       if (proj.status !== 'completed') return false;
 
-      // Dátum dokončenia: prioritne completed_at, fallback created_at
+      // Completion date: prioritizes completed_at, fallback created_at
       const completionDate = proj.completed_at || proj.created_at;
       if (!completionDate) return false;
 
@@ -139,7 +139,7 @@ export default async function handler(req, res) {
     const purgeResults = [];
     let timedOutEarly = false;
 
-    // ── 5. Vykonanie mazania pre každý projekt (strážené time budgetom) ───────
+    // ── 5. Execute deletion for each project (guarded by time budget) ───────
     for (const project of eligibleProjects) {
       // Base-case ochrana pred timeoutom Serverless funkcie
       if (Date.now() - FUNCTION_START_MS > MAX_EXECUTION_TIME_MS) {
@@ -150,7 +150,7 @@ export default async function handler(req, res) {
 
       const filesToDelete = new Set();
 
-      // A) Zoznam súborov priamo v Storage pod priečinkom slug/ (s limitom 500 súborov)
+      // A) Files directly in Storage under slug/ folder (with 500 file limit)
       try {
         const { data: listedFiles, error: listErr } = await supabase.storage
           .from('client-uploads')
@@ -167,7 +167,7 @@ export default async function handler(req, res) {
         console.warn(`[cron-purge] Could not list storage for slug ${project.slug}:`, err.message);
       }
 
-      // B) Zoznam súborov z položiek checklistu (project_items) s limitom 100
+      // B) Files from checklist items (project_items) with 100 limit
       try {
         const { data: items, error: itemsErr } = await supabase
           .from('project_items')
@@ -196,7 +196,7 @@ export default async function handler(req, res) {
         console.warn(`[cron-purge] Could not query items for project ${project.id}:`, err.message);
       }
 
-      // C) Zoznam súborov z batches (ongoing projekt)
+      // C) Files from batches (ongoing project)
       if (Array.isArray(project.batches)) {
         for (const batch of project.batches) {
           if (Array.isArray(batch.files)) {
@@ -222,7 +222,7 @@ export default async function handler(req, res) {
         continue;
       }
 
-      // ── Fyzické zmazanie zo Supabase Storage v bezpečných dávkach po 50 ──────
+      // ── Physical deletion from Supabase Storage in safe batches of 50 ──────
       let deletedStorageCount = 0;
       let storageError = null;
 
@@ -248,7 +248,7 @@ export default async function handler(req, res) {
         }
       }
 
-      // ── Aktualizácia záznamov položiek checklistu (paralelne v dávkach po 5) ─
+      // ── Update checklist item records (in parallel batches of 5) ─
       try {
         const { data: itemsToUpdate } = await supabase
           .from('project_items')
@@ -261,7 +261,7 @@ export default async function handler(req, res) {
             (it) => it.value && typeof it.value === 'object'
           );
 
-          // Spracovanie po dávkach (chunking) pre prevenciu preťaženia spojenia
+          // Batch processing (chunking) to prevent connection overload
           const CHUNK_SIZE = 5;
           for (let i = 0; i < eligibleItems.length; i += CHUNK_SIZE) {
             const chunk = eligibleItems.slice(i, i + CHUNK_SIZE);
@@ -285,7 +285,7 @@ export default async function handler(req, res) {
         console.warn(`[cron-purge] Could not update item values for ${project.id}:`, itemUpdateErr);
       }
 
-      // ── Aktualizácia statusu projektu v DB ─────────────────────────────────
+      // ── Update project status in DB ─────────────────────────────────
       const updatePayload = {
         files_purged: true,
         purged_at: new Date().toISOString(),

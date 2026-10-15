@@ -4,9 +4,9 @@ import { AlertTriangle, RefreshCw, Home, Copy, Check, FolderSync } from 'lucide-
 /**
  * 🛡️ DropBrief ErrorBoundary
  *
- * Chráni aplikáciu pred "White Screen of Death".
- * V prípade neočakávanej runtime chyby zobrazí prémiovú Obsidian Dark obrazovku
- * s možnosťou obnovenia stránky, návratu na úvod a diagnostickým reportom.
+ * Protects the application from "White Screen of Death".
+ * In case of an unexpected runtime error, it displays a premium Obsidian Dark screen
+ * with options to reload the page, return to home, and copy a diagnostic report.
  */
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -119,7 +119,7 @@ Time: ${new Date().toISOString()}`;
               color: '#ffffff',
               marginBottom: '10px'
             }}>
-              Nastala neočakávaná chyba
+              An unexpected error occurred
             </h1>
 
             <p style={{
@@ -128,7 +128,7 @@ Time: ${new Date().toISOString()}`;
               lineHeight: 1.6,
               marginBottom: '26px'
             }}>
-              Aplikácia bezpečne zachytila chybu pri zobrazení. Žiadne vaše nahrané súbory ani dáta v databáze neboli stratené.
+              The application safely intercepted a render error. None of your uploaded files or database data were lost.
             </p>
 
             {/* Action Buttons */}
@@ -138,9 +138,9 @@ Time: ${new Date().toISOString()}`;
                 onClick={this.handleReload}
                 className="btn btn-primary btn-pill"
                 style={{ padding: '9px 20px', fontSize: '0.85rem', gap: '8px' }}
-                aria-label="Obnoviť stránku"
+                aria-label="Reload page"
               >
-                <RefreshCw size={15} aria-hidden="true" /> Obnoviť stránku
+                <RefreshCw size={15} aria-hidden="true" /> Reload Page
               </button>
 
               <button
@@ -148,9 +148,9 @@ Time: ${new Date().toISOString()}`;
                 onClick={this.handleGoHome}
                 className="btn btn-secondary btn-pill"
                 style={{ padding: '9px 18px', fontSize: '0.85rem', gap: '7px' }}
-                aria-label="Prejsť na domovskú stránku"
+                aria-label="Go to home page"
               >
-                <Home size={15} aria-hidden="true" /> Domov
+                <Home size={15} aria-hidden="true" /> Home
               </button>
             </div>
 
@@ -175,7 +175,7 @@ Time: ${new Date().toISOString()}`;
                     textDecoration: 'underline'
                   }}
                 >
-                  {this.state.showDetails ? 'Skryť technické detaily' : 'Zobraziť technické detaily'}
+                  {this.state.showDetails ? 'Hide technical details' : 'Show technical details'}
                 </button>
 
                 <button
@@ -193,11 +193,11 @@ Time: ${new Date().toISOString()}`;
                     alignItems: 'center',
                     gap: '4px'
                   }}
-                  title="Skopírovať chybu pre podporu"
-                  aria-label="Skopírovať technickú chybu do schránky"
+                  title="Copy error for support"
+                  aria-label="Copy technical error to clipboard"
                 >
                   {this.state.copied ? <Check size={11} color="var(--success, #10b981)" aria-hidden="true" /> : <Copy size={11} aria-hidden="true" />}
-                  {this.state.copied ? 'Skopírované!' : 'Kopírovať chybu'}
+                  {this.state.copied ? 'Copied!' : 'Copy error'}
                 </button>
               </div>
 

@@ -40,7 +40,7 @@ export default function AccountModal() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Reset stavov pri otvorení alebo zatvorení modálu
+  // Reset state on modal open/close
   useEffect(() => {
     if (isAccountModalOpen) {
       setIsConfirmingDelete(false);
@@ -52,7 +52,7 @@ export default function AccountModal() {
     }
   }, [isAccountModalOpen]);
 
-  // Escape klávesa na zatvorenie
+  // Close on Escape key press
   useEffect(() => {
     if (!isAccountModalOpen) return;
     const handleKeyDown = (e) => {
@@ -66,7 +66,7 @@ export default function AccountModal() {
 
   if (!isAccountModalOpen || !currentFreelancer) return null;
 
-  // Štatistika projektov freelancera
+  // Freelancer project statistics
   const myProjects = projects.filter((p) => {
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
@@ -80,18 +80,18 @@ export default function AccountModal() {
   }, 0);
 
   const formattedDate = currentFreelancer.createdAt
-    ? new Date(currentFreelancer.createdAt).toLocaleDateString('sk-SK', {
+    ? new Date(currentFreelancer.createdAt).toLocaleDateString('en-US', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
       })
-    : 'Nedávno';
+    : 'Recently';
 
   const handleCopyPin = () => {
     if (!currentFreelancer.pin) return;
     navigator.clipboard.writeText(String(currentFreelancer.pin));
     setCopiedPin(true);
-    addToast('PIN kód bol skopírovaný do schránky.', 'success', 'PIN Skopírovaný');
+    addToast('PIN code copied to clipboard.', 'success', 'PIN Copied');
     setTimeout(() => setCopiedPin(false), 2000);
   };
 
@@ -101,17 +101,17 @@ export default function AccountModal() {
 
     const cleanPin = pinInput.trim();
     if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-      setErrorMessage('Zadajte váš 6-miestny numerický PIN kód.');
+      setErrorMessage('Please enter your 6-digit numeric PIN code.');
       return;
     }
 
     setIsDeleting(true);
     try {
       await deleteFreelancerAccount(cleanPin);
-      // Úspešné zmazanie vyvolá v AppContext zatvorenie modálu a odhlásenie
+      // Successful deletion closes modal and logs out in AppContext
     } catch (err) {
       setIsDeleting(false);
-      setErrorMessage(err.message || 'Nepodarilo sa zmazať účet. Skontrolujte PIN kód.');
+      setErrorMessage(err.message || 'Failed to delete account. Please check your PIN code.');
     }
   };
 
@@ -136,7 +136,7 @@ export default function AccountModal() {
           overflow: 'hidden'
         }}
       >
-        {/* Glow pozadie */}
+        {/* Ambient Glow */}
         <div style={{
           position: 'absolute',
           top: '-60px',
@@ -150,7 +150,7 @@ export default function AccountModal() {
           transition: 'background 0.3s ease'
         }} />
 
-        {/* ── Hlavička ──────────────────────────────────────────────── */}
+        {/* ── Header ────────────────────────────────────────────────── */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -186,14 +186,14 @@ export default function AccountModal() {
                 lineHeight: 1.2,
                 margin: 0
               }}>
-                {isConfirmingDelete ? 'Zmazanie účtu & Dát' : 'Profil & Bezpečnosť'}
+                {isConfirmingDelete ? 'Delete Account & Data' : 'Profile & Security'}
               </h2>
               <p style={{
                 fontSize: '0.8rem',
                 color: 'var(--text-tertiary)',
                 margin: '2px 0 0'
               }}>
-                {isConfirmingDelete ? 'Potvrďte trvalé a nezvratné odstránenie' : 'Prehľad prihlásenia a správa údajov'}
+                {isConfirmingDelete ? 'Confirm permanent and irreversible deletion' : 'Login overview and data management'}
               </p>
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function AccountModal() {
           <button
             onClick={closeAccountModal}
             disabled={isDeleting}
-            aria-label="Zatvoriť nastavenia účtu"
+            aria-label="Close account settings"
             className="btn btn-secondary btn-icon btn-sm"
             style={{ borderRadius: '50%', width: '32px', height: '32px', padding: 0 }}
           >
@@ -209,11 +209,11 @@ export default function AccountModal() {
           </button>
         </div>
 
-        {/* ── Krok 1: Štandardný prehľad profilu ──────────────────────── */}
+        {/* ── Step 1: Standard Profile View ─────────────────────────── */}
         {!isConfirmingDelete ? (
           <div style={{ position: 'relative', zIndex: 1 }}>
             
-            {/* Box s detailmi účtu */}
+            {/* Account Details Box */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.025)',
               border: '1px solid var(--border-subtle)',
@@ -225,45 +225,45 @@ export default function AccountModal() {
               marginBottom: '20px'
             }}>
               
-              {/* Riadok 1: Nick */}
+              {/* Row 1: Nickname */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <User size={14} color="var(--accent-primary-light)" />
-                  Prezývka (Nick):
+                  Nickname:
                 </span>
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {currentFreelancer.nick}
                 </span>
               </div>
 
-              {/* Riadok 2: E-mail */}
+              {/* Row 2: Email */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
                 <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Mail size={14} color="var(--accent-primary-light)" />
-                  E-mailová adresa:
+                  Email address:
                 </span>
                 <span style={{ fontSize: '0.84rem', color: currentFreelancer.email ? 'var(--text-secondary)' : 'var(--text-quaternary)', fontFamily: currentFreelancer.email ? 'var(--font-mono)' : 'inherit' }}>
-                  {currentFreelancer.email || 'Nenastavený'}
+                  {currentFreelancer.email || 'Not set'}
                 </span>
               </div>
 
-              {/* Riadok 3: Dátum registrácie */}
+              {/* Row 3: Created At */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
                 <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Calendar size={14} color="var(--accent-primary-light)" />
-                  Vytvorený:
+                  Created:
                 </span>
                 <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   {formattedDate}
                 </span>
               </div>
 
-              {/* Riadok 4: PIN kód (ak je dostupný) */}
+              {/* Row 4: PIN code */}
               {currentFreelancer.pin && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
                   <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <KeyRound size={14} color="var(--accent-primary-light)" />
-                    Bezpečnostný PIN:
+                    Security PIN:
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{
@@ -283,8 +283,8 @@ export default function AccountModal() {
                     <button
                       type="button"
                       onClick={() => setShowMyPin(!showMyPin)}
-                      aria-label={showMyPin ? 'Skryť PIN' : 'Zobraziť PIN'}
-                      title={showMyPin ? 'Skryť PIN' : 'Zobraziť PIN'}
+                      aria-label={showMyPin ? 'Hide PIN' : 'Show PIN'}
+                      title={showMyPin ? 'Hide PIN' : 'Show PIN'}
                       className="btn btn-secondary btn-icon btn-sm"
                       style={{ width: '26px', height: '26px', padding: 0 }}
                     >
@@ -294,8 +294,8 @@ export default function AccountModal() {
                     <button
                       type="button"
                       onClick={handleCopyPin}
-                      aria-label="Skopírovať PIN kód"
-                      title="Skopírovať PIN kód"
+                      aria-label="Copy PIN code"
+                      title="Copy PIN code"
                       className="btn btn-secondary btn-icon btn-sm"
                       style={{ width: '26px', height: '26px', padding: 0 }}
                     >
@@ -307,7 +307,7 @@ export default function AccountModal() {
 
             </div>
 
-            {/* Metriky a GDPR info */}
+            {/* Metrics and GDPR info */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
@@ -325,7 +325,7 @@ export default function AccountModal() {
                   {myProjects.length}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>
-                  Aktívne projekty
+                  Active Projects
                 </div>
               </div>
 
@@ -340,12 +340,12 @@ export default function AccountModal() {
                   {totalFilesCount}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>
-                  Doručené súbory
+                  Delivered Files
                 </div>
               </div>
             </div>
 
-            {/* GDPR garancia */}
+            {/* GDPR guarantee */}
             <div style={{
               background: 'rgba(16, 185, 129, 0.04)',
               border: '1px solid var(--success-border)',
@@ -360,7 +360,7 @@ export default function AccountModal() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ShieldCheck size={16} color="var(--success)" flexShrink={0} />
                 <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                  Dáta uložené v EÚ (GDPR čl. 17 – Právo na zabudnutie)
+                  Data stored in EU (GDPR Art. 17 – Right to erasure)
                 </span>
               </div>
               <button
@@ -372,11 +372,11 @@ export default function AccountModal() {
                 className="btn btn-secondary btn-sm"
                 style={{ fontSize: '0.7rem', padding: '3px 8px', height: 'auto' }}
               >
-                Viac info
+                Learn more
               </button>
             </div>
 
-            {/* ── Nebezpečná zóna (Danger Zone) ──────────────────────── */}
+            {/* ── Danger Zone ───────────────────────────────────────── */}
             <div style={{
               border: '1px solid var(--danger-border)',
               background: 'rgba(239, 68, 68, 0.035)',
@@ -396,7 +396,7 @@ export default function AccountModal() {
                     margin: 0,
                     lineHeight: 1.3
                   }}>
-                    Nebezpečná zóna – Trvalé zmazanie účtu
+                    Danger Zone – Permanent Account Deletion
                   </h3>
                   <p style={{
                     fontSize: '0.76rem',
@@ -404,7 +404,7 @@ export default function AccountModal() {
                     margin: '4px 0 0',
                     lineHeight: 1.4
                   }}>
-                    Máte právo kedykoľvek natrvalo odstrániť váš účet, všetky briefy a súbory z cloudu. Táto akcia je nezvratná.
+                    You have the right to permanently delete your account, all briefs, and cloud files at any time. This action is irreversible.
                   </p>
                 </div>
               </div>
@@ -418,17 +418,17 @@ export default function AccountModal() {
                   style={{ gap: '6px' }}
                 >
                   <Trash2 size={13} />
-                  Zmazať môj účet a dáta...
+                  Delete my account and data...
                 </button>
               </div>
             </div>
 
           </div>
         ) : (
-          /* ── Krok 2: Potvrdenie zmazania a zadanie PINu ─────────────── */
+          /* ── Step 2: Confirm Deletion and Enter PIN ──────────────── */
           <form onSubmit={handleDeleteSubmit} style={{ position: 'relative', zIndex: 1 }}>
             
-            {/* Varovné hlásenie */}
+            {/* Warning Alert */}
             <div style={{
               background: 'rgba(239, 68, 68, 0.08)',
               border: '1px solid var(--danger-border)',
@@ -439,7 +439,7 @@ export default function AccountModal() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <AlertTriangle size={18} color="var(--danger)" />
                 <strong style={{ fontSize: '0.88rem', color: 'var(--danger-light)' }}>
-                  Pozor! Táto operácia je definitívna a nezvratná.
+                  Warning! This operation is final and irreversible.
                 </strong>
               </div>
 
@@ -454,21 +454,21 @@ export default function AccountModal() {
                 gap: '4px'
               }}>
                 <li>
-                  Všetky vaše <strong>projekty ({myProjects.length})</strong> a klientske zberné formuláre budú vymazané.
+                  All your <strong>projects ({myProjects.length})</strong> and client collection forms will be deleted.
                 </li>
                 <li>
-                  Všetky <strong>súbory nahraté klientmi ({totalFilesCount})</strong> budú okamžite a natrvalo skartované z cloudového úložiska.
+                  All <strong>client-uploaded files ({totalFilesCount})</strong> will be immediately and permanently purged from cloud storage.
                 </li>
                 <li>
-                  Všetky verejné odkazy pre klientov (napr. <code>?p=...</code>) prestanú existovať.
+                  All public client links (e.g. <code>?p=...</code>) will cease to exist.
                 </li>
                 <li>
-                  Váš používateľský profil a prístupový PIN kód budú trvalo odstránené z databázy (GDPR čl. 17).
+                  Your user profile and access PIN will be permanently removed from the database (GDPR Art. 17).
                 </li>
               </ul>
             </div>
 
-            {/* Vstupné pole pre potvrdenie PIN kódom */}
+            {/* PIN Input Field */}
             <div style={{ marginBottom: '20px' }}>
               <label 
                 htmlFor="input-delete-account-pin"
@@ -480,7 +480,7 @@ export default function AccountModal() {
                   marginBottom: '8px'
                 }}
               >
-                Pre potvrdenie identity zadajte váš 6-miestny PIN kód:
+                Enter your 6-digit PIN code to confirm your identity:
               </label>
 
               <div style={{ position: 'relative' }}>
@@ -519,7 +519,7 @@ export default function AccountModal() {
                   type="button"
                   onClick={() => setShowPinInput(!showPinInput)}
                   tabIndex={-1}
-                  aria-label={showPinInput ? 'Skryť PIN' : 'Zobraziť PIN'}
+                  aria-label={showPinInput ? 'Hide PIN' : 'Show PIN'}
                   style={{
                     position: 'absolute',
                     right: '12px',
@@ -554,7 +554,7 @@ export default function AccountModal() {
               )}
             </div>
 
-            {/* Akčné tlačidlá */}
+            {/* Action Buttons */}
             <div style={{
               display: 'flex',
               justifyContent: 'flex-end',
@@ -572,7 +572,7 @@ export default function AccountModal() {
                 className="btn btn-secondary"
               >
                 <ArrowLeft size={14} />
-                Späť
+                Back
               </button>
 
               <button
@@ -585,12 +585,12 @@ export default function AccountModal() {
                 {isDeleting ? (
                   <>
                     <RefreshCw size={14} className="spin" />
-                    Skartujem dáta v cloude...
+                    Purging cloud data...
                   </>
                 ) : (
                   <>
                     <Trash2 size={14} />
-                    Áno, natrvalo zmazať môj účet
+                    Yes, permanently delete my account
                   </>
                 )}
               </button>

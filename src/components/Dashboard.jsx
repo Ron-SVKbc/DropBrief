@@ -64,8 +64,8 @@ export default function Dashboard({ onOpenCreateModal }) {
 
   const filteredProjects = myProjects.filter((p) => {
     const term = searchTerm.toLowerCase().trim();
-    const isOneOffSearch = ['jednorazove', 'jednorázové', 'one-off', 'oneoff'].some((kw) => term.includes(kw));
-    const isOngoingSearch = ['dlhodobe', 'dlhodobé', 'ongoing', 'retainer'].some((kw) => term.includes(kw));
+    const isOneOffSearch = ['one-off', 'oneoff', 'single', 'jednorazove', 'jednorázové'].some((kw) => term.includes(kw));
+    const isOngoingSearch = ['ongoing', 'retainer', 'recurring', 'dlhodobe', 'dlhodobé'].some((kw) => term.includes(kw));
     const matchesType = (isOneOffSearch && p.projectType === 'one-off') || (isOngoingSearch && p.projectType === 'ongoing');
 
     const matchesSearch = 

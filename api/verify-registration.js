@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash, createHmac } from 'crypto';
 
 /**
- * Rate limiter pre zadávanie overovacieho PINu (max 10 pokusov za minútu na IP)
- * Chráni pred pokusom o uhádnutie 6-miestneho PIN kódu.
+ * Rate limiter for verification PIN entry (max 10 attempts per minute per IP)
+ * Protects against brute-force guessing of the 6-digit PIN code.
  */
 const verifyAttempts = new Map();
 const WINDOW_MS = 60 * 1_000;
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     if (!rl.allowed) {
       return res.status(429).json({
         success: false,
-        error: `Príliš veľa neúspešných pokusov. Skúste to znova o ${rl.waitSec} sekúnd.`
+        error: `Too many failed attempts. Please try again in ${rl.waitSec} seconds.`
       });
     }
 
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     if (!email || !pin || !challengeToken) {
       return res.status(400).json({
         success: false,
-        error: 'Chýba e-mail, PIN kód alebo overovací token.'
+        error: 'Missing email, PIN code, or verification token.'
       });
     }
 
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
     if (!/^\d{6}$/.test(cleanPin)) {
       return res.status(400).json({
         success: false,
-        error: 'Overovací PIN kód musí obsahovať presne 6 číslic.'
+        error: 'Verification PIN must contain exactly 6 digits.'
       });
     }
 
@@ -82,25 +82,25 @@ export default async function handler(req, res) {
     } catch (e) {
       return res.status(400).json({
         success: false,
-        error: 'Neplatný formát overovacieho tokenu. Požiadajte o nový kód.'
+        error: 'Invalid verification token format. Please request a new code.'
       });
     }
 
-    // 1. Ak išlo o dummy token (e-mail už v DB existoval pred odoslaním)
+    // 1. If dummy token (email already existed in DB before sending)
     if (tokenData.isDummy) {
-      // Malé oneskorenie pre elimináciu timing útokov
+      // Small delay to mitigate timing attacks
       await new Promise((resolve) => setTimeout(resolve, 350));
       return res.status(400).json({
         success: false,
-        error: 'Zadaný overovací PIN kód je nesprávny alebo vypršala jeho platnosť.'
+        error: 'Entered verification PIN is incorrect or has expired.'
       });
     }
 
-    // 2. Kontrola vypršania 5-minútovej lehoty
+    // 2. Check 5-minute expiration
     if (!tokenData.exp || Date.now() > tokenData.exp) {
       return res.status(400).json({
         success: false,
-        error: 'Platnosť 5-minútového overovacieho PIN kódu vypršala. Kliknite na „Zaslať nový kód“.'
+        error: 'Verification PIN has expired (5-minute limit). Please click "Resend code".'
       });
     }
 
@@ -108,11 +108,11 @@ export default async function handler(req, res) {
     if (tokenData.email.toLowerCase() !== cleanEmail) {
       return res.status(400).json({
         success: false,
-        error: 'Overovací kód bol vystavený pre inú e-mailovú adresu.'
+        error: 'Verification code was issued for a different email address.'
       });
     }
 
-    // 4. Kryptografické overenie HMAC podpisu (garancia, že PIN pochádza z overovacieho e-mailu)
+    // 4. Cryptographic HMAC signature verification (guarantees PIN originated from verification email)
     const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.CRON_SECRET || 'dropbrief_auth_secret_2026';
     const finalNick = tokenData.nick || cleanNick || 'Freelancer';
 
@@ -123,12 +123,12 @@ export default async function handler(req, res) {
     if (expectedSig !== tokenData.sig) {
       return res.status(400).json({
         success: false,
-        error: 'Zadaný PIN kód je nesprávny. Skontrolujte kód vo vašom e-maile a skúste to znova.'
+        error: 'Entered PIN is incorrect. Please check your email and try again.'
       });
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // PIN JE OVERENÝ A SPRÁVNY! Teraz vytvoríme účet v databáze Supabase
+    // PIN IS VERIFIED AND VALID! Now create account in Supabase database
     // ─────────────────────────────────────────────────────────────────────────────
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
@@ -140,7 +140,7 @@ export default async function handler(req, res) {
       try {
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Dodatočná kontrola, či účet nevznikol medzitým
+        // Additional check if account was created in the meantime
         let alreadyRegistered = false;
         try {
           const { data: existingUser } = await supabase
@@ -162,11 +162,11 @@ export default async function handler(req, res) {
         if (alreadyRegistered) {
           return res.status(400).json({
             success: false,
-            error: 'Účet s týmto e-mailom už existuje. Prihláste sa pomocou svojho pôvodného PIN kódu.'
+            error: 'An account with this email already exists. Please log in using your original PIN.'
           });
         }
 
-        // Vloženie účtu do Supabase (skúsiť s povolenými stĺpcami id, nick, created_at)
+        // Insert account into Supabase (try with permitted columns id, nick, created_at)
         try {
           const { data: inserted, error: insertError } = await supabase
             .from('freelancers')
@@ -181,7 +181,7 @@ export default async function handler(req, res) {
           if (!insertError && inserted) {
             savedUser = inserted;
           } else if (insertError) {
-            // Čistý INSERT ako fallback
+            // Bare INSERT as fallback
             await supabase
               .from('freelancers')
               .insert({
@@ -211,14 +211,14 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       user: finalUser,
-      message: 'Účet bol úspešne overený a vytvorený.'
+      message: 'Account was successfully verified and created.'
     });
 
   } catch (error) {
     console.error('verify-registration error:', error);
     return res.status(500).json({
       success: false,
-      error: 'Nastala neočakávaná chyba pri overovaní PIN kódu.'
+      error: 'An unexpected error occurred while verifying PIN code.'
     });
   }
 }

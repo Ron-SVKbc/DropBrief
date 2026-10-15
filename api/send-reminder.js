@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * 🔒 In-memory rate limiter pre odosielanie e-mailových pripomienok (max 10 e-mailov za 10 minút na IP).
- * Chráni pred vyčerpaním Resend kvóty a pred použitím ako spam relay.
+ * 🔒 In-memory rate limiter for reminder email dispatch (max 10 emails per 10 minutes per IP).
+ * Protects against Resend quota exhaustion and spam relay usage.
  */
 const reminderAttempts = new Map();
 const WINDOW_MS = 10 * 60 * 1_000;
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
   if (!rl.allowed) {
     return res.status(429).json({
       success: false,
-      error: `Príliš veľa odoslaných e-mailových pripomienok. Skúste to znova o ${Math.ceil(rl.waitSec / 60)} minút.`
+      error: `Too many email reminders sent. Please try again in ${Math.ceil(rl.waitSec / 60)} minutes.`
     });
   }
 
@@ -72,12 +72,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing project title.' });
     }
 
-    // ── 2. Ochrana pred Open Email Relay (Overenie príjemcu voči DB) ───────────
+    // ── 2. Protection against Open Email Relay (Verify recipient against DB) ──
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
     if (!projectId) {
-      return res.status(400).json({ success: false, error: 'Chýba identifikátor zákazky (projectId).' });
+      return res.status(400).json({ success: false, error: 'Missing project identifier (projectId).' });
     }
 
     if (supabaseUrl && supabaseKey) {
@@ -95,23 +95,23 @@ export default async function handler(req, res) {
         if (dbErr || !dbProj) {
           return res.status(404).json({
             success: false,
-            error: 'Zákazka s týmto identifikátorom sa nenašla v databáze.'
+            error: 'Project with this identifier was not found in the database.'
           });
         }
 
-        // Striktná kontrola: e-mail príjemcu musí zodpovedať klientovi uloženému v zákazke!
+        // Strict check: recipient email must match client email stored in project!
         if (!dbProj.client_email || dbProj.client_email.trim().toLowerCase() !== clientEmail.trim().toLowerCase()) {
           console.warn(`[send-reminder] Blocked phishing relay attempt: ${clientEmail} does not match DB ${dbProj.client_email}`);
           return res.status(403).json({
             success: false,
-            error: 'Bezpečnostná chyba: E-mailová adresa príjemcu sa nezhoduje s registrovaným e-mailom klienta v projekte.'
+            error: 'Security error: Recipient email address does not match the registered client email for this project.'
           });
         }
       } catch (dbCheckErr) {
         console.warn('[send-reminder] DB project verification check warning:', dbCheckErr.message);
         return res.status(500).json({
           success: false,
-          error: 'Chyba overenia zákazky v databáze.'
+          error: 'Error verifying project in database.'
         });
       }
     }
@@ -355,7 +355,7 @@ ${cleanFreelancerName}
       if (match) emailOnly = match[1].trim();
     }
 
-    // Striktné zabezpečenie odosielania cez subdoménu
+    // Strict dispatch security via subdomain
     if (emailOnly.toLowerCase().endsWith('@usedropbrief.xyz')) {
       const localPart = emailOnly.split('@')[0];
       emailOnly = `${localPart}@mail.usedropbrief.xyz`;
@@ -397,7 +397,7 @@ ${cleanFreelancerName}
       });
     } catch (networkErr) {
       if (networkErr.name === 'TimeoutError' || networkErr.name === 'AbortError') {
-        throw new Error('Požiadavka na e-mailovú službu Resend vypršala (timeout 8s). Skontrolujte internetové spojenie a skúste to znovu.');
+        throw new Error('Request to Resend email service timed out (8s limit). Please check your internet connection and try again.');
       }
       throw networkErr;
     }

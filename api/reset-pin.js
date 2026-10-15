@@ -2,11 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'crypto';
 
 /**
- * In-memory rate limiter pre obnovu PIN kódu (max 3 pokusy za 10 minút na IP).
- * Chráni pred zneužitím e-mailového odosielania.
+ * In-memory rate limiter for PIN code reset (max 3 attempts per 10 minutes per IP).
+ * Protects against abuse of email dispatch.
  */
 const resetAttempts = new Map();
-const WINDOW_MS = 10 * 60 * 1_000; // 10 minút
+const WINDOW_MS = 10 * 60 * 1_000; // 10 minutes
 const MAX_ATTEMPTS = 3;
 
 function checkRateLimit(ip) {
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     if (!rl.allowed) {
       return res.status(429).json({
         success: false,
-        error: `Príliš veľa žiadostí o obnovu PIN kódu. Skúste znova o ${Math.ceil(rl.waitSec / 60)} minút.`
+        error: `Too many PIN reset requests. Please try again in ${Math.ceil(rl.waitSec / 60)} minutes.`
       });
     }
 
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     const { email } = bodyData;
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return res.status(400).json({ success: false, error: 'Zadajte platnú e-mailovú adresu.' });
+      return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -86,11 +86,11 @@ export default async function handler(req, res) {
     if (supabaseUrl && supabaseKey) {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Generovanie nového 6-miestneho PIN kódu a hashu
+      // Generate new 6-digit PIN and hash
       newGeneratedPin = Math.floor(100000 + Math.random() * 900000).toString();
       const newSaltedHash = hashPin(newGeneratedPin, true);
 
-      // 1. Primárne: Bezpečná RPC funkcia (SECURITY DEFINER obchádza RLS a funguje s anon aj service_role)
+      // 1. Primary: Secure RPC function (SECURITY DEFINER bypasses RLS and works with anon or service_role)
       let rpcSuccess = false;
       try {
         const { data: rpcRes, error: rpcErr } = await supabase.rpc('reset_freelancer_pin', {
@@ -107,7 +107,7 @@ export default async function handler(req, res) {
         console.warn('reset-pin RPC warning:', rpcEx);
       }
 
-      // 2. Sekundárne (fallback): Priamy dotaz cez service-role kľúč
+      // 2. Secondary (fallback): Direct query via service-role key
       if (!rpcSuccess) {
         const { data: dbUser, error } = await supabase
           .from('freelancers')
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Odoslanie e-mailu cez Resend (ak používateľ existuje a Resend je konfigurovaný)
+    // Send email via Resend (if user exists and Resend is configured)
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (userFound && newGeneratedPin) {
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
           }
         }
 
-        // Vždy garantovať overenú subdoménu
+        // Guarantee verified subdomain
         if (emailToUse.toLowerCase().endsWith('@usedropbrief.xyz')) {
           const localPart = emailToUse.split('@')[0];
           emailToUse = `${localPart}@mail.usedropbrief.xyz`;
@@ -160,8 +160,8 @@ export default async function handler(req, res) {
         const resendFrom = `${senderName} <${emailToUse}>`;
         const replyToEmail = process.env.RESEND_REPLY_TO?.trim() || 'support@usedropbrief.xyz';
 
-        // Predmet bez surového čísla PIN kódu kvôli anti-spam filtrom
-        const subject = 'DropBrief: Obnova prístupového PIN kódu';
+        // Subject without raw PIN code to avoid anti-spam filters
+        const subject = 'DropBrief: Access PIN Reset';
 
         const uniqueRef = createHash('sha256')
           .update(`${cleanEmail}-${Date.now()}-${newGeneratedPin}`)
@@ -169,26 +169,26 @@ export default async function handler(req, res) {
           .substring(0, 8)
           .toUpperCase();
 
-        const plainTextContent = `Ahoj ${userNick},
+        const plainTextContent = `Hi ${userNick},
 
-Na základe vašej žiadosti sme pre váš účet vygenerovali nový 6-miestny PIN kód.
+Based on your request, we have generated a new 6-digit PIN code for your account.
 
-VÁŠ NOVÝ PRÍSTUPOVÝ PIN KÓD:
+YOUR NEW ACCESS PIN CODE:
 ${newGeneratedPin}
 
-Do svojho dashboardu sa môžete kedykoľvek prihlásiť zadaním vášho mena (${userNick}) alebo vášho e-mailu (${cleanEmail}) a tohto nového PIN kódu na adrese:
+You can log into your dashboard anytime by entering your name (${userNick}) or your email (${cleanEmail}) and this new PIN at:
 https://usedropbrief.xyz
 
-Pôvodný PIN kód bol z bezpečnostných dôvodov zneplatnený.
+Your previous PIN code has been invalidated for security reasons.
 
-S pozdravom,
-Tím DropBrief
+Best regards,
+The DropBrief Team
 https://usedropbrief.xyz
 Ref: DB-RESET-${uniqueRef}
 `;
 
         const htmlContent = `<!DOCTYPE html>
-<html lang="sk" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -209,7 +209,7 @@ Ref: DB-RESET-${uniqueRef}
                     <span style="font-size: 20px; font-weight: 800; color: #4f46e5; letter-spacing: -0.02em;">DropBrief</span>
                   </td>
                   <td align="right">
-                    <span style="font-size: 12px; font-weight: 600; color: #d97706; background-color: #fef3c7; padding: 4px 10px; border-radius: 20px;">Obnova PIN kódu</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #d97706; background-color: #fef3c7; padding: 4px 10px; border-radius: 20px;">PIN Code Reset</span>
                   </td>
                 </tr>
               </table>
@@ -220,11 +220,11 @@ Ref: DB-RESET-${uniqueRef}
           <tr>
             <td style="padding: 32px 32px 28px 32px;">
               <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.3;">
-                Ahoj ${escapeHtml(userNick)},
+                Hi ${escapeHtml(userNick)},
               </h1>
               
               <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
-                Na základe vašej žiadosti sme pre váš účet vygenerovali nový 6-miestny numerický PIN kód. Váš predchádzajúci PIN kód bol z bezpečnostných dôvodov zneplatnený:
+                Based on your request, we have generated a new 6-digit numeric PIN for your account. Your previous PIN code has been invalidated for security reasons:
               </p>
 
               <!-- Clean Monospace PIN Box -->
@@ -232,7 +232,7 @@ Ref: DB-RESET-${uniqueRef}
                 <tr>
                   <td align="center" style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 22px 16px;">
                     <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">
-                      VÁŠ NOVÝ PIN KÓD
+                      YOUR NEW PIN CODE
                     </div>
                     <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0f172a;">
                       ${escapeHtml(newGeneratedPin)}
@@ -243,7 +243,7 @@ Ref: DB-RESET-${uniqueRef}
 
               <div style="background-color: #f8fafc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; border-left: 3px solid #4f46e5;">
                 <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #334155;">
-                  <strong>Ako sa prihlásiť:</strong> Zadajte vaše prihlasovacie meno <strong>${escapeHtml(userNick)}</strong> alebo e-mail <strong>${escapeHtml(cleanEmail)}</strong> a tento nový PIN kód.
+                  <strong>How to log in:</strong> Enter your username <strong>${escapeHtml(userNick)}</strong> or email <strong>${escapeHtml(cleanEmail)}</strong> and this new PIN code.
                 </p>
               </div>
 
@@ -252,14 +252,14 @@ Ref: DB-RESET-${uniqueRef}
                 <tr>
                   <td align="left">
                     <a href="https://usedropbrief.xyz" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px;">
-                      Prihlásiť sa do DropBrief &rarr;
+                      Log In to DropBrief &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
 
               <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #64748b;">
-                Ak ste o obnovu PIN kódu nežiadali, odporúčame prihlásiť sa a overiť svoje projekty. Kód bol doručený iba do tejto vašej e-mailovej schránky.
+                If you did not request a PIN reset, we recommend logging in to verify your projects. This code was delivered exclusively to your email inbox.
               </p>
             </td>
           </tr>
@@ -309,21 +309,21 @@ Ref: DB-RESET-${uniqueRef}
           signal: AbortSignal.timeout(8000),
         }).catch((err) => console.warn('Resend reset-pin error:', err));
       } else {
-        console.warn(`[DEV RESET PIN] RESEND_API_KEY chýba. Nový PIN pre ${cleanEmail}: ${newGeneratedPin}`);
+        console.warn(`[DEV RESET PIN] RESEND_API_KEY missing. New PIN for ${cleanEmail}: ${newGeneratedPin}`);
       }
     }
 
-    // Bezpečnostná odpoveď (rovnaká bez ohľadu na to, či e-mail v DB existuje – prevencia enumerácie)
+    // Security response (identical regardless of whether email exists in DB – enumeration prevention)
     return res.status(200).json({
       success: true,
-      message: 'Pokiaľ je tento e-mail u nás registrovaný, nový PIN kód bol práve odoslaný do vašej schránky.'
+      message: 'If this email is registered with us, a new PIN code has just been sent to your inbox.'
     });
 
   } catch (error) {
     console.error('reset-pin unexpected error:', error);
     return res.status(500).json({
       success: false,
-      error: 'Nastala neočakávaná chyba pri spracovaní požiadavky.'
+      error: 'An unexpected error occurred while processing your request.'
     });
   }
 }

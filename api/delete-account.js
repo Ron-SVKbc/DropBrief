@@ -3,10 +3,10 @@ import { createHash } from 'crypto';
 
 /**
  * 🔒 In-memory rate limiter per IP + identifier
- * Ochrana pred brute-force pokusmi o zmazanie účtu
+ * Protection against brute-force account deletion attempts
  */
 const deleteAttempts = new Map();
-const WINDOW_MS = 60 * 1_000; // 60 sekúnd
+const WINDOW_MS = 60 * 1_000; // 60 seconds
 const MAX_ATTEMPTS = 5;
 
 function rateLimitKey(ip, identifier) {
@@ -36,7 +36,7 @@ function clearRateLimit(key) {
 }
 
 /**
- * SHA-256 hashovanie PIN kódu
+ * SHA-256 PIN code hashing
  */
 function hashPin(pin, useSalt = true) {
   const raw = useSalt
@@ -46,23 +46,23 @@ function hashPin(pin, useSalt = true) {
 }
 
 /**
- * Serverless funkcia na bezpečné a nezvratné zmazanie účtu freelancera (GDPR Art. 17 - Right to Erasure)
+ * Serverless function for secure and irreversible freelancer account deletion (GDPR Art. 17 - Right to Erasure)
  *
- * Vykoná:
- * 1. Overenie totožnosti (identifikátor + 6-miestny PIN s rate-limitingom)
- * 2. Vyhľadanie všetkých projektov používateľa
- * 3. Trvalé zmazanie všetkých nahratých súborov zo Supabase Storage (bucket 'client-uploads')
- * 4. Vymazanie záložných profilových súborov zo Storage
- * 5. Odstránenie položiek projektov (project_items)
- * 6. Odstránenie samotných projektov (projects)
- * 7. Odstránenie používateľského profilu z DB (freelancers)
+ * Executes:
+ * 1. Identity verification (identifier + 6-digit PIN with rate-limiting)
+ * 2. Querying all projects of the user
+ * 3. Permanent deletion of all uploaded files from Supabase Storage (bucket 'client-uploads')
+ * 4. Deletion of backup profile files from Storage
+ * 5. Deletion of checklist items (project_items)
+ * 6. Deletion of projects (projects)
+ * 7. Deletion of user profile from DB (freelancers)
  */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
   }
 
-  // ── 1. Získanie IP adresy klienta ──────────────────────────────────────────
+  // ── 1. Get client IP address ──────────────────────────────────────────
   const ip =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
     req.headers['x-real-ip']?.trim() ||
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
   if (!rawIdentifier || typeof rawIdentifier !== 'string' || !pin || typeof pin !== 'string') {
     return res.status(400).json({
       success: false,
-      error: 'Pre zmazanie účtu zadajte vaše prihlasovacie meno (alebo e-mail) a 6-miestny PIN kód.',
+      error: 'To delete your account, please enter your username (or email) and 6-digit PIN code.',
     });
   }
 
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
   const cleanPin = pin.trim();
 
   if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-    return res.status(400).json({ success: false, error: 'Bezpečnostný PIN kód musí mať presne 6 číslic.' });
+    return res.status(400).json({ success: false, error: 'Security PIN code must contain exactly 6 digits.' });
   }
 
   // ── 3. Server-side rate limiting ───────────────────────────────────────────
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
     return res.status(429).json({
       success: false,
       rateLimited: true,
-      error: `Príliš veľa neúspešných pokusov. Z bezpečnostných dôvodov počkajte ${rlResult.waitSec} sekúnd.`,
+      error: `Too many failed attempts. For security reasons, please wait ${rlResult.waitSec} seconds.`,
     });
   }
 
@@ -110,13 +110,13 @@ export default async function handler(req, res) {
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('[delete-account] Missing Supabase configuration.');
-    return res.status(500).json({ success: false, error: 'Chyba konfigurácie servera (Supabase).' });
+    return res.status(500).json({ success: false, error: 'Server configuration error (Supabase).' });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    // ── 5. Vyhľadanie používateľa podľa nicku ALEBO e-mailu ───────────────────
+    // ── 5. Find user by nickname OR email ───────────────────
     const { data: user, error: userErr } = await supabase
       .from('freelancers')
       .select('id, nick, email, pin_code')
@@ -125,14 +125,14 @@ export default async function handler(req, res) {
 
     if (userErr) {
       console.error('[delete-account] DB user fetch error:', userErr.message);
-      return res.status(500).json({ success: false, error: 'Chyba pri overovaní používateľa v databáze.' });
+      return res.status(500).json({ success: false, error: 'Error verifying user in database.' });
     }
 
     if (!user) {
-      return res.status(404).json({ success: false, error: 'Používateľský účet s týmto menom alebo e-mailom sa nenašiel.' });
+      return res.status(404).json({ success: false, error: 'User account with this name or email was not found.' });
     }
 
-    // ── 6. Overenie PIN kódu (so soľou aj bez soli) ──────────────────────────
+    // ── 6. Verify PIN code (salted and unsalted) ──────────────────────────
     const saltedHash = hashPin(cleanPin, true);
     const unsaltedHash = hashPin(cleanPin, false);
     const isPinValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
@@ -140,14 +140,14 @@ export default async function handler(req, res) {
     if (!isPinValid) {
       return res.status(401).json({
         success: false,
-        error: 'Nesprávny bezpečnostný PIN kód. Účet nie je možné zmazať bez platného PINu.',
+        error: 'Incorrect security PIN. Account cannot be deleted without a valid PIN.',
       });
     }
 
-    // PIN je správny – reset počítadla pokusov
+    // PIN is valid – reset attempts counter
     clearRateLimit(rlKey);
 
-    // ── 7. Vyhľadanie všetkých projektov používateľa ──────────────────────────
+    // ── 7. Find all projects of the user ──────────────────────────
     const { data: projects, error: projErr } = await supabase
       .from('projects')
       .select('id, slug, batches')
@@ -161,10 +161,10 @@ export default async function handler(req, res) {
     const projectIds = userProjects.map((p) => p.id);
     const projectSlugs = userProjects.map((p) => p.slug).filter(Boolean);
 
-    // ── 8. Trvalé vymazanie súborov zo Supabase Storage ──────────────────────
+    // ── 8. Permanent file deletion from Supabase Storage ──────────────────────
     const filesToDelete = new Set();
 
-    // A) Súbory zložiek podľa projektových slugov
+    // A) Folder files according to project slugs
     for (const slug of projectSlugs) {
       try {
         const { data: listedFiles, error: listErr } = await supabase.storage
@@ -183,7 +183,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // B) Súbory z project_items.value (ak by mali špecifické cesty)
+    // B) Files from project_items.value (if having specific paths)
     if (projectIds.length > 0) {
       try {
         const { data: items } = await supabase
@@ -211,7 +211,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // C) Súbory z projektových batches
+    // C) Files from project batches
     for (const proj of userProjects) {
       if (Array.isArray(proj.batches)) {
         for (const batch of proj.batches) {
@@ -225,16 +225,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // D) Profilové záložné JSON súbory zo Storage (ak existujú)
+    // D) Profile backup JSON files from Storage (if existing)
     const safeNick = user.nick.toLowerCase().replace(/[^a-z0-9]/g, '_');
     filesToDelete.add(`_profiles/fl_${safeNick}.json`);
     filesToDelete.add(`profiles/fl_${safeNick}.json`);
 
-    // Vykonanie hromadného zmazania súborov zo Storage
+    // Execute bulk deletion of files from Storage
     const allFilesArray = Array.from(filesToDelete).filter(Boolean);
     if (allFilesArray.length > 0) {
       try {
-        // Dávkovanie po max 100 súborov kvôli limitom API
+        // Batching by max 100 files due to API limits
         for (let i = 0; i < allFilesArray.length; i += 100) {
           const chunk = allFilesArray.slice(i, i + 100);
           const { error: removeErr } = await supabase.storage
@@ -249,9 +249,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 9. Databázové vymazanie (Položky -> Projekty -> Používateľ) ───────────
+    // ── 9. Database deletion (Items -> Projects -> User) ───────────
     if (projectIds.length > 0) {
-      // Položky checklistu
+      // Checklist items
       const { error: delItemsErr } = await supabase
         .from('project_items')
         .delete()
@@ -261,7 +261,7 @@ export default async function handler(req, res) {
         console.warn('[delete-account] Warning deleting project items:', delItemsErr.message);
       }
 
-      // Samotné projekty
+      // Projects
       const { error: delProjErr } = await supabase
         .from('projects')
         .delete()
@@ -272,7 +272,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Vymazanie používateľa z tabuľky freelancers
+    // Delete user from freelancers table
     const { error: delUserErr } = await supabase
       .from('freelancers')
       .delete()
@@ -282,13 +282,13 @@ export default async function handler(req, res) {
       console.error('[delete-account] Failed deleting freelancer record:', delUserErr.message);
       return res.status(500).json({
         success: false,
-        error: 'Chyba pri odstraňovaní používateľského účtu z databázy.',
+        error: 'Error removing user account from database.',
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Váš účet, všetky projekty a nahraté súbory boli natrvalo odstránené zo systému v súlade s GDPR.',
+      message: 'Your account, all projects, and uploaded client files were permanently removed from the system in compliance with GDPR.',
       deletedProjectsCount: userProjects.length,
       deletedFilesCount: allFilesArray.length,
     });
@@ -296,7 +296,7 @@ export default async function handler(req, res) {
     console.error('[delete-account] Unexpected exception:', error);
     return res.status(500).json({
       success: false,
-      error: 'Nastala neočakávaná chyba pri spracovaní požiadavky na zmazanie účtu.',
+      error: 'An unexpected error occurred while processing account deletion.',
     });
   }
 }

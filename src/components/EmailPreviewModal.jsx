@@ -167,7 +167,7 @@ export default function EmailPreviewModal() {
           <button 
             id="btn-close-email-modal"
             onClick={handleClose}
-            aria-label="Zatvoriť okno odoslania pripomienky"
+            aria-label="Close reminder modal"
             className="btn btn-secondary btn-sm"
             style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
           >
