@@ -95,22 +95,22 @@ export default function Navbar({ onOpenCreateModal }) {
   return (
     <header style={{
       borderBottom: '1px solid var(--border-hairline)',
-      background: 'rgba(7, 9, 14, 0.9)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
+      background: 'rgba(6, 8, 14, 0.82)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: '0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.4)',
+      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.03)',
     }}>
       <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: '12px',
-        paddingBottom: '12px',
+        paddingTop: '10px',
+        paddingBottom: '10px',
         flexWrap: 'wrap',
-        gap: '10px'
+        gap: '12px'
       }}>
         
         {/* ── Brand ─────────────────────────────────────────── */}

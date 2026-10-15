@@ -36,7 +36,8 @@ import {
   RotateCcw,
   Zap,
   RefreshCw,
-  Layers
+  Layers,
+  Globe
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
@@ -657,9 +658,8 @@ export default function ClientPortal() {
           padding: '12px 0',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
+          position: 'relative',
+          zIndex: 30,
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.35)'
         }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -717,9 +717,8 @@ export default function ClientPortal() {
           padding: '12px 0',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40
+          position: 'relative',
+          zIndex: 30
         }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <span style={{ color: '#e0e7ff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
@@ -986,9 +985,13 @@ export default function ClientPortal() {
                 key={item.id}
                 className="glass-card"
                 style={{
-                  padding: '26px',
-                  borderLeft: isDone ? '4px solid var(--success)' : '4px solid var(--border-subtle)',
+                  padding: 'clamp(20px, 3vw, 28px)',
+                  borderLeft: isDone ? '4px solid var(--success)' : '4px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: 'var(--radius-xl)',
+                  background: isDone 
+                    ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, rgba(13, 18, 30, 0.7) 100%)' 
+                    : 'var(--bg-glass)',
+                  boxShadow: isDone ? '0 10px 30px -10px rgba(16, 185, 129, 0.15), var(--shadow-sm)' : 'var(--shadow-sm)',
                   transition: 'var(--transition)'
                 }}
                 onDragOver={(e) => {
@@ -1012,29 +1015,32 @@ export default function ClientPortal() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                     <div style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '34px',
+                      height: '34px',
                       borderRadius: 'var(--radius-full)',
-                      background: isDone ? 'var(--success)' : 'rgba(255, 255, 255, 0.08)',
+                      background: isDone ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'rgba(255, 255, 255, 0.05)',
+                      border: isDone ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid var(--border-medium)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: isDone ? '#fff' : 'var(--text-muted)',
                       fontWeight: 700,
-                      fontSize: '0.9rem',
+                      fontSize: '0.88rem',
+                      fontFamily: 'var(--font-mono)',
                       flexShrink: 0,
                       marginTop: '2px',
-                      boxShadow: isDone ? '0 0 12px rgba(16, 185, 129, 0.4)' : 'none'
+                      boxShadow: isDone ? '0 0 16px rgba(16, 185, 129, 0.45)' : 'none',
+                      transition: 'var(--transition)'
                     }}>
-                      {isDone ? <Check size={18} /> : (index + 1)}
+                      {isDone ? <Check size={18} strokeWidth={2.5} /> : (index + 1)}
                     </div>
 
                     <div>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '1.18rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '4px' }}>
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.55 }}>
                           {item.description}
                         </p>
                       )}
@@ -1043,11 +1049,11 @@ export default function ClientPortal() {
 
                   <div>
                     {item.required ? (
-                      <span className="badge badge-accent" style={{ fontSize: '0.68rem' }}>
+                      <span className="badge badge-accent" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
                         Required
                       </span>
                     ) : (
-                      <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>
+                      <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
                         Optional
                       </span>
                     )}
@@ -1886,28 +1892,68 @@ export default function ClientPortal() {
         {/* Security and Trust Footer */}
         <div className="glass-card" style={{
           padding: '24px 28px',
-          background: 'rgba(0, 0, 0, 0.35)',
-          borderRadius: 'var(--radius-xl)'
+          background: 'linear-gradient(180deg, rgba(13, 18, 30, 0.7) 0%, rgba(6, 8, 14, 0.9) 100%)',
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid rgba(255, 255, 255, 0.08)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '18px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ padding: '10px', borderRadius: 'var(--radius-md)', background: 'var(--success-bg)', color: 'var(--success)' }}>
-                <Lock size={20} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                color: 'var(--success)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 0 16px rgba(16, 185, 129, 0.2)'
+              }}>
+                <ShieldCheck size={22} />
               </div>
               <div>
                 <strong style={{ fontSize: '0.925rem', color: 'var(--text-primary)', display: 'block' }}>
-                  Your data is protected (End-to-End Security)
+                  Bank-Grade Security & End-to-End Encryption
                 </strong>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Files are secured with bank-grade encryption and accessible solely by {project.freelancerName}.
+                  Deliverables are encrypted at rest and accessible exclusively by {project.freelancerName}.
                 </span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              <span>🔒 256-bit SSL</span>
-              <span>🇪🇺 Frankfurt EU (GDPR)</span>
-              <span>⏱️ Auto-purge after 30 days</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+              <span className="badge" style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.74rem',
+                padding: '5px 12px',
+                gap: '6px'
+              }}>
+                <Lock size={12} color="var(--accent-primary)" /> 256-bit AES SSL
+              </span>
+              <span className="badge" style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.74rem',
+                padding: '5px 12px',
+                gap: '6px'
+              }}>
+                <Globe size={12} color="var(--success)" /> Frankfurt EU (GDPR)
+              </span>
+              <span className="badge" style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.74rem',
+                padding: '5px 12px',
+                gap: '6px'
+              }}>
+                <Clock size={12} color="#f59e0b" /> Auto-purge 30d
+              </span>
             </div>
           </div>
         </div>

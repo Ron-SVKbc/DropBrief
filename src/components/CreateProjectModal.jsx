@@ -219,11 +219,13 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     aria-checked={isSelected}
                     onClick={() => handleSelectTemplate(tpl)}
                     style={{
-                      padding: '14px 10px',
-                      borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)',
-                      border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                      boxShadow: isSelected ? '0 0 20px rgba(99, 102, 241, 0.3)' : 'none',
+                      padding: '16px 12px',
+                      borderRadius: 'var(--radius-lg)',
+                      background: isSelected 
+                        ? 'linear-gradient(180deg, rgba(99, 102, 241, 0.22) 0%, rgba(13, 18, 30, 0.85) 100%)' 
+                        : 'rgba(255, 255, 255, 0.025)',
+                      border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-medium)',
+                      boxShadow: isSelected ? '0 0 24px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)' : 'none',
                       cursor: 'pointer',
                       transition: 'var(--transition)',
                       textAlign: 'center',
@@ -235,20 +237,20 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       font: 'inherit'
                     }}
                   >
-                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} aria-hidden="true" style={{ marginBottom: '6px' }} />
-                    <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)', marginBottom: '4px' }}>
+                    <IconComponent size={22} color={isSelected ? 'var(--accent-primary)' : 'var(--text-muted)'} aria-hidden="true" style={{ marginBottom: '8px' }} />
+                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: isSelected ? '#fff' : 'var(--text-primary)', marginBottom: '6px' }}>
                       {tpl.name}
                     </div>
                     {tpl.id === 'social-media' ? (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <RefreshCw size={9} aria-hidden="true" /> Ongoing
                       </span>
                     ) : tpl.id === 'custom' ? (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <Sparkles size={9} aria-hidden="true" /> Custom
                       </span>
                     ) : (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 7px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <Zap size={9} aria-hidden="true" /> One-off
                       </span>
                     )}
@@ -272,12 +274,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 aria-checked={projectType === 'one-off'}
                 onClick={() => setProjectType('one-off')}
                 style={{
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-md)',
+                  padding: '14px 16px',
+                  borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
-                  background: projectType === 'one-off' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
-                  border: projectType === 'one-off' ? '2px solid #38bdf8' : '1px solid var(--border-subtle)',
-                  boxShadow: projectType === 'one-off' ? '0 0 16px rgba(56, 189, 248, 0.22)' : 'none',
+                  background: projectType === 'one-off' 
+                    ? 'linear-gradient(180deg, rgba(56, 189, 248, 0.16) 0%, rgba(13, 18, 30, 0.75) 100%)' 
+                    : 'rgba(255, 255, 255, 0.02)',
+                  border: projectType === 'one-off' ? '2px solid #38bdf8' : '1px solid var(--border-medium)',
+                  boxShadow: projectType === 'one-off' ? '0 0 20px rgba(56, 189, 248, 0.25)' : 'none',
                   transition: 'var(--transition)',
                   display: 'flex',
                   alignItems: 'center',
@@ -288,9 +292,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 }}
               >
                 <div style={{
-                  width: '34px', height: '34px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: projectType === 'one-off' ? 'rgba(56, 189, 248, 0.22)' : 'rgba(255, 255, 255, 0.05)',
+                  width: '36px', height: '36px',
+                  borderRadius: 'var(--radius-md)',
+                  background: projectType === 'one-off' ? 'rgba(56, 189, 248, 0.24)' : 'rgba(255, 255, 255, 0.05)',
                   color: projectType === 'one-off' ? '#38bdf8' : 'var(--text-muted)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0
@@ -298,10 +302,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   <Zap size={18} aria-hidden="true" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'one-off' ? '#fff' : 'var(--text-primary)' }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: projectType === 'one-off' ? '#fff' : 'var(--text-primary)' }}>
                     One-off Project
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                     Web design, branding, redesign, single delivery
                   </div>
                 </div>
@@ -316,12 +320,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 aria-checked={projectType === 'ongoing'}
                 onClick={() => setProjectType('ongoing')}
                 style={{
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-md)',
+                  padding: '14px 16px',
+                  borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
-                  background: projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.14)' : 'rgba(255, 255, 255, 0.02)',
-                  border: projectType === 'ongoing' ? '2px solid #a855f7' : '1px solid var(--border-subtle)',
-                  boxShadow: projectType === 'ongoing' ? '0 0 16px rgba(168, 85, 247, 0.22)' : 'none',
+                  background: projectType === 'ongoing' 
+                    ? 'linear-gradient(180deg, rgba(168, 85, 247, 0.16) 0%, rgba(13, 18, 30, 0.75) 100%)' 
+                    : 'rgba(255, 255, 255, 0.02)',
+                  border: projectType === 'ongoing' ? '2px solid #a855f7' : '1px solid var(--border-medium)',
+                  boxShadow: projectType === 'ongoing' ? '0 0 20px rgba(168, 85, 247, 0.25)' : 'none',
                   transition: 'var(--transition)',
                   display: 'flex',
                   alignItems: 'center',
@@ -332,9 +338,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 }}
               >
                 <div style={{
-                  width: '34px', height: '34px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.22)' : 'rgba(255, 255, 255, 0.05)',
+                  width: '36px', height: '36px',
+                  borderRadius: 'var(--radius-md)',
+                  background: projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.24)' : 'rgba(255, 255, 255, 0.05)',
                   color: projectType === 'ongoing' ? '#c084fc' : 'var(--text-muted)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0
@@ -342,10 +348,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   <RefreshCw size={18} aria-hidden="true" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: projectType === 'ongoing' ? '#fff' : 'var(--text-primary)' }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: projectType === 'ongoing' ? '#fff' : 'var(--text-primary)' }}>
                     Ongoing / Retainer
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                     Social media, monthly management, recurring retainer
                   </div>
                 </div>
@@ -627,6 +633,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               id="btn-submit-create-project"
               type="submit" 
               className="btn btn-primary btn-pill"
+              style={{
+                boxShadow: 'var(--accent-glow)',
+                gap: '8px',
+                padding: '10px 22px',
+                fontWeight: 700
+              }}
             >
               <Check size={16} aria-hidden="true" /> Create & Get Link
             </button>

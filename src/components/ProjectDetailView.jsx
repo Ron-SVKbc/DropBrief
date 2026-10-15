@@ -402,34 +402,60 @@ export default function ProjectDetailView() {
 
       {/* ── Main Project Header Card ─────────────────────────── */}
       <div className="glass-card" style={{
-        padding: '24px 28px',
+        padding: 'clamp(20px, 3vw, 28px)',
         marginBottom: '24px',
         borderLeft: `4px solid ${isCompleted ? 'var(--success)' : 'var(--warning)'}`,
-        boxShadow: 'var(--shadow-lg), var(--shadow-inner-highlight)'
+        boxShadow: 'var(--shadow-lg), var(--shadow-inner-highlight)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
+        {/* Subtle Ambient Radial Highlight */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '260px',
+          height: '260px',
+          background: isCompleted 
+            ? 'radial-gradient(circle at top right, rgba(16, 185, 129, 0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.14) 0%, transparent 70%)',
+          pointerEvents: 'none',
+          contain: 'strict'
+        }} />
+
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
           flexWrap: 'wrap',
           gap: '16px',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          position: 'relative',
+          zIndex: 1
         }}>
           <div style={{ flex: '1 1 360px' }}>
             <h1 style={{
               fontSize: 'clamp(1.5rem, 3vw, 2.1rem)',
               fontWeight: 800,
               letterSpacing: '-0.035em',
-              marginBottom: '8px',
+              marginBottom: '10px',
               color: 'var(--text-primary)',
               lineHeight: 1.2
             }}>
               {project.title}
             </h1>
 
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <User size={14} color="var(--accent-primary)" aria-hidden="true" />
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-hairline)'
+              }}>
+                <User size={13} color="var(--accent-primary)" aria-hidden="true" />
                 <strong style={{ color: 'var(--text-secondary)' }}>{project.clientName}</strong>
               </span>
 
@@ -437,31 +463,41 @@ export default function ProjectDetailView() {
                 type="button"
                 onClick={copyClientEmail}
                 style={{
-                  background: 'none',
-                  border: 'none',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--border-hairline)',
+                  borderRadius: 'var(--radius-full)',
                   color: 'var(--text-tertiary)',
                   fontSize: '0.85rem',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
+                  gap: '6px',
                   cursor: 'pointer',
-                  padding: 0
+                  padding: '4px 10px',
+                  transition: 'var(--transition)'
                 }}
                 title="Copy client email"
                 aria-label={`Copy client email: ${project.clientEmail}`}
               >
-                <Mail size={14} aria-hidden="true" />
+                <Mail size={13} color="var(--accent-primary)" aria-hidden="true" />
                 <span>{project.clientEmail}</span>
                 {copiedEmail ? <Check size={12} color="var(--success)" aria-hidden="true" /> : <Copy size={11} style={{ opacity: 0.7 }} aria-hidden="true" />}
               </button>
 
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <Calendar size={14} aria-hidden="true" />
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-hairline)'
+              }}>
+                <Calendar size={13} color="var(--text-muted)" aria-hidden="true" />
                 <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{project.deadline || 'Not set'}</strong></span>
               </span>
 
               {project.lastReminderSent && (
-                <span style={{ color: 'var(--warning-light)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ color: 'var(--warning-light)', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                   <Send size={12} aria-hidden="true" />
                   Last reminder: {project.lastReminderSent}
                 </span>
@@ -533,32 +569,36 @@ export default function ProjectDetailView() {
 
         {/* ── Client Portal Link Row ───────────────────────────── */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.3)',
-          border: '1px solid var(--border-hairline)',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 16px',
+          background: 'rgba(0, 0, 0, 0.45)',
+          border: '1px solid var(--border-medium)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '14px 18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '12px'
+          gap: '12px',
+          boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.5)',
+          position: 'relative',
+          zIndex: 1
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
             <div style={{
-              width: '30px', height: '30px',
+              width: '34px', height: '34px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(99, 102, 241, 0.15)',
+              background: 'rgba(99, 102, 241, 0.18)',
               color: 'var(--accent-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0
+              flexShrink: 0,
+              boxShadow: '0 0 12px rgba(99, 102, 241, 0.25)'
             }} aria-hidden="true">
-              <ExternalLink size={15} />
+              <ExternalLink size={16} />
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
-                Private Client Portal Link (Zero login required)
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                Private Client Portal Link &bull; Zero Login Required
               </div>
-              <div style={{ fontSize: '0.84rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }} className="truncate">
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.01em' }} className="truncate">
                 {window.location.origin.includes('localhost') ? 'https://usedropbrief.xyz' : window.location.origin}/?p={project.slug}
               </div>
             </div>
@@ -568,12 +608,17 @@ export default function ProjectDetailView() {
             <button
               id="btn-detail-copy-link"
               onClick={copyClientLink}
-              className="btn btn-secondary btn-sm btn-pill"
-              style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+              className="btn btn-primary btn-sm btn-pill"
+              style={{
+                padding: '6px 16px',
+                fontSize: '0.82rem',
+                gap: '6px',
+                boxShadow: copiedLink ? '0 0 16px rgba(16, 185, 129, 0.4)' : 'var(--accent-glow)'
+              }}
               aria-label="Copy private client portal link"
             >
-              {copiedLink ? <Check size={13} color="var(--success)" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
-              {copiedLink ? 'Copied!' : 'Copy Link'}
+              {copiedLink ? <Check size={13} color="#fff" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+              {copiedLink ? 'Link Copied!' : 'Copy Link'}
             </button>
 
             <button
@@ -1060,9 +1105,13 @@ export default function ProjectDetailView() {
                   key={item.id || index}
                   className="glass-card"
                   style={{
-                    padding: '20px 22px',
-                    borderLeft: `3px solid ${isItemDone ? 'var(--success)' : 'var(--warning)'}`,
-                    background: isItemDone ? 'rgba(16, 185, 129, 0.025)' : 'rgba(255, 255, 255, 0.02)',
+                    padding: '20px 24px',
+                    borderLeft: `4px solid ${isItemDone ? 'var(--success)' : 'rgba(245, 158, 11, 0.7)'}`,
+                    borderRadius: 'var(--radius-xl)',
+                    background: isItemDone 
+                      ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.035) 0%, rgba(13, 18, 30, 0.6) 100%)' 
+                      : 'var(--bg-glass)',
+                    boxShadow: isItemDone ? '0 8px 24px -8px rgba(16, 185, 129, 0.12)' : 'var(--shadow-sm)',
                     transition: 'var(--transition)'
                   }}
                 >
@@ -1080,25 +1129,28 @@ export default function ProjectDetailView() {
                         {/* Status Icon */}
                         {isItemDone ? (
                           <div style={{
-                            width: '24px', height: '24px',
-                            borderRadius: 'var(--radius-xs)',
-                            background: 'var(--success-bg)',
+                            width: '28px', height: '28px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            border: '1px solid rgba(16, 185, 129, 0.35)',
                             color: 'var(--success)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            boxShadow: '0 0 10px rgba(16, 185, 129, 0.25)'
                           }} aria-hidden="true">
-                            <CheckCircle2 size={15} />
+                            <CheckCircle2 size={16} />
                           </div>
                         ) : (
                           <div style={{
-                            width: '24px', height: '24px',
-                            borderRadius: 'var(--radius-xs)',
-                            background: 'var(--warning-bg)',
+                            width: '28px', height: '28px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
                             color: 'var(--warning)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0
                           }} aria-hidden="true">
-                            <Clock size={15} />
+                            <Clock size={16} />
                           </div>
                         )}
 

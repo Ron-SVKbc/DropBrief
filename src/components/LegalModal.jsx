@@ -131,10 +131,10 @@ export default function LegalModal() {
 
           <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid var(--danger-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--danger-light)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <Trash2 size={17} /> 6. Právo na vymazanie údajov (GDPR čl. 17 – Right to Erasure)
+              <Trash2 size={17} /> 6. Right to Erasure & Account Deletion (GDPR Art. 17)
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              Každý freelancer má právo kedykoľvek okamžite a natrvalo vymazať svoj používateľský účet. Pri zmazaní účtu systém nevratne skartuje všetky projekty, klientske formuláre aj nahrané súbory zo zabezpečeného cloudu.
+              Every freelancer has the right to immediately and permanently delete their user account at any time. Upon deletion, DropBrief irrevocably purges all associated projects, client upload links, and uploaded assets from secure European cloud storage.
             </p>
             {currentFreelancer && (
               <div style={{ marginTop: '12px' }}>
@@ -148,7 +148,7 @@ export default function LegalModal() {
                   style={{ gap: '6px' }}
                 >
                   <Trash2 size={13} />
-                  Prejsť na správu účtu a zmazanie dát
+                  Manage account & request data deletion
                 </button>
               </div>
             )}

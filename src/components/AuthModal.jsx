@@ -296,24 +296,26 @@ export default function AuthModal() {
 
             {/* Glowing PIN Display Box */}
             <div style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '2px dashed var(--accent-primary)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '24px 20px',
+              background: 'linear-gradient(180deg, rgba(17, 24, 46, 0.75) 0%, rgba(9, 13, 24, 0.95) 100%)',
+              border: '1px solid rgba(99, 102, 241, 0.45)',
+              borderRadius: 'var(--radius-xl)',
+              padding: '28px 20px',
               marginBottom: '24px',
-              boxShadow: 'var(--accent-glow)'
+              boxShadow: '0 0 35px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px', letterSpacing: '0.08em', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.72rem', color: '#c7d2fe', display: 'block', marginBottom: '10px', letterSpacing: '0.1em', fontWeight: 800 }}>
                 VÁŠ TRVALÝ PRÍSTUPOVÝ PIN KÓD
               </span>
               <div style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '2.8rem',
+                fontSize: '3rem',
                 fontWeight: 800,
-                letterSpacing: '10px',
+                letterSpacing: '12px',
                 color: '#fff',
-                textShadow: '0 0 20px rgba(99, 102, 241, 0.8)',
-                marginBottom: '16px'
+                textShadow: '0 0 24px rgba(129, 140, 248, 0.9)',
+                marginBottom: '18px'
               }}>
                 {authRegisteredData.pin}
               </div>
@@ -324,7 +326,7 @@ export default function AuthModal() {
                 onClick={() => handleCopyPin(authRegisteredData.pin)}
                 aria-label="Skopírovať PIN kód do schránky"
                 className={`btn btn-sm btn-pill ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ margin: '0 auto', fontSize: '0.85rem', padding: '7px 18px' }}
+                style={{ margin: '0 auto', fontSize: '0.85rem', padding: '8px 20px', gap: '6px' }}
               >
                 {copiedPin ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                 {copiedPin ? 'Skopírované!' : 'Skopírovať PIN kód'}
