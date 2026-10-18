@@ -174,11 +174,10 @@ export default function Dashboard({ onOpenCreateModal }) {
             <div style={{
               width: '38px', height: '38px',
               borderRadius: 'var(--radius-md)',
-              background: 'rgba(99, 102, 241, 0.14)',
-              color: 'var(--accent-primary-light)',
+              background: 'var(--accent-primary-bg)',
+              color: 'var(--accent-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid rgba(99, 102, 241, 0.28)',
-              boxShadow: '0 0 14px rgba(99, 102, 241, 0.25)',
+              border: '1px solid rgba(37, 99, 235, 0.2)',
               flexShrink: 0
             }}>
               <Layers size={18} aria-hidden="true" />
@@ -199,13 +198,12 @@ export default function Dashboard({ onOpenCreateModal }) {
               color: 'var(--warning)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid var(--warning-border)',
-              boxShadow: 'var(--glow-amber)',
               flexShrink: 0
             }}>
               <Clock size={18} aria-hidden="true" />
             </div>
           </div>
-          <div className="metric-value" style={{ color: 'var(--warning-light)' }}>{totalMissingItems}</div>
+          <div className="metric-value" style={{ color: 'var(--warning-text)' }}>{totalMissingItems}</div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>Awaiting client submission</div>
         </div>
 
@@ -220,13 +218,12 @@ export default function Dashboard({ onOpenCreateModal }) {
               color: 'var(--success)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid var(--success-border)',
-              boxShadow: 'var(--glow-emerald)',
               flexShrink: 0
             }}>
               <CheckCircle2 size={18} aria-hidden="true" />
             </div>
           </div>
-          <div className="metric-value" style={{ color: 'var(--success-light)' }}>{completedProjects}</div>
+          <div className="metric-value" style={{ color: 'var(--success-text)' }}>{completedProjects}</div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>100% ready for kickoff</div>
         </div>
 
@@ -237,17 +234,16 @@ export default function Dashboard({ onOpenCreateModal }) {
             <div style={{
               width: '38px', height: '38px',
               borderRadius: 'var(--radius-md)',
-              background: 'rgba(236, 72, 153, 0.14)',
-              color: '#f472b6',
+              background: 'var(--accent-cta-bg)',
+              color: 'var(--accent-cta)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid rgba(236, 72, 153, 0.28)',
-              boxShadow: '0 0 14px rgba(236, 72, 153, 0.25)',
+              border: '1px solid rgba(234, 88, 12, 0.2)',
               flexShrink: 0
             }}>
               <TrendingUp size={18} aria-hidden="true" />
             </div>
           </div>
-          <div className="metric-value" style={{ color: '#f472b6' }}>{completionRate}%</div>
+          <div className="metric-value" style={{ color: 'var(--accent-cta)' }}>{completionRate}%</div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>~{totalProjects * 4} hours saved</div>
         </div>
 
@@ -390,7 +386,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                   padding: '24px 26px',
                   borderRadius: 'var(--radius-xl)',
                   borderLeft: `4px solid ${isCompleted ? 'var(--success)' : 'var(--accent-primary)'}`,
-                  boxShadow: 'var(--shadow-md), var(--shadow-inner-highlight)',
+                  boxShadow: 'var(--shadow-card)',
                   cursor: 'pointer'
                 }}
               >
@@ -409,10 +405,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                     <div style={{
                       width: '42px', height: '42px',
                       borderRadius: 'var(--radius-md)',
-                      background: isCompleted ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'var(--gradient-brand)',
+                      background: isCompleted ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'var(--gradient-brand)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontWeight: 800, fontSize: '0.9rem', color: '#fff',
-                      boxShadow: isCompleted ? '0 0 16px rgba(16, 185, 129, 0.35)' : '0 0 16px rgba(99, 102, 241, 0.35)',
+                      boxShadow: isCompleted ? '0 2px 8px rgba(5, 150, 105, 0.3)' : '0 2px 8px rgba(37, 99, 235, 0.3)',
                       flexShrink: 0,
                       marginTop: '2px'
                     }}>
@@ -632,7 +628,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
                 {/* Items Quick Status Strip */}
                 <div style={{
-                  background: 'rgba(0, 0, 0, 0.3)',
+                  background: 'var(--bg-base)',
                   border: '1px solid var(--border-hairline)',
                   borderRadius: 'var(--radius-md)',
                   padding: '12px 16px',
@@ -733,9 +729,9 @@ export default function Dashboard({ onOpenCreateModal }) {
       {/* ── Feature Explainer Banner ──────────────────────────── */}
       <div className="glass-card" style={{
         marginTop: '56px',
-        padding: '36px 32px',
-        background: 'linear-gradient(180deg, rgba(16, 22, 38, 0.7) 0%, rgba(9, 13, 23, 0.95) 100%)',
-        border: '1px solid var(--border-subtle)',
+        padding: '40px 36px',
+        background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 60%, #fff7ed 100%)',
+        border: '1px solid rgba(37, 99, 235, 0.12)',
         borderRadius: 'var(--radius-xl)'
       }}>
         <div style={{ textAlign: 'center', maxWidth: '620px', margin: '0 auto 28px' }}>
@@ -749,7 +745,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
           {[
-            { icon: Sparkles, color: 'var(--accent-primary-light)', bg: 'rgba(99, 102, 241, 0.12)', border: 'rgba(99, 102, 241, 0.25)',
+            { icon: Sparkles, color: 'var(--accent-primary)', bg: 'var(--accent-primary-bg)', border: 'rgba(37, 99, 235, 0.2)',
               title: 'Zero Passwords & No Signups',
               desc: 'Clients click the link and upload immediately. No forgotten passwords, accounts, or friction.' },
             { icon: BellRing, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)',
@@ -762,8 +758,9 @@ export default function Dashboard({ onOpenCreateModal }) {
             <div key={title} style={{
               padding: '22px',
               borderRadius: 'var(--radius-lg)',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border-hairline)'
+              background: '#ffffff',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: 'var(--shadow-sm)'
             }}>
               <div style={{
                 width: '40px', height: '40px',

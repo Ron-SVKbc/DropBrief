@@ -49,7 +49,10 @@ Cieľom je začať s **0 € mesačnými nákladmi**, získať prvých používa
 - [x] Dokončiť a zabezpečiť frontend, databázu a klientsky portál.
 - [x] Otestovať odosielanie e-mailov cez Resend.
 - [x] Ponechať limit 50 MB na súbor pre maximálnu spokojnosť používateľov.
-- [ ] Zdieľať nástroj v komunitách (Facebook skupiny pre webdizajnérov, Reddit `r/freelance`, `r/webdev`, LinkedIn).
+- [x] Spustiť organický seeding na Reddite (r/SideProject, r/ShowMeYourSaaS).
+- [ ] **LinkedIn stratégia:** Optimalizácia profilu tvorcu a budovanie siete s 10–15 webdizajnérmi denne.
+- [ ] **Product Hunt Launch:** Príprava vizuálov, sloganu, Maker komentára a oficiálny medzinárodný launch.
+- [ ] Zdieľať nástroj v komunitách (Facebook skupiny pre webdizajnérov, Reddit `r/freelance`, `r/webdev`).
 - [ ] Dosiahnuť prvých 30–50 aktívnych používateľov.
 - [ ] Monitorovať zaplnenie Supabase Storage v grafe.
 

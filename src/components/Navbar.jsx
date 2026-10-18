@@ -94,14 +94,14 @@ export default function Navbar({ onOpenCreateModal }) {
 
   return (
     <header style={{
-      borderBottom: '1px solid var(--border-hairline)',
-      background: 'rgba(6, 8, 14, 0.82)',
+      borderBottom: '1px solid var(--border-subtle)',
+      background: 'rgba(255, 255, 255, 0.92)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.03)',
+      boxShadow: '0 1px 0 var(--border-hairline), 0 2px 12px rgba(15, 23, 42, 0.06)',
     }}>
       <div className="container" style={{
         display: 'flex',
@@ -144,8 +144,8 @@ export default function Navbar({ onOpenCreateModal }) {
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
-            boxShadow: '0 0 16px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
+            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+            border: '1px solid rgba(37, 99, 235, 0.2)',
             transition: 'var(--transition)',
             flexShrink: 0
           }}>
@@ -154,12 +154,10 @@ export default function Navbar({ onOpenCreateModal }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
               <span style={{ 
-                fontSize: '1.15rem', 
+                fontSize: '1.12rem', 
                 fontWeight: 800, 
                 letterSpacing: '-0.035em', 
-                background: 'linear-gradient(180deg, #ffffff 20%, #cbd5e1 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                color: 'var(--text-primary)'
               }}>
                 DropBrief
               </span>
@@ -175,7 +173,7 @@ export default function Navbar({ onOpenCreateModal }) {
               )}
             </div>
             <p className="navbar-subtitle" style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', lineHeight: 1, marginTop: '1px' }}>
-              Automated client asset collection
+              Client brief collection tool
             </p>
           </div>
         </button>
@@ -187,7 +185,6 @@ export default function Navbar({ onOpenCreateModal }) {
             onClick={handleDashboardClick}
             className={`btn btn-sm btn-pill ${(currentView === 'dashboard' || currentView === 'project-detail') ? 'btn-primary' : 'btn-secondary'}`}
             style={{ 
-              border: (currentView === 'dashboard' || currentView === 'project-detail') ? '1px solid rgba(255,255,255,0.18)' : 'none',
               padding: '5px 13px', fontSize: '0.8rem'
             }}
           >
@@ -206,7 +203,6 @@ export default function Navbar({ onOpenCreateModal }) {
                 aria-label="Select project for client preview"
                 className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ 
-                  border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
                   padding: '5px 12px', 
                   fontSize: '0.8rem',
                   gap: '6px'
@@ -242,10 +238,10 @@ export default function Navbar({ onOpenCreateModal }) {
                     right: 0,
                     width: '320px',
                     maxWidth: '90vw',
-                    background: '#0a0e19',
+                    background: '#ffffff',
                     border: '1px solid var(--border-medium)',
                     borderRadius: 'var(--radius-lg)',
-                    boxShadow: '0 20px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(99, 102, 241, 0.22)',
+                    boxShadow: 'var(--shadow-xl)',
                     zIndex: 100,
                     overflow: 'hidden',
                     backdropFilter: 'blur(16px)',
@@ -256,14 +252,14 @@ export default function Navbar({ onOpenCreateModal }) {
                   <div style={{
                     padding: '10px 14px',
                     borderBottom: '1px solid var(--border-hairline)',
-                    background: 'rgba(99, 102, 241, 0.08)',
+                    background: 'var(--accent-primary-bg)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Eye size={13} color="var(--accent-primary)" aria-hidden="true" />
-                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--accent-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Select Project for Preview
                       </span>
                     </div>
@@ -298,8 +294,8 @@ export default function Navbar({ onOpenCreateModal }) {
                               textAlign: 'left',
                               padding: '8px 10px',
                               borderRadius: 'var(--radius-md)',
-                              background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'transparent',
-                              border: isSelected ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid transparent',
+                              background: isSelected ? 'var(--accent-primary-bg)' : 'transparent',
+                              border: isSelected ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid transparent',
                               color: 'var(--text-primary)',
                               cursor: 'pointer',
                               display: 'flex',
@@ -310,20 +306,20 @@ export default function Navbar({ onOpenCreateModal }) {
                               marginBottom: '2px'
                             }}
                             onMouseEnter={(e) => {
-                              if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                              if (!isSelected) e.currentTarget.style.background = 'rgba(15, 23, 42, 0.04)';
                             }}
                             onMouseLeave={(e) => {
                               if (!isSelected) e.currentTarget.style.background = 'transparent';
                             }}
                           >
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? '#a5b4fc' : '#fff' }} className="truncate">
+                              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)' }} className="truncate">
                                 {p.title}
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                                 <span className="truncate">{p.clientName}</span>
                                 <span>&bull;</span>
-                                <span style={{ color: isCompleted ? 'var(--success-light)' : 'var(--warning-light)', flexShrink: 0 }}>
+                                <span style={{ color: isCompleted ? 'var(--success)' : 'var(--warning)', flexShrink: 0 }}>
                                   {completedCount}/{totalItems} items
                                 </span>
                               </div>
@@ -343,7 +339,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   <div style={{
                     padding: '8px 12px',
                     borderTop: '1px solid var(--border-hairline)',
-                    background: 'rgba(0, 0, 0, 0.3)',
+                    background: 'var(--bg-base)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
@@ -365,7 +361,7 @@ export default function Navbar({ onOpenCreateModal }) {
                         gap: '5px',
                         padding: '2px 0'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-primary)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                     >
                       <Sparkles size={11} color="var(--accent-primary)" />
@@ -386,7 +382,6 @@ export default function Navbar({ onOpenCreateModal }) {
               onClick={() => openClientPortal('demo-preview')}
               className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ 
-                border: currentView === 'client-portal' ? '1px solid rgba(255,255,255,0.18)' : 'none',
                 padding: '5px 13px', 
                 fontSize: '0.8rem',
                 gap: '6px'
@@ -426,14 +421,14 @@ export default function Navbar({ onOpenCreateModal }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(255, 255, 255, 0.038)',
-                  border: '1px solid var(--border-hairline)',
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-full)',
                   padding: '3px 10px 3px 4px',
                   fontSize: '0.815rem',
-                  backdropFilter: 'blur(10px)',
                   cursor: 'pointer',
-                  transition: 'var(--transition)'
+                  transition: 'var(--transition)',
+                  boxShadow: 'var(--shadow-xs)'
                 }}
                 onClick={openAccountModal}
                 title="User profile and account settings"
@@ -452,7 +447,7 @@ export default function Navbar({ onOpenCreateModal }) {
                   background: 'var(--gradient-brand)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 800, fontSize: '0.7rem', color: '#fff',
-                  boxShadow: '0 0 8px rgba(99, 102, 241, 0.4)',
+                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.35)',
                   flexShrink: 0
                 }} aria-hidden="true">
                   {currentFreelancer.nick.charAt(0).toUpperCase()}
@@ -470,9 +465,9 @@ export default function Navbar({ onOpenCreateModal }) {
                     aria-label={`Copy PIN code (${currentFreelancer.pin})`}
                     title="Click to copy PIN code"
                     style={{
-                      background: 'rgba(99, 102, 241, 0.14)',
-                      border: '1px solid var(--border-accent)',
-                      color: 'var(--text-primary)',
+                      background: 'var(--accent-primary-bg)',
+                      border: '1px solid rgba(37, 99, 235, 0.25)',
+                      color: 'var(--accent-primary-hover)',
                       borderRadius: 'var(--radius-xs)',
                       padding: '1px 6px',
                       fontSize: '0.72rem',
@@ -506,7 +501,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 aria-label="Profile and account settings"
                 className="btn btn-secondary btn-sm"
                 title="Profile, security, and account deletion"
-                style={{ padding: '6px 8px', color: 'var(--text-secondary)', borderRadius: 'var(--radius-full)' }}
+                style={{ padding: '6px 8px', color: 'var(--text-secondary)', borderRadius: 'var(--radius-full)', borderColor: 'var(--border-subtle)' }}
               >
                 <Settings size={14} aria-hidden="true" />
               </button>
@@ -518,7 +513,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 aria-label="Log out of account"
                 className="btn btn-secondary btn-sm"
                 title="Log out"
-                style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)' }}
+                style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)', borderColor: 'var(--border-subtle)' }}
               >
                 <LogOut size={14} aria-hidden="true" />
               </button>

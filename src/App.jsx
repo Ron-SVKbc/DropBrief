@@ -88,13 +88,10 @@ export default function App() {
 
       {/* Modern SaaS Footer */}
       <footer style={{
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        padding: '32px 0 28px',
-        background: 'rgba(7, 9, 14, 0.95)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        borderTop: '1px solid var(--border-hairline)',
+        padding: '28px 0 24px',
+        background: '#ffffff',
         marginTop: 'auto',
-        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)'
       }}>
         <div className="container" style={{
           display: 'flex',
