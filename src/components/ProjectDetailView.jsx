@@ -557,11 +557,11 @@ export default function ProjectDetailView() {
               id="btn-detail-add-item"
               onClick={handleOpenAddItemModal}
               className="btn btn-secondary btn-sm btn-pill"
-              style={{ borderColor: 'var(--accent-primary)', color: '#c7d2fe' }}
+              style={{ borderColor: 'var(--accent-primary-light, #1d4ed8)', color: 'var(--accent-primary-light, #1d4ed8)', fontWeight: 600 }}
               title="Add new checklist requirement"
               aria-label="Add new checklist requirement"
             >
-              <Plus size={14} color="var(--accent-primary)" aria-hidden="true" />
+              <Plus size={14} color="var(--accent-primary-light, #1d4ed8)" aria-hidden="true" />
               Add Item
             </button>
           </div>

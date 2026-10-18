@@ -242,15 +242,15 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       {tpl.name}
                     </div>
                     {tpl.id === 'social-media' ? (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.2)', color: '#c084fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: '#f3e8ff', color: '#7e22ce', border: '1px solid #e9d5ff', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <RefreshCw size={9} aria-hidden="true" /> Ongoing
                       </span>
                     ) : tpl.id === 'custom' ? (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#a5b4fc', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <Sparkles size={9} aria-hidden="true" /> Custom
                       </span>
                     ) : (
-                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '0.67rem', padding: '2px 8px', borderRadius: '12px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                         <Zap size={9} aria-hidden="true" /> One-off
                       </span>
                     )}

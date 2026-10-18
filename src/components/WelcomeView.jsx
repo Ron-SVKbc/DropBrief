@@ -67,25 +67,40 @@ export default function WelcomeView({ onOpenCreateModal }) {
         <div className="container" style={{ maxWidth: '940px', margin: '0 auto' }}>
 
           {/* Announcement Pill Badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '28px' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '6px 16px',
+              gap: '9px',
+              padding: '4px 14px 4px 6px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.35)',
-              boxShadow: '0 0 24px rgba(99, 102, 241, 0.22)',
-              fontSize: '0.825rem',
+              background: '#ffffff',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
+              boxShadow: '0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04)',
+              fontSize: '0.815rem',
               fontWeight: 600,
-              color: '#c7d2fe',
-              backdropFilter: 'blur(8px)'
+              color: 'var(--text-primary, #0f172a)',
+              transition: 'all var(--transition-fast)'
             }}>
-              <span className="status-dot status-dot-live" aria-hidden="true" />
-              <Sparkles size={13} color="#a5b4fc" aria-hidden="true" />
-              <span>Micro-SaaS for Freelancers & Creative Agencies</span>
-              <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '2px 7px' }}>FREE</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-full)',
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                color: '#1d4ed8',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                letterSpacing: '0.03em'
+              }}>
+                <Sparkles size={11} color="#1d4ed8" aria-hidden="true" />
+                100% FREE
+              </span>
+              <span style={{ color: 'var(--text-secondary, #1e293b)' }}>
+                Micro-SaaS for Freelancers & Creative Agencies
+              </span>
             </div>
           </div>
 
