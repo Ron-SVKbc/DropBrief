@@ -653,14 +653,12 @@ export default function ClientPortal() {
       {/* Simulation / Sandbox Banner */}
       {isDemoMode ? (
         <div style={{
-          background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.18) 100%)',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.4)',
+          background: '#0f172a',
+          borderBottom: '1px solid rgba(15, 23, 42, 0.2)',
           padding: '12px 0',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
           position: 'relative',
           zIndex: 30,
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.35)'
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.12)'
         }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -986,12 +984,12 @@ export default function ClientPortal() {
                 className="glass-card"
                 style={{
                   padding: 'clamp(20px, 3vw, 28px)',
-                  borderLeft: isDone ? '4px solid var(--success)' : '4px solid rgba(255, 255, 255, 0.1)',
+                  borderLeft: isDone ? '4px solid var(--success)' : '4px solid var(--border-medium)',
                   borderRadius: 'var(--radius-xl)',
                   background: isDone 
-                    ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, rgba(13, 18, 30, 0.7) 100%)' 
-                    : 'var(--bg-glass)',
-                  boxShadow: isDone ? '0 10px 30px -10px rgba(16, 185, 129, 0.15), var(--shadow-sm)' : 'var(--shadow-sm)',
+                    ? 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)' 
+                    : 'var(--bg-card)',
+                  boxShadow: isDone ? '0 10px 30px -10px rgba(5, 150, 105, 0.12), var(--shadow-sm)' : 'var(--shadow-sm)',
                   transition: 'var(--transition)'
                 }}
                 onDragOver={(e) => {
@@ -1393,8 +1391,8 @@ export default function ClientPortal() {
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
-                                      background: 'rgba(0, 0, 0, 0.35)',
-                                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                                      background: 'var(--bg-base)',
+                                      border: '1px solid var(--border-subtle)',
                                       borderRadius: 'var(--radius-md)',
                                       padding: '10px 14px',
                                       gap: '14px'
@@ -1505,25 +1503,25 @@ export default function ClientPortal() {
                                   margin: '8px 0 4px 0',
                                   padding: '0 4px'
                                 }}>
-                                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.45))' }} />
+                                  <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
                                   <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '6px',
                                     padding: '4px 14px',
                                     borderRadius: 'var(--radius-full)',
-                                    background: 'rgba(99, 102, 241, 0.16)',
-                                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                                    background: 'var(--accent-primary-bg)',
+                                    border: '1px solid var(--border-accent)',
                                     fontSize: '0.76rem',
-                                    color: '#c7d2fe',
-                                    fontWeight: 600,
+                                    color: 'var(--accent-primary)',
+                                    fontWeight: 700,
                                     whiteSpace: 'nowrap'
                                   }}>
                                     <Sparkles size={13} color="var(--accent-primary)" />
                                     <span>Newly added files (pending save)</span>
                                     <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '0 6px' }}>+{stagedList.length}</span>
                                   </div>
-                                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.45), transparent)' }} />
+                                  <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
                                 </div>
                               )}
 
@@ -1892,9 +1890,10 @@ export default function ClientPortal() {
         {/* Security and Trust Footer */}
         <div className="glass-card" style={{
           padding: '24px 28px',
-          background: 'linear-gradient(180deg, rgba(13, 18, 30, 0.7) 0%, rgba(6, 8, 14, 0.9) 100%)',
+          background: '#ffffff',
           borderRadius: 'var(--radius-xl)',
-          border: '1px solid rgba(255, 255, 255, 0.08)'
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'var(--shadow-card)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -1902,14 +1901,13 @@ export default function ClientPortal() {
                 width: '42px',
                 height: '42px',
                 borderRadius: 'var(--radius-md)',
-                background: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: 'var(--success-bg)',
+                border: '1px solid var(--success-border)',
                 color: 'var(--success)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: '0 0 16px rgba(16, 185, 129, 0.2)'
+                flexShrink: 0
               }}>
                 <ShieldCheck size={22} />
               </div>
@@ -1917,7 +1915,7 @@ export default function ClientPortal() {
                 <strong style={{ fontSize: '0.925rem', color: 'var(--text-primary)', display: 'block' }}>
                   Bank-Grade Security & End-to-End Encryption
                 </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                   Deliverables are encrypted at rest and accessible exclusively by {project.freelancerName}.
                 </span>
               </div>
@@ -1925,34 +1923,37 @@ export default function ClientPortal() {
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
               <span className="badge" style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-base)',
+                border: '1px solid var(--border-hairline)',
                 color: 'var(--text-secondary)',
                 fontSize: '0.74rem',
                 padding: '5px 12px',
-                gap: '6px'
+                gap: '6px',
+                fontWeight: 600
               }}>
                 <Lock size={12} color="var(--accent-primary)" /> 256-bit AES SSL
               </span>
               <span className="badge" style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-base)',
+                border: '1px solid var(--border-hairline)',
                 color: 'var(--text-secondary)',
                 fontSize: '0.74rem',
                 padding: '5px 12px',
-                gap: '6px'
+                gap: '6px',
+                fontWeight: 600
               }}>
                 <Globe size={12} color="var(--success)" /> Frankfurt EU (GDPR)
               </span>
               <span className="badge" style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border-medium)',
+                background: 'var(--bg-base)',
+                border: '1px solid var(--border-hairline)',
                 color: 'var(--text-secondary)',
                 fontSize: '0.74rem',
                 padding: '5px 12px',
-                gap: '6px'
+                gap: '6px',
+                fontWeight: 600
               }}>
-                <Clock size={12} color="#f59e0b" /> Auto-purge 30d
+                <Clock size={12} color="var(--warning)" /> Auto-purge 30d
               </span>
             </div>
           </div>

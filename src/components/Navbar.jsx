@@ -172,7 +172,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 </span>
               )}
             </div>
-            <p className="navbar-subtitle" style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', lineHeight: 1, marginTop: '1px' }}>
+            <p className="navbar-subtitle" style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1, marginTop: '2px' }}>
               Client brief collection tool
             </p>
           </div>

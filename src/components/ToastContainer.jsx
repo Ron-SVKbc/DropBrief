@@ -35,17 +35,17 @@ export default function ToastContainer() {
             role="status"
             className="animate-fade-in"
             style={{
-              background: 'rgba(13, 18, 30, 0.95)',
+              background: 'rgba(15, 23, 42, 0.97)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
-              border: `1px solid ${isSuccess ? 'var(--success-border)' : isWarning ? 'var(--warning-border)' : 'var(--border-active)'}`,
+              border: `1px solid ${isSuccess ? 'rgba(5, 150, 105, 0.4)' : isWarning ? 'rgba(180, 83, 9, 0.4)' : 'rgba(37, 99, 235, 0.4)'}`,
               borderRadius: 'var(--radius-lg)',
               padding: '14px 18px',
-              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.8), var(--shadow-inner-glow)',
+              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5)',
               display: 'flex',
               alignItems: 'flex-start',
               gap: '12px',
-              color: 'var(--text-primary)',
+              color: '#f8fafc',
               pointerEvents: 'auto',
               transition: 'var(--transition)'
             }}
@@ -58,11 +58,11 @@ export default function ToastContainer() {
 
             <div style={{ flex: 1, minWidth: 0 }}>
               {toast.title && (
-                <strong style={{ fontSize: '0.88rem', display: 'block', marginBottom: '2px', fontWeight: 700 }}>
+                <strong style={{ fontSize: '0.88rem', display: 'block', marginBottom: '2px', fontWeight: 700, color: '#ffffff' }}>
                   {toast.title}
                 </strong>
               )}
-              <span style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.45, display: 'block' }}>
+              <span style={{ fontSize: '0.825rem', color: '#cbd5e1', lineHeight: 1.45, display: 'block' }}>
                 {toast.message}
               </span>
             </div>
@@ -73,7 +73,7 @@ export default function ToastContainer() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--text-muted)',
+                color: '#94a3b8',
                 cursor: 'pointer',
                 padding: '4px',
                 borderRadius: 'var(--radius-sm)',

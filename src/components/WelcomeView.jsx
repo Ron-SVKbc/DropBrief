@@ -100,10 +100,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
           }}>
             Collect client assets & briefs{' '}
             <span style={{
-              background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 45%, #f472b6 100%)',
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ea580c 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 2px 16px rgba(139, 92, 246, 0.35))',
               display: 'inline-block'
             }}>
               without passwords or chaos
@@ -165,8 +164,8 @@ export default function WelcomeView({ onOpenCreateModal }) {
             alignItems: 'center',
             gap: '28px',
             flexWrap: 'wrap',
-            fontSize: '0.84rem',
-            color: 'var(--text-tertiary)'
+            fontSize: '0.88rem',
+            color: 'var(--text-secondary)'
           }}>
             {[
               '5-second signup without passwords',
@@ -175,7 +174,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             ].map((text, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CheckCircle2 size={16} color="var(--success)" aria-hidden="true" />
-                <span style={{ color: 'var(--text-secondary)' }}>{text}</span>
+                <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{text}</span>
               </span>
             ))}
           </div>
@@ -190,9 +189,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <div className="glass-card" style={{
             padding: '24px',
             borderRadius: 'var(--radius-xl)',
-            background: 'linear-gradient(180deg, rgba(15, 21, 37, 0.88) 0%, rgba(9, 13, 23, 0.98) 100%)',
-            border: '1px solid rgba(99, 102, 241, 0.32)',
-            boxShadow: '0 32px 80px -16px rgba(0, 0, 0, 0.85), 0 0 45px rgba(99, 102, 241, 0.16)',
+            background: '#ffffff',
+            border: '1px solid var(--border-medium)',
+            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.05)',
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -209,21 +208,21 @@ export default function WelcomeView({ onOpenCreateModal }) {
               gap: '12px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#ef4444', display: 'inline-block', boxShadow: '0 0 6px rgba(239, 68, 68, 0.5)' }} aria-hidden="true" />
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', boxShadow: '0 0 6px rgba(245, 158, 11, 0.5)' }} aria-hidden="true" />
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px rgba(16, 185, 129, 0.5)' }} aria-hidden="true" />
+                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} aria-hidden="true" />
+                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} aria-hidden="true" />
+                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} aria-hidden="true" />
                 
                 <div style={{
                   marginLeft: '12px',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-hairline)',
                   borderRadius: 'var(--radius-sm)',
-                  padding: '3px 12px',
+                  padding: '4px 12px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   fontSize: '0.78rem',
-                  color: 'var(--text-tertiary)',
+                  color: 'var(--text-secondary)',
                   fontFamily: 'var(--font-mono)'
                 }}>
                   <Lock size={11} color="var(--success)" aria-hidden="true" />
@@ -253,7 +252,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
               {/* Left — Project Status Overview */}
               <div style={{
-                background: 'rgba(255, 255, 255, 0.025)',
+                background: 'var(--bg-base)',
                 border: '1px solid var(--border-hairline)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '20px'
@@ -310,7 +309,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '12px',
-                    boxShadow: 'var(--shadow-sm)'
+                    boxShadow: 'var(--shadow-xs)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                       <Icon size={17} color={color} style={{ flexShrink: 0 }} aria-hidden="true" />
@@ -325,12 +324,11 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
                 {/* Pending Upload Item */}
                 <div style={{
-                  background: 'rgba(99, 102, 241, 0.06)',
+                  background: 'rgba(37, 99, 235, 0.04)',
                   border: '1.5px dashed var(--accent-primary)',
                   borderRadius: 'var(--radius-md)',
                   padding: '14px',
-                  textAlign: 'center',
-                  boxShadow: 'var(--shadow-inner-highlight)'
+                  textAlign: 'center'
                 }}>
                   <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 5px' }} aria-hidden="true" />
                   <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
@@ -465,7 +463,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   position: 'absolute', top: '18px', right: '22px',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '2.4rem', fontWeight: 800,
-                  color: 'rgba(255, 255, 255, 0.05)',
+                  color: 'rgba(15, 23, 42, 0.07)',
                   userSelect: 'none', letterSpacing: '-0.04em'
                 }} aria-hidden="true">{num}</div>
                 <div style={{
@@ -492,9 +490,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
         <div className="container" style={{ maxWidth: '780px' }}>
           <div className="glass-card" style={{
             padding: '56px 40px',
-            background: 'linear-gradient(180deg, rgba(28, 38, 68, 0.72) 0%, rgba(11, 16, 28, 0.98) 100%)',
-            border: '1px solid var(--border-accent)',
-            boxShadow: 'var(--glow-accent-lg), var(--shadow-xl)',
+            background: 'linear-gradient(135deg, #eff6ff 0%, #faf5ff 50%, #fff7ed 100%)',
+            border: '1px solid rgba(37, 99, 235, 0.22)',
+            boxShadow: '0 20px 50px -15px rgba(37, 99, 235, 0.15)',
             borderRadius: 'var(--radius-2xl)',
             position: 'relative',
             overflow: 'hidden'
@@ -504,7 +502,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             <div style={{
               position: 'absolute', top: '-90px', left: '50%', transform: 'translateX(-50%)',
               width: '440px', height: '180px',
-              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.36) 0%, rgba(99, 102, 241, 0.1) 50%, transparent 75%)',
+              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(124, 58, 237, 0.08) 50%, transparent 75%)',
               pointerEvents: 'none',
               filter: 'blur(20px)'
             }} aria-hidden="true" />
@@ -522,7 +520,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             <button
               onClick={() => openAuthModal('register')}
               className="btn btn-primary btn-lg btn-pill"
-              style={{ margin: '0 auto', boxShadow: 'var(--glow-accent)', padding: '15px 36px', fontSize: '1.02rem', gap: '10px' }}
+              style={{ margin: '0 auto', boxShadow: '0 8px 24px rgba(37, 99, 235, 0.35)', padding: '15px 36px', fontSize: '1.02rem', gap: '10px' }}
             >
               <UserPlus size={20} aria-hidden="true" />
               <span>Create Free Account with PIN</span>

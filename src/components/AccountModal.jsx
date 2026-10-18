@@ -215,7 +215,7 @@ export default function AccountModal() {
             
             {/* Account Details Box */}
             <div style={{
-              background: 'rgba(255, 255, 255, 0.025)',
+              background: 'var(--bg-base)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-lg)',
               padding: '16px',
@@ -315,22 +315,22 @@ export default function AccountModal() {
               marginBottom: '20px'
             }}>
               <div style={{
-                background: 'rgba(255, 255, 255, 0.02)',
+                background: 'var(--bg-base)',
                 border: '1px solid var(--border-hairline)',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px',
                 textAlign: 'center'
               }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary-light)' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
                   {myProjects.length}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
                   Active Projects
                 </div>
               </div>
 
               <div style={{
-                background: 'rgba(255, 255, 255, 0.02)',
+                background: 'var(--bg-base)',
                 border: '1px solid var(--border-hairline)',
                 borderRadius: 'var(--radius-md)',
                 padding: '12px',
@@ -339,7 +339,7 @@ export default function AccountModal() {
                 <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>
                   {totalFilesCount}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
                   Delivered Files
                 </div>
               </div>
@@ -392,7 +392,7 @@ export default function AccountModal() {
                   <h3 style={{
                     fontSize: '0.88rem',
                     fontWeight: 700,
-                    color: 'var(--danger-light)',
+                    color: 'var(--danger)',
                     margin: 0,
                     lineHeight: 1.3
                   }}>
@@ -438,7 +438,7 @@ export default function AccountModal() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <AlertTriangle size={18} color="var(--danger)" />
-                <strong style={{ fontSize: '0.88rem', color: 'var(--danger-light)' }}>
+                <strong style={{ fontSize: '0.88rem', color: 'var(--danger)' }}>
                   Warning! This operation is final and irreversible.
                 </strong>
               </div>

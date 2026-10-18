@@ -36,9 +36,9 @@ export default function LegalModal() {
           maxHeight: '85vh',
           display: 'flex',
           flexDirection: 'column',
-          background: '#090e1a',
-          border: '1px solid var(--border-medium)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85)',
+          background: '#ffffff',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)',
           borderRadius: 'var(--radius-xl)'
         }}
       >
@@ -48,8 +48,8 @@ export default function LegalModal() {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '20px 26px',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'rgba(16, 185, 129, 0.05)'
+          borderBottom: '1px solid var(--border-hairline)',
+          background: 'var(--bg-base)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ padding: '8px', borderRadius: 'var(--radius-md)', background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)' }}>
@@ -59,7 +59,7 @@ export default function LegalModal() {
               <h2 id="legal-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Data Security, GDPR & Legal Privacy
               </h2>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                 How DropBrief protects users and secures cloud data in the European Union
               </span>
             </div>
@@ -88,7 +88,7 @@ export default function LegalModal() {
             </p>
           </div>
 
-          <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
+          <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
               2. Data Processor Role (GDPR Compliance)
             </strong>
@@ -97,7 +97,7 @@ export default function LegalModal() {
             </p>
           </div>
 
-          <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
+          <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
               3. Automated Storage Purge (30-day Retention)
             </strong>
@@ -157,7 +157,7 @@ export default function LegalModal() {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '18px 26px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end', background: 'rgba(7, 9, 14, 0.95)' }}>
+        <div style={{ padding: '18px 26px', borderTop: '1px solid var(--border-hairline)', display: 'flex', justifyContent: 'flex-end', background: 'var(--bg-base)' }}>
           <button onClick={() => setIsLegalModalOpen(false)} className="btn btn-primary btn-sm btn-pill">
             Understood, close
           </button>

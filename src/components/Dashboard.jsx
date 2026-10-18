@@ -184,7 +184,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value">{totalProjects}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>Total tracked collections</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>Total tracked collections</div>
         </div>
 
         {/* Metric 2 — Pending Items */}
@@ -204,7 +204,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--warning-text)' }}>{totalMissingItems}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>Awaiting client submission</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>Awaiting client submission</div>
         </div>
 
         {/* Metric 3 — Completed Briefs */}
@@ -224,7 +224,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--success-text)' }}>{completedProjects}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>100% ready for kickoff</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>100% ready for kickoff</div>
         </div>
 
         {/* Metric 4 — Completion Rate */}
@@ -244,7 +244,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
           <div className="metric-value" style={{ color: 'var(--accent-cta)' }}>{completionRate}%</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '6px' }}>~{totalProjects * 4} hours saved</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>~{totalProjects * 4} hours saved</div>
         </div>
 
       </div>
@@ -528,20 +528,20 @@ export default function Dashboard({ onOpenCreateModal }) {
                       </div>
 
                       {/* Meta Information Strip */}
-                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.825rem', color: 'var(--text-tertiary)' }}>
+                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <User size={14} />
-                          <strong style={{ color: 'var(--text-secondary)' }}>{proj.clientName}</strong>
-                          <span style={{ color: 'var(--text-quaternary)' }}>({proj.clientEmail})</span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{proj.clientName}</strong>
+                          <span style={{ color: 'var(--text-secondary)' }}>({proj.clientEmail})</span>
                         </span>
                         
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Calendar size={14} />
-                          <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{proj.deadline}</strong></span>
+                          <span>Deadline: <strong style={{ color: 'var(--text-primary)' }}>{proj.deadline}</strong></span>
                         </span>
 
                         {proj.lastReminderSent && (
-                          <span style={{ color: 'var(--text-quaternary)', fontSize: '0.78rem' }}>
+                          <span style={{ color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
                             Last reminder: {proj.lastReminderSent}
                           </span>
                         )}
@@ -650,7 +650,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                           alignItems: 'center', 
                           gap: '8px', 
                           fontSize: '0.815rem',
-                          color: item.isCompleted ? 'var(--text-secondary)' : 'var(--text-quaternary)',
+                          color: item.isCompleted ? 'var(--text-primary)' : 'var(--text-secondary)',
                           padding: '2px 0'
                         }}
                       >

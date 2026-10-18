@@ -124,9 +124,9 @@ export default function EmailPreviewModal() {
           maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
-          background: '#090e1a',
-          border: '1px solid var(--border-active)',
-          boxShadow: '0 25px 70px rgba(0,0,0,0.9), var(--accent-glow)',
+          background: '#ffffff',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 25px 70px rgba(15, 23, 42, 0.2)',
           overflow: 'hidden'
         }}
       >
@@ -136,8 +136,8 @@ export default function EmailPreviewModal() {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '18px 24px',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'rgba(99, 102, 241, 0.06)'
+          borderBottom: '1px solid var(--border-hairline)',
+          background: 'var(--bg-base)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -306,7 +306,7 @@ export default function EmailPreviewModal() {
           padding: '18px 24px', 
           overflowY: 'auto', 
           flex: 1, 
-          background: 'rgba(0, 0, 0, 0.3)' 
+          background: 'var(--bg-base)' 
         }}>
           
           {emailStyle === 'personal' ? (
@@ -337,7 +337,7 @@ export default function EmailPreviewModal() {
                   borderLeft: '3px solid #2563eb',
                   fontSize: '0.85rem'
                 }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#334155', textTransform: 'uppercase' }}>
                     Note from {freelancerName}:
                   </div>
                   {customMessage}
@@ -348,7 +348,7 @@ export default function EmailPreviewModal() {
                 {missingItems.map((item) => (
                   <li key={item.id} style={{ marginBottom: '5px', fontSize: '0.85rem' }}>
                     <strong>{item.title}</strong>
-                    {item.description ? <span style={{ color: '#64748b' }}> &ndash; {item.description}</span> : ''}
+                    {item.description ? <span style={{ color: '#475569' }}> &ndash; {item.description}</span> : ''}
                   </li>
                 ))}
               </ul>
@@ -494,8 +494,8 @@ export default function EmailPreviewModal() {
         {/* Modal Action Footer */}
         <div style={{ 
           padding: '16px 24px', 
-          borderTop: '1px solid var(--border-subtle)', 
-          background: 'rgba(7, 9, 14, 0.95)',
+          borderTop: '1px solid var(--border-hairline)', 
+          background: 'var(--bg-base)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

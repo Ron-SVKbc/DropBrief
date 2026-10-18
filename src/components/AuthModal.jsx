@@ -211,9 +211,9 @@ export default function AuthModal() {
         style={{
           width: '100%',
           maxWidth: '510px',
-          background: '#0a0f1d',
-          border: '1px solid var(--border-medium)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75), 0 0 25px rgba(99, 102, 241, 0.16)',
+          background: '#ffffff',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.18)',
           overflow: 'hidden',
           borderRadius: 'var(--radius-xl)',
           position: 'relative'
@@ -225,8 +225,8 @@ export default function AuthModal() {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '22px 26px',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'rgba(99, 102, 241, 0.06)'
+          borderBottom: '1px solid var(--border-hairline)',
+          background: 'var(--bg-base)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -249,7 +249,7 @@ export default function AuthModal() {
                  authModalMode === 'register' ? 'New Freelancer Account' : 
                  authModalMode === 'forgot_pin' ? 'Reset PIN Code' : 'Log In to Dashboard'}
               </h3>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                 {authModalMode === 'pin_reveal' ? 'Your account is verified and ready' :
                  authModalMode === 'verify_register_pin' ? 'Enter the 6-digit PIN sent to your email (valid for 5 minutes)' :
                  authModalMode === 'register' ? 'Verified and secure account in under a minute' : 
@@ -296,16 +296,16 @@ export default function AuthModal() {
 
             {/* Glowing PIN Display Box */}
             <div style={{
-              background: 'linear-gradient(180deg, rgba(17, 24, 46, 0.75) 0%, rgba(9, 13, 24, 0.95) 100%)',
-              border: '1px solid rgba(99, 102, 241, 0.45)',
+              background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
+              border: '1px solid rgba(37, 99, 235, 0.4)',
               borderRadius: 'var(--radius-xl)',
               padding: '28px 20px',
               marginBottom: '24px',
-              boxShadow: '0 0 35px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 12px 30px rgba(37, 99, 235, 0.25)',
               position: 'relative',
               overflow: 'hidden'
             }}>
-              <span style={{ fontSize: '0.72rem', color: '#c7d2fe', display: 'block', marginBottom: '10px', letterSpacing: '0.1em', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.72rem', color: '#e0e7ff', display: 'block', marginBottom: '10px', letterSpacing: '0.1em', fontWeight: 800 }}>
                 YOUR PERMANENT ACCESS PIN
               </span>
               <div style={{
@@ -371,9 +371,9 @@ export default function AuthModal() {
             {authModalMode !== 'forgot_pin' && authModalMode !== 'verify_register_pin' && (
               <div style={{
                 display: 'flex',
-                background: 'rgba(0, 0, 0, 0.4)',
+                background: 'var(--bg-base)',
                 padding: '6px',
-                borderBottom: '1px solid var(--border-subtle)',
+                borderBottom: '1px solid var(--border-hairline)',
                 gap: '6px'
               }}>
                 <button
@@ -403,11 +403,12 @@ export default function AuthModal() {
                 background: 'var(--danger-bg)',
                 border: '1px solid var(--danger-border)',
                 borderRadius: 'var(--radius-md)',
-                color: '#fca5a5',
+                color: 'var(--danger-text)',
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px'
+                gap: '10px',
+                fontWeight: 500
               }}>
                 <AlertCircle size={16} color="var(--danger)" style={{ flexShrink: 0 }} />
                 <span>{errorMessage}</span>
@@ -654,12 +655,12 @@ export default function AuthModal() {
                       textAlign: 'center',
                       fontWeight: 800,
                       padding: '14px',
-                      background: 'rgba(0, 0, 0, 0.4)',
+                      background: '#ffffff',
                       borderColor: verifyPin.length === 6 ? 'var(--accent-primary)' : 'var(--border-medium)',
-                      boxShadow: verifyPin.length === 6 ? '0 0 15px rgba(99, 102, 241, 0.3)' : 'none'
+                      boxShadow: verifyPin.length === 6 ? '0 0 15px rgba(37, 99, 235, 0.2)' : 'none'
                     }}
                   />
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginTop: '6px', textAlign: 'center' }}>
                     💡 This PIN will serve as your permanent access code for logging in.
                   </span>
                 </div>
@@ -669,11 +670,12 @@ export default function AuthModal() {
                   <div style={{
                     marginBottom: '16px',
                     padding: '8px 12px',
-                    background: 'rgba(234, 179, 8, 0.1)',
-                    border: '1px dashed #eab308',
+                    background: 'rgba(234, 179, 8, 0.12)',
+                    border: '1px dashed #d97706',
                     borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.78rem',
-                    color: '#fef08a',
+                    fontSize: '0.8rem',
+                    color: 'var(--warning-text)',
+                    fontWeight: 600,
                     textAlign: 'center'
                   }}>
                     🔧 Dev Mode: Your PIN code is <strong>{pendingRegistration.devPin}</strong>
@@ -758,16 +760,16 @@ export default function AuthModal() {
                 {forgotSuccess ? (
                   <div style={{
                     padding: '22px 18px',
-                    background: 'rgba(16, 185, 129, 0.1)',
+                    background: 'var(--success-bg)',
                     border: '1px solid var(--success-border)',
                     borderRadius: 'var(--radius-md)',
-                    color: '#86efac',
+                    color: 'var(--success-text)',
                     fontSize: '0.875rem',
                     textAlign: 'center',
                     marginBottom: '16px'
                   }}>
                     <Check size={32} color="var(--success)" style={{ margin: '0 auto 10px', display: 'block' }} />
-                    <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '6px', color: '#fff' }}>
+                    <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '6px', color: 'var(--text-primary)' }}>
                       Email with new PIN has been sent!
                     </strong>
                     <p style={{ margin: '0 0 18px', fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>

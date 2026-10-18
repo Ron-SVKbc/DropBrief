@@ -55,8 +55,8 @@ Time: ${new Date().toISOString()}`;
       return (
         <div style={{
           minHeight: '100vh',
-          background: 'var(--bg-base, #07090e)',
-          color: 'var(--text-primary, #f1f5f9)',
+          background: 'var(--bg-base, #f8fafc)',
+          color: 'var(--text-primary, #0f172a)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -71,7 +71,7 @@ Time: ${new Date().toISOString()}`;
             width: '450px',
             height: '450px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.12) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, rgba(37, 99, 235, 0.04) 50%, transparent 70%)',
             top: '20%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
@@ -84,9 +84,9 @@ Time: ${new Date().toISOString()}`;
             width: '100%',
             padding: '36px 32px',
             borderRadius: 'var(--radius-xl, 18px)',
-            background: 'rgba(13, 18, 32, 0.85)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+            background: '#ffffff',
+            border: '1px solid var(--border-subtle, #e2e8f0)',
+            boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04)',
             textAlign: 'center',
             position: 'relative',
             zIndex: 1
@@ -96,19 +96,19 @@ Time: ${new Date().toISOString()}`;
               width: '56px',
               height: '56px',
               borderRadius: 'var(--radius-lg, 14px)',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#f87171',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#dc2626',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px',
-              boxShadow: '0 0 24px rgba(239, 68, 68, 0.2)'
+              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)'
             }} aria-hidden="true">
               <AlertTriangle size={28} />
             </div>
 
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--accent-primary-light, #818cf8)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--accent-primary-light, #1d4ed8)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
               <FolderSync size={13} aria-hidden="true" /> DropBrief Safe Mode
             </div>
 
@@ -116,7 +116,7 @@ Time: ${new Date().toISOString()}`;
               fontSize: '1.45rem',
               fontWeight: 800,
               letterSpacing: '-0.025em',
-              color: '#ffffff',
+              color: 'var(--text-primary, #0f172a)',
               marginBottom: '10px'
             }}>
               An unexpected error occurred
@@ -124,7 +124,7 @@ Time: ${new Date().toISOString()}`;
 
             <p style={{
               fontSize: '0.88rem',
-              color: 'var(--text-secondary, #94a3b8)',
+              color: 'var(--text-secondary, #334155)',
               lineHeight: 1.6,
               marginBottom: '26px'
             }}>
@@ -156,7 +156,7 @@ Time: ${new Date().toISOString()}`;
 
             {/* Technical Diagnostics Accordion */}
             <div style={{
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              borderTop: '1px solid var(--border-subtle, #e2e8f0)',
               paddingTop: '16px',
               textAlign: 'left'
             }}>
@@ -168,8 +168,9 @@ Time: ${new Date().toISOString()}`;
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'var(--text-tertiary, #64748b)',
-                    fontSize: '0.76rem',
+                    color: 'var(--accent-primary-light, #1d4ed8)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
                     cursor: 'pointer',
                     padding: 0,
                     textDecoration: 'underline'
@@ -182,13 +183,14 @@ Time: ${new Date().toISOString()}`;
                   type="button"
                   onClick={this.handleCopyError}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: '#f8fafc',
+                    border: '1px solid var(--border-subtle, #cbd5e1)',
                     borderRadius: 'var(--radius-sm, 6px)',
-                    color: 'var(--text-secondary, #94a3b8)',
-                    fontSize: '0.73rem',
+                    color: 'var(--text-secondary, #334155)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    padding: '3px 8px',
+                    padding: '4px 10px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px'
@@ -196,7 +198,7 @@ Time: ${new Date().toISOString()}`;
                   title="Copy error for support"
                   aria-label="Copy technical error to clipboard"
                 >
-                  {this.state.copied ? <Check size={11} color="var(--success, #10b981)" aria-hidden="true" /> : <Copy size={11} aria-hidden="true" />}
+                  {this.state.copied ? <Check size={12} color="var(--success-light, #047857)" aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
                   {this.state.copied ? 'Copied!' : 'Copy error'}
                 </button>
               </div>
@@ -206,11 +208,11 @@ Time: ${new Date().toISOString()}`;
                   marginTop: '12px',
                   padding: '12px',
                   borderRadius: 'var(--radius-md, 8px)',
-                  background: 'rgba(0, 0, 0, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  background: '#f1f5f9',
+                  border: '1px solid #cbd5e1',
                   fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.72rem',
-                  color: '#f87171',
+                  fontSize: '0.74rem',
+                  color: '#b91c1c',
                   maxHeight: '160px',
                   overflowY: 'auto',
                   wordBreak: 'break-word',
@@ -218,7 +220,7 @@ Time: ${new Date().toISOString()}`;
                 }}>
                   <strong>{this.state.error?.toString()}</strong>
                   {this.state.errorInfo?.componentStack && (
-                    <pre style={{ marginTop: '6px', color: '#94a3b8', fontSize: '0.68rem', whiteSpace: 'pre-wrap' }}>
+                    <pre style={{ marginTop: '6px', color: '#334155', fontSize: '0.7rem', whiteSpace: 'pre-wrap' }}>
                       {this.state.errorInfo.componentStack}
                     </pre>
                   )}

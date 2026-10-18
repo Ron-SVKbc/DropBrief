@@ -496,8 +496,8 @@ export default function ExportModal() {
           flexWrap: 'wrap',
           gap: '14px',
           padding: '20px 24px',
-          borderBottom: '1px solid var(--border-medium)',
-          background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(13, 18, 34, 0.95) 100%)'
+          borderBottom: '1px solid var(--border-hairline)',
+          background: 'var(--bg-base)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
             <div style={{
@@ -593,13 +593,13 @@ export default function ExportModal() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px',
           padding: '16px 24px',
-          background: 'rgba(7, 10, 18, 0.65)',
+          background: '#f8fafc',
           borderBottom: '1px solid var(--border-hairline)'
         }}>
           {/* Files count */}
           <div style={{
             padding: '10px 14px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: '#ffffff',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
@@ -628,7 +628,7 @@ export default function ExportModal() {
           {/* Texts count */}
           <div style={{
             padding: '10px 14px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: '#ffffff',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
@@ -657,7 +657,7 @@ export default function ExportModal() {
           {/* Missing items */}
           <div style={{
             padding: '10px 14px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: '#ffffff',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
@@ -692,7 +692,7 @@ export default function ExportModal() {
           flexWrap: 'wrap',
           gap: '12px',
           padding: '14px 24px',
-          background: 'rgba(9, 13, 24, 0.85)',
+          background: 'var(--bg-base)',
           borderBottom: '1px solid var(--border-hairline)'
         }}>
           {/* Search Input */}
@@ -950,12 +950,12 @@ export default function ExportModal() {
                             /* Text submission */
                             <div>
                               <div style={{
-                                background: 'rgba(0, 0, 0, 0.35)',
-                                border: '1px solid var(--border-hairline)',
+                                background: '#ffffff',
+                                border: '1px solid var(--border-subtle)',
                                 borderRadius: 'var(--radius-sm)',
                                 padding: '8px 12px',
                                 fontSize: '0.82rem',
-                                color: '#f1f5f9',
+                                color: 'var(--text-primary)',
                                 lineHeight: 1.5,
                                 maxHeight: isTextExpanded ? 'none' : '90px',
                                 overflow: 'hidden',
@@ -1116,8 +1116,8 @@ export default function ExportModal() {
           flexWrap: 'wrap',
           gap: '12px',
           padding: '16px 24px',
-          borderTop: '1px solid var(--border-medium)',
-          background: 'rgba(7, 10, 18, 0.95)'
+          borderTop: '1px solid var(--border-hairline)',
+          background: 'var(--bg-base)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
             <ShieldCheck size={16} color="var(--success)" />

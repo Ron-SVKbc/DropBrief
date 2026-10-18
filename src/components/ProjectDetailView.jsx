@@ -569,8 +569,8 @@ export default function ProjectDetailView() {
 
         {/* ── Client Portal Link Row ───────────────────────────── */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.45)',
-          border: '1px solid var(--border-medium)',
+          background: 'var(--bg-base)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-lg)',
           padding: '14px 18px',
           display: 'flex',
@@ -578,7 +578,7 @@ export default function ProjectDetailView() {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '12px',
-          boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.5)',
+          boxShadow: 'var(--shadow-xs)',
           position: 'relative',
           zIndex: 1
         }}>
@@ -642,9 +642,9 @@ export default function ProjectDetailView() {
           padding: '24px 28px',
           marginBottom: '26px',
           borderRadius: 'var(--radius-xl)',
-          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(10, 14, 25, 0.95) 100%)',
-          border: '1px solid rgba(168, 85, 247, 0.3)',
-          boxShadow: '0 8px 32px rgba(168, 85, 247, 0.12)'
+          background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)',
+          border: '1px solid rgba(124, 58, 237, 0.25)',
+          boxShadow: 'var(--shadow-card)'
         }}>
           {/* Header Row: Cadence Switcher */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)' }}>
@@ -992,12 +992,12 @@ export default function ProjectDetailView() {
         </div>
 
         {/* Metric 3 — Client Submission Rule Info */}
-        <div className="glass-card" style={{ padding: '18px 20px', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(13, 18, 32, 0.6) 100%)' }}>
+        <div className="glass-card" style={{ padding: '18px 20px', background: 'var(--bg-card)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <ShieldCheck size={18} color="var(--accent-primary)" aria-hidden="true" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e0e7ff' }}>Secure Deliverables Collection</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Secure Deliverables Collection</span>
           </div>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', lineHeight: 1.5, marginBottom: '10px' }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
             Files and text are submitted exclusively by the client through their dedicated link. As a freelancer, you manage the list of requirements here and review submitted deliverables.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--accent-primary-light)', fontWeight: 600 }}>
@@ -1106,12 +1106,12 @@ export default function ProjectDetailView() {
                   className="glass-card"
                   style={{
                     padding: '20px 24px',
-                    borderLeft: `4px solid ${isItemDone ? 'var(--success)' : 'rgba(245, 158, 11, 0.7)'}`,
+                    borderLeft: `4px solid ${isItemDone ? 'var(--success)' : 'rgba(180, 83, 9, 0.7)'}`,
                     borderRadius: 'var(--radius-xl)',
                     background: isItemDone 
-                      ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.035) 0%, rgba(13, 18, 30, 0.6) 100%)' 
-                      : 'var(--bg-glass)',
-                    boxShadow: isItemDone ? '0 8px 24px -8px rgba(16, 185, 129, 0.12)' : 'var(--shadow-sm)',
+                      ? 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)' 
+                      : 'var(--bg-card)',
+                    boxShadow: isItemDone ? '0 8px 24px -8px rgba(5, 150, 105, 0.12)' : 'var(--shadow-sm)',
                     transition: 'var(--transition)'
                   }}
                 >
@@ -1236,8 +1236,8 @@ export default function ProjectDetailView() {
                     {isItemDone ? (
                       /* Content has been delivered by client */
                       <div style={{
-                        background: 'rgba(0, 0, 0, 0.35)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-base)',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: 'var(--radius-md)',
                         padding: '14px 16px'
                       }}>
@@ -1266,8 +1266,8 @@ export default function ProjectDetailView() {
                                         flexWrap: 'wrap',
                                         gap: '10px',
                                         padding: '8px 12px',
-                                        background: 'rgba(255, 255, 255, 0.025)',
-                                        border: '1px solid var(--border-hairline)',
+                                        background: '#ffffff',
+                                        border: '1px solid var(--border-subtle)',
                                         borderRadius: 'var(--radius-sm)'
                                       }}
                                     >
@@ -1357,12 +1357,12 @@ export default function ProjectDetailView() {
                               </button>
                             </div>
                             <div style={{
-                              background: 'rgba(0, 0, 0, 0.4)',
-                              border: '1px solid var(--border-hairline)',
+                              background: '#ffffff',
+                              border: '1px solid var(--border-subtle)',
                               borderRadius: 'var(--radius-sm)',
                               padding: '12px 14px',
                               fontSize: '0.86rem',
-                              color: '#f8fafc',
+                              color: 'var(--text-primary)',
                               lineHeight: 1.6,
                               whiteSpace: 'pre-wrap',
                               fontFamily: 'var(--font-sans)'
@@ -1478,9 +1478,9 @@ export default function ProjectDetailView() {
               maxHeight: '92vh',
               display: 'flex',
               flexDirection: 'column',
-              background: '#0a0e19',
-              border: '1px solid var(--border-active)',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), var(--accent-glow)'
+              background: '#ffffff',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1490,8 +1490,8 @@ export default function ProjectDetailView() {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '18px 24px',
-              borderBottom: '1px solid var(--border-subtle)',
-              background: 'rgba(99, 102, 241, 0.05)'
+              borderBottom: '1px solid var(--border-hairline)',
+              background: 'var(--bg-base)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
@@ -1677,9 +1677,9 @@ export default function ProjectDetailView() {
               maxHeight: '90vh',
               display: 'flex',
               flexDirection: 'column',
-              background: '#0a0e19',
-              border: '1px solid var(--border-active)',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), var(--accent-glow)'
+              background: '#ffffff',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1689,8 +1689,8 @@ export default function ProjectDetailView() {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '18px 24px',
-              borderBottom: '1px solid var(--border-subtle)',
-              background: 'rgba(99, 102, 241, 0.05)'
+              borderBottom: '1px solid var(--border-hairline)',
+              background: 'var(--bg-base)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
