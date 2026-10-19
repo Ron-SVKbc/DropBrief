@@ -37,7 +37,8 @@ import {
   Zap,
   RefreshCw,
   Layers,
-  Globe
+  Globe,
+  UserPlus
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
@@ -122,7 +123,8 @@ export default function ClientPortal() {
     addToast,
     fetchProjectBySlug,
     isLoadingDb,
-    currentFreelancer
+    currentFreelancer,
+    openAuthModal
   } = useApp();
 
   // Demo mode is ONLY active if activeProjectSlug is explicitly 'demo-preview'
@@ -650,61 +652,82 @@ export default function ClientPortal() {
   return (
     <div style={{ flex: 1, paddingBottom: '70px', position: 'relative' }}>
       
-      {/* Simulation / Sandbox Banner */}
+      {/* Interactive Client Sandbox Banner */}
       {isDemoMode ? (
         <div style={{
-          background: '#0f172a',
-          borderBottom: '1px solid rgba(15, 23, 42, 0.2)',
+          background: 'linear-gradient(90deg, #0b132b 0%, #1c2541 100%)',
+          borderBottom: '1px solid rgba(99, 102, 241, 0.35)',
           padding: '12px 0',
           position: 'relative',
           zIndex: 30,
-          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.12)'
+          boxShadow: '0 4px 20px rgba(15, 23, 42, 0.25)'
         }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span className="badge" style={{
-                background: 'rgba(99, 102, 241, 0.32)',
-                border: '1px solid rgba(129, 140, 248, 0.6)',
-                color: '#e0e7ff',
-                padding: '4px 10px',
-                fontWeight: 700,
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%)',
+                border: '1px solid rgba(165, 180, 252, 0.7)',
+                color: '#ffffff',
+                padding: '4px 11px',
+                fontWeight: 800,
                 fontSize: '0.74rem',
                 letterSpacing: '0.04em',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '6px',
+                boxShadow: '0 0 12px rgba(99, 102, 241, 0.35)'
               }}>
-                <FlaskConical size={14} color="#a5b4fc" />
-                INTERACTIVE DEMO PREVIEW
+                <Sparkles size={13} color="#a5b4fc" aria-hidden="true" />
+                LIVE CLIENT EXPERIENCE
+              </span>
+
+              <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '3px 8px', gap: '4px' }}>
+                <Check size={11} aria-hidden="true" />
+                100% Ready App
               </span>
               
               <div style={{ fontSize: '0.86rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#fff' }}>This is exactly what your client sees — no password or login required.</strong>
-                <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.8rem' }}>
-                  • Try uploading files and editing items. Everything runs interactively in browser memory and is not saved to the server.
+                <strong style={{ color: '#ffffff' }}>This is exactly what your client experiences (zero passwords & instant upload).</strong>
+                <span style={{ color: 'rgba(255, 255, 255, 0.78)', fontSize: '0.8rem' }}>
+                  • Test dragging files or saving copy right here in your browser.
                 </span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <button 
                 id="btn-reset-demo"
                 onClick={handleResetDemo}
                 className="btn btn-secondary btn-sm btn-pill"
-                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+                style={{ padding: '6px 13px', fontSize: '0.78rem', gap: '6px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}
                 title="Reset interactive preview to initial state"
               >
-                <RotateCcw size={13} />
-                Reset demo
+                <RotateCcw size={13} aria-hidden="true" />
+                Reset test
               </button>
+
               <button 
                 id="btn-back-to-dashboard"
                 onClick={openDashboard} 
-                className="btn btn-primary btn-sm btn-pill"
+                className="btn btn-secondary btn-sm btn-pill"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+                title="Return to freelancer view"
               >
-                <ArrowLeft size={13} /> {currentFreelancer ? 'Back to Dashboard' : 'Back to Home'}
+                <ArrowLeft size={13} aria-hidden="true" /> {currentFreelancer ? 'Dashboard' : 'Freelancer View'}
               </button>
+
+              {!currentFreelancer && (
+                <button
+                  id="btn-banner-signup"
+                  onClick={() => openAuthModal('register')}
+                  className="btn btn-primary btn-sm btn-pill"
+                  style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px', boxShadow: 'var(--glow-accent)' }}
+                  title="Create your free freelancer account in 5 seconds"
+                >
+                  <UserPlus size={13} aria-hidden="true" />
+                  Sign Up Free
+                </button>
+              )}
             </div>
           </div>
         </div>

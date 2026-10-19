@@ -26,18 +26,21 @@ import {
   Cpu,
   Bell,
   Globe,
-  FileText
+  FileText,
+  Eye,
+  HelpCircle,
+  Shield
 } from 'lucide-react';
 
 export default function WelcomeView({ onOpenCreateModal }) {
-  const { openAuthModal, addToast } = useApp();
+  const { openAuthModal, openClientPortal, addToast } = useApp();
   const [copiedDemoLink, setCopiedDemoLink] = useState(false);
 
   const handleCopyDemoLink = (e) => {
     e.stopPropagation();
     navigator.clipboard.writeText('https://usedropbrief.xyz/?p=brand-identity');
     setCopiedDemoLink(true);
-    addToast('Sample client portal link copied!', 'success', 'Demo Link');
+    addToast('Sample client portal link copied to clipboard!', 'success', 'Portal Link');
     setTimeout(() => setCopiedDemoLink(false), 2000);
   };
 
@@ -67,7 +70,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
         <div className="container" style={{ maxWidth: '940px', margin: '0 auto' }}>
 
           {/* Announcement Pill Badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '28px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -85,21 +88,21 @@ export default function WelcomeView({ onOpenCreateModal }) {
               <span style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '2px 8px',
+                gap: '5px',
+                padding: '2px 9px',
                 borderRadius: 'var(--radius-full)',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                color: '#1d4ed8',
+                background: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                color: '#047857',
                 fontSize: '0.7rem',
-                fontWeight: 700,
-                letterSpacing: '0.03em'
+                fontWeight: 800,
+                letterSpacing: '0.04em'
               }}>
-                <Sparkles size={11} color="#1d4ed8" aria-hidden="true" />
-                100% FREE
+                <Check size={11} color="#047857" aria-hidden="true" />
+                100% PRODUCTION READY
               </span>
               <span style={{ color: 'var(--text-secondary, #1e293b)' }}>
-                Micro-SaaS for Freelancers & Creative Agencies
+                Live Micro-SaaS for Freelancers & Creative Studios
               </span>
             </div>
           </div>
@@ -129,21 +132,21 @@ export default function WelcomeView({ onOpenCreateModal }) {
             fontSize: 'clamp(1.05rem, 2vw, 1.25rem)',
             color: 'var(--text-secondary)',
             lineHeight: 1.65,
-            maxWidth: '690px',
-            margin: '0 auto 38px',
+            maxWidth: '710px',
+            margin: '0 auto 34px',
             fontWeight: 400
           }}>
-            No more lost WhatsApp attachments and forgotten cloud passwords. Send your client a frictionless, secure link for instant drag & drop submissions.
+            No more lost WhatsApp attachments, expired links, and forgotten cloud passwords. DropBrief gives your clients a frictionless, secure upload page with instant drag & drop.
           </p>
 
-          {/* CTA Buttons Row */}
+          {/* CTA Buttons Cluster with prominent Client Portal test button */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             gap: '12px',
             flexWrap: 'wrap',
-            marginBottom: '40px'
+            marginBottom: '24px'
           }}>
             <button
               id="hero-btn-register"
@@ -152,7 +155,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               style={{ 
                 boxShadow: 'var(--glow-accent)', 
                 fontSize: '1rem', 
-                padding: '14px 30px',
+                padding: '14px 28px',
                 gap: '10px'
               }}
             >
@@ -162,14 +165,63 @@ export default function WelcomeView({ onOpenCreateModal }) {
             </button>
 
             <button
+              id="hero-btn-client-preview"
+              onClick={() => openClientPortal('demo-preview')}
+              className="btn btn-secondary btn-lg btn-pill hero-client-cta-btn"
+              style={{ 
+                fontSize: '0.98rem', 
+                padding: '14px 24px', 
+                gap: '8px' 
+              }}
+              title="Experience what your client sees — live interactive test in browser"
+            >
+              <Eye size={18} color="var(--accent-primary)" aria-hidden="true" />
+              <span>Test Client Portal</span>
+              <span 
+                className="badge badge-glow-interactive" 
+                style={{ 
+                  fontSize: '0.62rem', 
+                  padding: '2px 7px', 
+                  gap: '4px', 
+                  textTransform: 'none',
+                  fontWeight: 700
+                }}
+              >
+                <span className="status-dot-pulse" aria-hidden="true" />
+                Live Sandbox
+              </span>
+            </button>
+
+            <button
               id="hero-btn-login"
               onClick={() => openAuthModal('login')}
               className="btn btn-secondary btn-lg btn-pill"
-              style={{ fontSize: '0.98rem', padding: '14px 26px', gap: '9px' }}
+              style={{ fontSize: '0.96rem', padding: '14px 20px', gap: '8px', color: 'var(--text-secondary)' }}
             >
-              <KeyRound size={17} aria-hidden="true" />
+              <KeyRound size={16} aria-hidden="true" />
               <span>Log in with PIN</span>
             </button>
+          </div>
+
+          {/* Dual Perspective Interactive Callout */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '7px 16px',
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(37, 99, 235, 0.04)',
+            border: '1px solid rgba(37, 99, 235, 0.14)',
+            fontSize: '0.815rem',
+            color: 'var(--text-secondary)',
+            marginBottom: '32px',
+            flexWrap: 'wrap'
+          }}>
+            <Sparkles size={14} color="var(--accent-primary)" aria-hidden="true" />
+            <span>
+              <strong>Dual Perspective:</strong> Switch between <strong>Freelancer Dashboard</strong> and <strong>Client Experience</strong> in the top navigation at any time!
+            </span>
           </div>
 
           {/* Trust Value Signals */}
@@ -177,17 +229,18 @@ export default function WelcomeView({ onOpenCreateModal }) {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '28px',
+            gap: '24px',
             flexWrap: 'wrap',
-            fontSize: '0.88rem',
+            fontSize: '0.86rem',
             color: 'var(--text-secondary)'
           }}>
             {[
-              '5-second signup without passwords',
-              'Clients upload with zero login friction',
-              '100% GDPR compliant (EU Frankfurt cloud)'
+              '100% Production-ready application',
+              'Clients upload with zero login or password friction',
+              'GDPR compliant (Frankfurt EU encrypted cloud)',
+              'Live interactive client test available immediately'
             ].map((text, i) => (
-              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                 <CheckCircle2 size={16} color="var(--success)" aria-hidden="true" />
                 <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{text}</span>
               </span>
@@ -245,16 +298,28 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="badge badge-accent" style={{ fontSize: '0.68rem', padding: '3px 9px' }}>
-                  <Sparkles size={11} aria-hidden="true" /> Live Portal Preview
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span className="badge badge-glow-interactive" style={{ fontSize: '0.68rem', padding: '3px 9px', textTransform: 'none', fontWeight: 700 }}>
+                  <span className="status-dot-pulse" aria-hidden="true" />
+                  Live Client Sandbox
                 </span>
+                <button
+                  type="button"
+                  onClick={() => openClientPortal('demo-preview')}
+                  className="btn btn-primary btn-sm btn-pill"
+                  style={{ fontSize: '0.78rem', padding: '5px 14px', gap: '6px', boxShadow: 'var(--glow-accent)' }}
+                  title="Open full interactive client portal in browser"
+                >
+                  <Eye size={13} aria-hidden="true" />
+                  <span>Launch Live Test</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleCopyDemoLink}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '0.76rem', padding: '4px 11px', borderRadius: 'var(--radius-full)' }}
+                  style={{ fontSize: '0.76rem', padding: '5px 11px', borderRadius: 'var(--radius-full)' }}
                   aria-label="Copy sample client portal link"
+                  title="Copy link to client portal"
                 >
                   {copiedDemoLink ? <Check size={13} color="var(--success)" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
                   {copiedDemoLink ? 'Copied!' : 'Copy Link'}
@@ -337,24 +402,70 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   </div>
                 ))}
 
-                {/* Pending Upload Item */}
-                <div style={{
-                  background: 'rgba(37, 99, 235, 0.04)',
-                  border: '1.5px dashed var(--accent-primary)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '14px',
-                  textAlign: 'center'
-                }}>
-                  <Upload size={18} color="var(--accent-primary)" style={{ margin: '0 auto 5px' }} aria-hidden="true" />
-                  <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
+                {/* Pending Upload Item — Clickable interactive test trigger */}
+                <div 
+                  onClick={() => openClientPortal('demo-preview')}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)',
+                    border: '1.5px dashed var(--accent-primary)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '16px 14px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary-hover)';
+                    e.currentTarget.style.background = 'rgba(37, 99, 235, 0.09)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)';
+                  }}
+                  title="Click to test live drag & drop client upload in your browser"
+                >
+                  <Upload size={20} color="var(--accent-primary)" style={{ margin: '0 auto 6px' }} aria-hidden="true" />
+                  <strong style={{ fontSize: '0.86rem', color: 'var(--accent-primary-hover)', display: 'block', marginBottom: '2px' }}>
                     Brand Guidelines & Color Codes (PDF)
                   </strong>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)' }}>
-                    Client drags file here &bull; No login required
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <Sparkles size={12} color="var(--accent-primary)" aria-hidden="true" />
+                    <strong>Interactive Sandbox:</strong> Click here to test live client drag & drop upload
                   </span>
                 </div>
               </div>
 
+            </div>
+
+            {/* Interactive Invitation Strip */}
+            <div style={{
+              marginTop: '20px',
+              padding: '12px 18px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-base)',
+              border: '1px solid var(--border-hairline)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
+                <Sparkles size={14} color="var(--accent-primary)" aria-hidden="true" />
+                <span>
+                  <strong>Want to try it as a client?</strong> Test uploading files and submitting copy live without signing in.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => openClientPortal('demo-preview')}
+                className="btn btn-primary btn-sm btn-pill"
+                style={{ fontSize: '0.78rem', padding: '6px 14px', gap: '6px' }}
+              >
+                <Eye size={13} aria-hidden="true" />
+                <span>Open Live Client View</span>
+                <ArrowRight size={12} aria-hidden="true" />
+              </button>
             </div>
           </div>
 
@@ -454,6 +565,124 @@ export default function WelcomeView({ onOpenCreateModal }) {
         </div>
       </section>
 
+      {/* ── PRODUCTION CONFIDENCE & READY ARCHITECTURE ──────── */}
+      <section style={{ padding: '24px 20px 48px', position: 'relative', zIndex: 1 }}>
+        <div className="container" style={{ maxWidth: '980px' }}>
+          <div className="glass-card" style={{
+            padding: 'clamp(28px, 4vw, 44px)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 60%, #eff6ff 100%)',
+            border: '1.5px solid rgba(37, 99, 235, 0.2)',
+            borderRadius: 'var(--radius-2xl)',
+            boxShadow: '0 20px 45px -15px rgba(37, 99, 235, 0.08)'
+          }}>
+            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 36px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                <span className="badge badge-success" style={{ padding: '3px 10px', fontSize: '0.72rem', gap: '5px' }}>
+                  <Check size={12} aria-hidden="true" /> 100% PRODUCTION READY
+                </span>
+                <span className="badge badge-accent" style={{ padding: '3px 10px', fontSize: '0.72rem', gap: '5px' }}>
+                  <ShieldCheck size={12} aria-hidden="true" /> GDPR EU HOSTED
+                </span>
+              </div>
+              <h2 style={{ fontSize: 'clamp(1.75rem, 3.2vw, 2.3rem)', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginBottom: '10px' }}>
+                A finished, reliable tool for your real client work
+              </h2>
+              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.94rem', lineHeight: 1.6 }}>
+                DropBrief is not an unfinished prototype or a concept. It is a live, production-ready micro-SaaS with active cloud storage, realtime syncing, and automated reminders.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+              
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px',
+                boxShadow: 'var(--shadow-xs)'
+              }}>
+                <div style={{ width: 38, height: 38, borderRadius: 'var(--radius-md)', background: 'var(--accent-primary-bg)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                  <Shield size={19} aria-hidden="true" />
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Enterprise EU Cloud
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', lineHeight: 1.55 }}>
+                  Powered by Supabase on European servers (Frankfurt/Ireland). AES-256 encryption, WebSocket live syncing, and automated 30-day GDPR file purge.
+                </p>
+              </div>
+
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px',
+                boxShadow: 'var(--shadow-xs)'
+              }}>
+                <div style={{ width: 38, height: 38, borderRadius: 'var(--radius-md)', background: 'var(--success-bg)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                  <CheckCircle2 size={19} aria-hidden="true" />
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Zero Friction for Clients
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', lineHeight: 1.55 }}>
+                  Clients click your link on desktop or mobile and upload immediately. No logins, no passwords, and no apps to install. Zero friction = instant submissions.
+                </p>
+              </div>
+
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px',
+                boxShadow: 'var(--shadow-xs)'
+              }}>
+                <div style={{ width: 38, height: 38, borderRadius: 'var(--radius-md)', background: 'rgba(124, 58, 237, 0.1)', color: 'var(--accent-violet)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                  <Eye size={19} aria-hidden="true" />
+                </div>
+                <h3 style={{ fontSize: '1.02rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Live Client Experience
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', lineHeight: 1.55 }}>
+                  The "Client Experience" mode allows you to simulate the real upload process in your browser without any commitment or account creation.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Quick Action Strip */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              flexWrap: 'wrap',
+              borderTop: '1px solid var(--border-hairline)',
+              paddingTop: '24px'
+            }}>
+              <button
+                onClick={() => openAuthModal('register')}
+                className="btn btn-primary btn-md btn-pill"
+                style={{ padding: '10px 22px', gap: '8px' }}
+              >
+                <UserPlus size={16} aria-hidden="true" />
+                <span>Create Free Workspace</span>
+              </button>
+
+              <button
+                onClick={() => openClientPortal('demo-preview')}
+                className="btn btn-secondary btn-md btn-pill hero-client-cta-btn"
+                style={{ padding: '10px 20px', gap: '8px' }}
+              >
+                <Eye size={16} color="var(--accent-primary)" aria-hidden="true" />
+                <span>Try Client View Live</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS IN 3 STEPS ───────────────────────────── */}
       <section style={{ padding: '72px 20px 80px' }}>
         <div className="container" style={{ maxWidth: '980px' }}>
@@ -532,15 +761,26 @@ export default function WelcomeView({ onOpenCreateModal }) {
               Set up your profile in 5 seconds. Get your personal PIN code and start collecting client assets effortlessly. Free forever.
             </p>
 
-            <button
-              onClick={() => openAuthModal('register')}
-              className="btn btn-primary btn-lg btn-pill"
-              style={{ margin: '0 auto', boxShadow: '0 8px 24px rgba(37, 99, 235, 0.35)', padding: '15px 36px', fontSize: '1.02rem', gap: '10px' }}
-            >
-              <UserPlus size={20} aria-hidden="true" />
-              <span>Create Free Account with PIN</span>
-              <ArrowRight size={16} aria-hidden="true" />
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => openAuthModal('register')}
+                className="btn btn-primary btn-lg btn-pill"
+                style={{ boxShadow: '0 8px 24px rgba(37, 99, 235, 0.35)', padding: '15px 32px', fontSize: '1.02rem', gap: '10px' }}
+              >
+                <UserPlus size={20} aria-hidden="true" />
+                <span>Create Free Account with PIN</span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </button>
+
+              <button
+                onClick={() => openClientPortal('demo-preview')}
+                className="btn btn-secondary btn-lg btn-pill hero-client-cta-btn"
+                style={{ padding: '15px 26px', fontSize: '1rem', gap: '8px' }}
+              >
+                <Eye size={18} color="var(--accent-primary)" aria-hidden="true" />
+                <span>Test Client Portal Live</span>
+              </button>
+            </div>
 
           </div>
         </div>

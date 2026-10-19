@@ -855,7 +855,7 @@ select.select {
 
 @media (max-width: 600px) {
   .navbar-gdpr-label { display: none; }
-  .navbar-segmented  { display: none; }
+  .navbar-segmented  { display: flex; order: 3; width: 100%; justify-content: center; padding: 4px; }
   .btn-mobile-icon-only .btn-label { display: none; }
 }
 
@@ -989,3 +989,68 @@ select.select {
   height: 1px;
   background: var(--border-hairline);
 }
+
+/* ── Interactive Preview & Attention-Grabbers ─────────────── */
+.status-dot-pulse {
+  position: relative;
+  display: inline-flex;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.status-dot-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-primary);
+  animation: pulsePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulsePing {
+  0% { transform: scale(0.8); opacity: 1; }
+  75%, 100% { transform: scale(2.3); opacity: 0; }
+}
+
+.badge-glow-interactive {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.18);
+  transition: all 0.2s ease;
+}
+
+.badge-glow-interactive:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.3);
+}
+
+.hero-client-cta-btn {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  border: 1.5px solid rgba(37, 99, 235, 0.38);
+  color: var(--accent-primary-hover);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+  transition: all 0.2s var(--ease-spring);
+}
+
+.hero-client-cta-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
+  background: #ffffff;
+}
+
+.interactive-mockup-wrap {
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.interactive-mockup-wrap:hover {
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 30px 70px -15px rgba(37, 99, 235, 0.2), 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+

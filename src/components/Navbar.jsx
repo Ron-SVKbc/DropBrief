@@ -365,11 +365,11 @@ export default function Navbar({ onOpenCreateModal }) {
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                     >
                       <Sparkles size={11} color="var(--accent-primary)" />
-                      <span>Demo Sandbox Portal</span>
+                      <span>Interactive Client Sandbox</span>
                     </button>
 
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-quaternary)' }}>
-                      No passwords
+                      Zero passwords
                     </span>
                   </div>
                 </div>
@@ -382,16 +382,29 @@ export default function Navbar({ onOpenCreateModal }) {
               onClick={() => openClientPortal('demo-preview')}
               className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ 
-                padding: '5px 13px', 
+                padding: '5px 12px', 
                 fontSize: '0.8rem',
-                gap: '6px'
+                gap: '7px',
+                position: 'relative'
               }}
-              title="Try the client portal without login (Interactive Demo)"
+              title="Experience what your client sees — live interactive test (no password or registration required)"
             >
               <Eye size={13} aria-hidden="true" />
-              <span>Client View</span>
-              <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '1px 5px', gap: '3px' }}>
-                <Sparkles size={8} aria-hidden="true" /> Demo
+              <span style={{ fontWeight: currentView === 'client-portal' ? 700 : 600 }}>Client Experience</span>
+              <span 
+                className="badge badge-glow-interactive" 
+                style={{ 
+                  fontSize: '0.62rem', 
+                  padding: '2px 7px', 
+                  gap: '4px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  borderRadius: 'var(--radius-full)'
+                }}
+              >
+                <span className="status-dot-pulse" aria-hidden="true" />
+                Live Test
               </span>
             </button>
           )}
