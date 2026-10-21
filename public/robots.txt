@@ -1,14 +1,52 @@
 # DropBrief robots.txt
-# Allow indexing of public landing page, block confidential client portals and API endpoints
+# Public site: https://www.usedropbrief.xyz/
+# Purpose: Generative Engine Optimization (GEO) & Search Discovery
 
-User-agent: *
+# ── 1. AI Search, Answer Engines & LLM Discovery Crawlers ──
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: cohere-ai
+User-agent: Bytespider
+User-agent: Diffbot
 Allow: /
-
-# Disallow client portals containing private project briefs and uploads
+# Privacy: Disallow confidential client upload portals and briefs
 Disallow: /?p=
 Disallow: /?project=
 Disallow: /*?p=*
 Disallow: /*?project=*
-
-# Disallow serverless API endpoints
+# Security: Disallow backend serverless API endpoints
 Disallow: /api/
+
+# ── 2. Standard Search Engines (Google, Bing, Yahoo, DuckDuckGo) ──
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Slurp
+User-agent: DuckDuckBot
+User-agent: Baiduspider
+User-agent: YandexBot
+Allow: /
+Disallow: /?p=
+Disallow: /?project=
+Disallow: /*?p=*
+Disallow: /*?project=*
+Disallow: /api/
+
+# ── 3. General Directives for All Other Crawlers ──
+User-agent: *
+Allow: /
+Disallow: /?p=
+Disallow: /?project=
+Disallow: /*?p=*
+Disallow: /*?project=*
+Disallow: /api/
+
+# ── Canonical Sitemap & Host ──
+Sitemap: https://www.usedropbrief.xyz/sitemap.xml
+Host: https://www.usedropbrief.xyz
