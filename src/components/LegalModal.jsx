@@ -88,9 +88,18 @@ export default function LegalModal() {
             </p>
           </div>
 
+          <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid var(--success-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
+            <strong style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
+              <CheckCircle2 size={17} /> 2. 100% Cookie-Free &amp; Zero Tracking (ePrivacy Directive)
+            </strong>
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-primary)', lineHeight: 1.55 }}>
+              DropBrief uses <strong>0 tracking cookies</strong>, <strong>0 marketing cookies</strong>, and <strong>0 third-party behavioral analytics trackers</strong>. All fonts and typography are bundled and self-hosted locally from our own domain without contacting external CDNs (preventing IP leakage). No annoying cookie consent banners are needed because no user profiling or non-essential storage is performed.
+            </p>
+          </div>
+
           <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
-              2. Data Processor Role (GDPR Compliance)
+              3. Data Processor Role (GDPR Compliance)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
               Under the GDPR, DropBrief acts strictly as a <strong>Technical Data Processor</strong>. The Data Controller is the freelancer or agency creating the collection, who maintains lawful responsibility for requesting specific assets from their clients.
@@ -99,7 +108,7 @@ export default function LegalModal() {
 
           <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '6px', fontSize: '0.95rem' }}>
-              3. Automated Storage Purge (30-day Retention)
+              4. Automated Storage Purge (30-day Retention)
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
               Unlike open cloud drives where client files linger indefinitely, DropBrief runs an automated daily cron job that permanently deletes all uploaded files from cloud storage 30 days following project completion (or immediately on-demand by the freelancer), strictly complying with GDPR Art. 5(1)(e) storage limitation.
@@ -108,7 +117,7 @@ export default function LegalModal() {
 
           <div style={{ background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <FileCheck size={17} /> 4. Email Processing & Zero-Marketing Guarantee
+              <FileCheck size={17} /> 5. Email Processing & Zero-Marketing Guarantee
             </strong>
             <p style={{ lineHeight: 1.55, fontSize: '0.85rem' }}>
               DropBrief processes email addresses strictly for <strong>operational and transactional purposes</strong> (GDPR Art. 6(1)(b)):
@@ -122,7 +131,7 @@ export default function LegalModal() {
 
           <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid var(--warning-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <AlertTriangle size={17} /> 5. Terms of Service & Liability
+              <AlertTriangle size={17} /> 6. Terms of Service & Liability
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               The software is provided on an "as-is" basis. DropBrief assumes no liability for the content of files uploaded by clients or unexpected third-party interruptions. Freelancers are advised to download completed asset packages to their local archives upon completion.
@@ -131,7 +140,7 @@ export default function LegalModal() {
 
           <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid var(--danger-border)', borderRadius: 'var(--radius-lg)', padding: '16px 18px' }}>
             <strong style={{ color: 'var(--danger-light)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '0.95rem' }}>
-              <Trash2 size={17} /> 6. Right to Erasure & Account Deletion (GDPR Art. 17)
+              <Trash2 size={17} /> 7. Right to Erasure & Account Deletion (GDPR Art. 17)
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               Every freelancer has the right to immediately and permanently delete their user account at any time. Upon deletion, DropBrief irrevocably purges all associated projects, client upload links, and uploaded assets from secure European cloud storage.

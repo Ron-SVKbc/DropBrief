@@ -142,9 +142,10 @@ export default function App() {
               }}
             >
               <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
-              GDPR & Security
+              GDPR & Security (Cookie-free)
             </button>
 
+            <span style={{ color: 'var(--success)', fontWeight: 600 }}>100% Cookie-free</span>
             <span>256-bit SSL</span>
             <span>$0 operational stack</span>
           </div>

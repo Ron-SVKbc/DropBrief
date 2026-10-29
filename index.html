@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f6f7fb" />
 
-    <!-- Content Security Policy: restrict external resources -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.clarity.ms https://scripts.clarity.ms https://*.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://*.clarity.ms; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.clarity.ms; worker-src 'self' blob:; frame-ancestors 'none';" />
+    <!-- Content Security Policy: strictly restrict external resources to same-origin and verified Supabase endpoints -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; frame-ancestors 'none';" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 
@@ -35,20 +35,6 @@
     <meta name="twitter:title" content="DropBrief - Free Client Asset &amp; Brief Collection Portal" />
     <meta name="twitter:description" content="Free zero-login client asset &amp; brief collection portal for web designers and freelancers. Collect logos, copy, and files without passwords or account setup." />
     <meta name="twitter:image" content="https://www.usedropbrief.xyz/favicon.svg" />
-
-    <!-- Microsoft Clarity Analytics -->
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "yyodxce3az");
-    </script>
-
-    <!-- Preconnect Typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Schema.org Structured Data (JSON-LD for AI Knowledge Graphs & LLM Vector Indexing) -->
     <script type="application/ld+json">
