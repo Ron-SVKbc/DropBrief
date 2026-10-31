@@ -1965,7 +1965,7 @@ export default function ClientPortal() {
                 gap: '6px',
                 fontWeight: 600
               }}>
-                <Globe size={12} color="var(--success)" /> Frankfurt EU (GDPR)
+                <Globe size={12} color="var(--success)" /> Írsko EU (GDPR)
               </span>
               <span className="badge" style={{
                 background: 'var(--bg-base)',
@@ -1980,6 +1980,59 @@ export default function ClientPortal() {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Powered by DropBrief - Elegant Viral Loop Badge */}
+        <div style={{
+          textAlign: 'center',
+          marginTop: '22px',
+          paddingBottom: '20px'
+        }}>
+          <a
+            href="https://usedropbrief.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Create your own free client asset portal with DropBrief"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '7px',
+              fontSize: '0.78rem',
+              color: 'var(--text-secondary, #475569)',
+              textDecoration: 'none',
+              fontWeight: 500,
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full, 9999px)',
+              background: '#ffffff',
+              border: '1px solid var(--border-subtle, #e2e8f0)',
+              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+              transition: 'all var(--transition-fast, 0.15s ease)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--accent-primary, #6366f1)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary, #6366f1)';
+              e.currentTarget.style.boxShadow = '0 3px 8px rgba(99, 102, 241, 0.15)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-secondary, #475569)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle, #e2e8f0)';
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(15, 23, 42, 0.04)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <span>Powered by</span>
+            <strong style={{ 
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: 800 
+            }}>
+              DropBrief
+            </strong>
+            <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '0.7rem' }}>•</span>
+            <span style={{ fontSize: '0.73rem', color: 'var(--text-muted, #64748b)' }}>Free Client Portal for Freelancers</span>
+          </a>
         </div>
 
       </div>

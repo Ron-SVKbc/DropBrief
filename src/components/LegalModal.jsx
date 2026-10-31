@@ -84,7 +84,7 @@ export default function LegalModal() {
               <Lock size={17} /> 1. Data Encryption & EU Hosting (GDPR)
             </strong>
             <p style={{ fontSize: '0.825rem', color: 'var(--text-primary)', lineHeight: 1.55 }}>
-              All data in transit is encrypted using modern TLS 1.3 certificates. Files at rest are stored in certified data centers in the European Union (Frankfurt / Ireland) with AES-256 encryption. No data leaves EU territory.
+              All data in transit is encrypted using modern TLS 1.3 certificates. Files at rest are stored in certified data centers in the European Union (Ireland) with AES-256 encryption. No data leaves EU territory.
             </p>
           </div>
 

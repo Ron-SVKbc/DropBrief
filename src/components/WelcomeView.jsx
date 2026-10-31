@@ -268,7 +268,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             {[
               '100% Production-ready application',
               'Clients upload with zero login or password friction',
-              'GDPR compliant (Frankfurt EU encrypted cloud)',
+              'GDPR compliant (Írsko EU encrypted cloud)',
               'Live interactive client test available immediately'
             ].map((text, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
@@ -639,7 +639,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                   Enterprise EU Cloud
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', lineHeight: 1.55 }}>
-                  Powered by Supabase on European servers (Frankfurt/Ireland). AES-256 encryption, WebSocket live syncing, and automated 30-day GDPR file purge.
+                  Powered by Supabase on European servers (Ireland). AES-256 encryption, WebSocket live syncing, and automated 30-day GDPR file purge.
                 </p>
               </div>
 

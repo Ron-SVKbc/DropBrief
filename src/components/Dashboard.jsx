@@ -753,7 +753,7 @@ export default function Dashboard({ onOpenCreateModal }) {
               desc: 'The system gently follows up on missing items automatically. No more awkward manual follow-ups.' },
             { icon: Shield, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
               title: 'Bank-Grade Encryption + GDPR',
-              desc: 'Files are encrypted AES-256, hosted in the EU (Ireland/Frankfurt) with automated 30-day purge.' }
+              desc: 'Files are encrypted AES-256, hosted in the EU (Ireland) with automated 30-day purge.' }
           ].map(({ icon: Icon, color, bg, border, title, desc }) => (
             <div key={title} style={{
               padding: '22px',
