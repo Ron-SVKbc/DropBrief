@@ -123,7 +123,7 @@ export default function App() {
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="status-dot status-dot-live" aria-hidden="true"></span>
-              <span>All systems operational (Írsko EU)</span>
+              <span>All systems operational (Ireland EU)</span>
             </span>
 
             <button 

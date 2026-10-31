@@ -1965,7 +1965,7 @@ export default function ClientPortal() {
                 gap: '6px',
                 fontWeight: 600
               }}>
-                <Globe size={12} color="var(--success)" /> Írsko EU (GDPR)
+                <Globe size={12} color="var(--success)" /> Ireland EU (GDPR)
               </span>
               <span className="badge" style={{
                 background: 'var(--bg-base)',

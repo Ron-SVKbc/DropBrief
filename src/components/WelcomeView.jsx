@@ -268,7 +268,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             {[
               '100% Production-ready application',
               'Clients upload with zero login or password friction',
-              'GDPR compliant (Írsko EU encrypted cloud)',
+              'GDPR compliant (Ireland EU encrypted cloud)',
               'Live interactive client test available immediately'
             ].map((text, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
