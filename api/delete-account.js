@@ -76,21 +76,63 @@ export default async function handler(req, res) {
   }
 
   const rawIdentifier = bodyData.identifier || bodyData.nick || bodyData.email;
-  const { pin } = bodyData;
+  const { pin, isGoogle } = bodyData;
 
-  if (!rawIdentifier || typeof rawIdentifier !== 'string' || !pin || typeof pin !== 'string') {
-    return res.status(400).json({
-      success: false,
-      error: 'To delete your account, please enter your username (or email) and 6-digit PIN code.',
-    });
+  // Supabase Connection
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('[delete-account] Missing Supabase configuration.');
+    return res.status(500).json({ success: false, error: 'Server configuration error (Supabase).' });
   }
 
-  const cleanIdentifier = rawIdentifier.trim().toLowerCase();
-  const cleanPin = pin.trim();
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-  if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-    return res.status(400).json({ success: false, error: 'Security PIN code must contain exactly 6 digits.' });
+  // If this is a Google OAuth authenticated user, verify the Supabase Auth session token
+  let verifiedGoogleUser = null;
+  if (isGoogle) {
+    const authHeader = req.headers['authorization'] || '';
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : (bodyData.accessToken || '');
+
+    if (!bearerToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Missing authentication token for Google account deletion.',
+      });
+    }
+
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.getUser(bearerToken);
+      if (authErr || !authData?.user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired Google session. Please sign in again.',
+        });
+      }
+      verifiedGoogleUser = authData.user;
+    } catch (tokenErr) {
+      return res.status(401).json({
+        success: false,
+        error: 'Failed to verify Google identity.',
+      });
+    }
+  } else {
+    // Standard PIN login requires identifier and 6-digit PIN
+    if (!rawIdentifier || typeof rawIdentifier !== 'string' || !pin || typeof pin !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'To delete your account, please enter your username (or email) and 6-digit PIN code.',
+      });
+    }
+
+    const cleanPin = pin.trim();
+    if (cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
+      return res.status(400).json({ success: false, error: 'Security PIN code must contain exactly 6 digits.' });
+    }
   }
+
+  const cleanIdentifier = rawIdentifier ? rawIdentifier.trim().toLowerCase() : (verifiedGoogleUser?.email?.toLowerCase() || '');
 
   // ── 3. Server-side rate limiting ───────────────────────────────────────────
   const rlKey = rateLimitKey(ip, cleanIdentifier);
@@ -104,24 +146,17 @@ export default async function handler(req, res) {
     });
   }
 
-  // ── 4. Pripojenie k Supabase ───────────────────────────────────────────────
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('[delete-account] Missing Supabase configuration.');
-    return res.status(500).json({ success: false, error: 'Server configuration error (Supabase).' });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
   try {
-    // ── 5. Find user by nickname OR email ───────────────────
-    const { data: user, error: userErr } = await supabase
-      .from('freelancers')
-      .select('id, nick, email, pin_code')
-      .or(`nick.ilike.${cleanIdentifier},email.ilike.${cleanIdentifier}`)
-      .maybeSingle();
+    // ── 5. Find user by nickname OR email (or auth id if Google) ──────────
+    let userQuery = supabase.from('freelancers').select('id, nick, email, pin_code, auth_provider');
+
+    if (verifiedGoogleUser) {
+      userQuery = userQuery.or(`id.eq.${verifiedGoogleUser.id},email.ilike.${verifiedGoogleUser.email}`);
+    } else {
+      userQuery = userQuery.or(`nick.ilike.${cleanIdentifier},email.ilike.${cleanIdentifier}`);
+    }
+
+    const { data: user, error: userErr } = await userQuery.maybeSingle();
 
     if (userErr) {
       console.error('[delete-account] DB user fetch error:', userErr.message);
@@ -132,19 +167,23 @@ export default async function handler(req, res) {
       return res.status(404).json({ success: false, error: 'User account with this name or email was not found.' });
     }
 
-    // ── 6. Verify PIN code (salted and unsalted) ──────────────────────────
-    const saltedHash = hashPin(cleanPin, true);
-    const unsaltedHash = hashPin(cleanPin, false);
-    const isPinValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
+    // ── 6. Verification check ──────────────────────────────────────────────
+    if (!verifiedGoogleUser) {
+      // Standard PIN check
+      const cleanPin = pin.trim();
+      const saltedHash = hashPin(cleanPin, true);
+      const unsaltedHash = hashPin(cleanPin, false);
+      const isPinValid = user.pin_code === saltedHash || user.pin_code === unsaltedHash;
 
-    if (!isPinValid) {
-      return res.status(401).json({
-        success: false,
-        error: 'Incorrect security PIN. Account cannot be deleted without a valid PIN.',
-      });
+      if (!isPinValid) {
+        return res.status(401).json({
+          success: false,
+          error: 'Incorrect security PIN. Account cannot be deleted without a valid PIN.',
+        });
+      }
     }
 
-    // PIN is valid – reset attempts counter
+    // Identity verified – reset attempts counter
     clearRateLimit(rlKey);
 
     // ── 7. Find all projects of the user ──────────────────────────
@@ -284,6 +323,15 @@ export default async function handler(req, res) {
         success: false,
         error: 'Error removing user account from database.',
       });
+    }
+
+    // If Google user and service role key is active, also remove from auth.users
+    if (verifiedGoogleUser?.id && supabase.auth?.admin) {
+      try {
+        await supabase.auth.admin.deleteUser(verifiedGoogleUser.id);
+      } catch (authDelErr) {
+        console.warn('[delete-account] Notice deleting auth user:', authDelErr.message);
+      }
     }
 
     return res.status(200).json({

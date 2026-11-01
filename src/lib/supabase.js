@@ -329,4 +329,43 @@ export async function uploadClientFile(file, projectSlug, itemId) {
   };
 }
 
+/**
+ * Sign in or sign up with Google OAuth via Supabase Auth
+ */
+export async function signInWithGoogle() {
+  if (!supabase) {
+    throw new Error('Supabase client is not configured.');
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'select_account',
+      },
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Sign out from Supabase Auth
+ */
+export async function signOutSupabase() {
+  if (!supabase) return;
+  try {
+    await supabase.auth.signOut();
+  } catch (e) {
+    console.warn('Supabase signOut notice:', e);
+  }
+}
+
+
 

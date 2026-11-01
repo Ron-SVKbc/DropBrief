@@ -23,6 +23,9 @@ alter table public.freelancers add column if not exists tier text not null defau
 alter table public.freelancers add column if not exists max_projects integer not null default 2;
 alter table public.freelancers add column if not exists referred_by text default null;
 alter table public.freelancers add column if not exists referral_count integer not null default 0;
+alter table public.freelancers alter column pin_code drop not null;
+alter table public.freelancers add column if not exists auth_provider text not null default 'pin';
+alter table public.freelancers add column if not exists avatar_url text default null;
 
 -- 1. Tabuľka projektov
 create table if not exists public.projects (
@@ -333,6 +336,163 @@ end;
 $$;
 
 grant execute on function public.register_freelancer(text, text, text, text) to anon, authenticated, service_role;
+
+-- Synchronizácia používateľa prihláseného cez Google OAuth (SECURITY DEFINER)
+create or replace function public.sync_google_freelancer(
+  p_name text,
+  p_avatar text default null,
+  p_referred_by text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_email text := auth.jwt()->>'email';
+  v_existing record;
+  v_clean_nick text;
+  v_candidate_nick text;
+  v_counter integer := 1;
+  v_user record;
+  v_valid_inviter text := null;
+  v_inviter record;
+begin
+  if v_uid is null or v_email is null or trim(v_email) = '' then
+    return jsonb_build_object('success', false, 'error', 'Neoprávnený prístup. Vyžaduje sa aktívna Google relácia.');
+  end if;
+
+  v_email := lower(trim(v_email));
+
+  -- 1. Pozrieť, či už existuje záznam pre toto email alebo id
+  select * into v_existing
+  from public.freelancers
+  where id = v_uid or lower(email) = v_email
+  limit 1;
+
+  if found then
+    -- Aktualizovať existujúci záznam s Google údajmi
+    update public.freelancers
+    set avatar_url = coalesce(p_avatar, avatar_url),
+        auth_provider = 'google'
+    where id = v_existing.id;
+
+    -- Ak projekty mali starý freelancer_id alebo prázdny, prepojiť
+    update public.projects
+    set freelancer_id = v_existing.id
+    where freelancer_id is null and lower(freelancer_email) = v_email;
+
+    select id, nick, email, tier, max_projects, referral_count, referred_by, created_at, avatar_url, auth_provider
+    into v_user
+    from public.freelancers
+    where id = v_existing.id;
+
+    return jsonb_build_object(
+      'success', true,
+      'isNew', false,
+      'user', jsonb_build_object(
+        'id', v_user.id,
+        'nick', v_user.nick,
+        'email', v_user.email,
+        'tier', coalesce(v_user.tier, 'free'),
+        'max_projects', coalesce(v_user.max_projects, 2),
+        'maxProjects', coalesce(v_user.max_projects, 2),
+        'referral_count', coalesce(v_user.referral_count, 0),
+        'referralCount', coalesce(v_user.referral_count, 0),
+        'referred_by', v_user.referred_by,
+        'referredBy', v_user.referred_by,
+        'createdAt', v_user.created_at,
+        'avatarUrl', v_user.avatar_url,
+        'authProvider', 'google'
+      )
+    );
+  end if;
+
+  -- 2. Nový používateľ: Vytvoriť unikátny nick
+  v_clean_nick := nullif(trim(coalesce(p_name, '')), '');
+  if v_clean_nick is null then
+    v_clean_nick := split_part(v_email, '@', 1);
+  end if;
+  v_clean_nick := regexp_replace(v_clean_nick, '[^a-zA-Z0-9_\-\s]', '', 'g');
+  if length(v_clean_nick) < 2 then
+    v_clean_nick := split_part(v_email, '@', 1);
+  end if;
+  if length(v_clean_nick) > 40 then
+    v_clean_nick := substring(v_clean_nick from 1 for 40);
+  end if;
+
+  v_candidate_nick := v_clean_nick;
+  while exists (select 1 from public.freelancers where lower(nick) = lower(v_candidate_nick)) loop
+    v_counter := v_counter + 1;
+    v_candidate_nick := v_clean_nick || ' ' || v_counter;
+  end loop;
+
+  -- Spracovať referral kód
+  if p_referred_by is not null and trim(p_referred_by) != '' and lower(trim(p_referred_by)) != lower(v_candidate_nick) then
+    select nick into v_inviter
+    from public.freelancers
+    where lower(nick) = lower(trim(p_referred_by));
+
+    if found then
+      v_valid_inviter := v_inviter.nick;
+      update public.freelancers
+      set referral_count = coalesce(referral_count, 0) + 1,
+          max_projects = coalesce(max_projects, 2) + 2
+      where lower(nick) = lower(v_valid_inviter);
+    end if;
+  end if;
+
+  -- Vložiť nového používateľa
+  insert into public.freelancers (
+    id,
+    nick,
+    pin_code,
+    email,
+    tier,
+    max_projects,
+    referred_by,
+    referral_count,
+    auth_provider,
+    avatar_url
+  ) values (
+    v_uid,
+    v_candidate_nick,
+    null,
+    v_email,
+    'free',
+    2,
+    v_valid_inviter,
+    0,
+    'google',
+    p_avatar
+  )
+  returning id, nick, email, tier, max_projects, referral_count, referred_by, created_at, avatar_url, auth_provider
+  into v_user;
+
+  return jsonb_build_object(
+    'success', true,
+    'isNew', true,
+    'user', jsonb_build_object(
+      'id', v_user.id,
+      'nick', v_user.nick,
+      'email', v_user.email,
+      'tier', coalesce(v_user.tier, 'free'),
+      'max_projects', coalesce(v_user.max_projects, 2),
+      'maxProjects', coalesce(v_user.max_projects, 2),
+      'referral_count', coalesce(v_user.referral_count, 0),
+      'referralCount', coalesce(v_user.referral_count, 0),
+      'referred_by', v_user.referred_by,
+      'referredBy', v_user.referred_by,
+      'createdAt', v_user.created_at,
+      'avatarUrl', v_user.avatar_url,
+      'authProvider', 'google'
+    )
+  );
+end;
+$$;
+
+grant execute on function public.sync_google_freelancer(text, text, text) to authenticated, anon, service_role;
 
 -- ─── SQL Príkaz na povýšenie early VIP používateľov na Founding PRO (5 slotov) ──
 -- update public.freelancers set tier = 'pro', max_projects = 5 where lower(nick) in ('marko', 'studio creative');

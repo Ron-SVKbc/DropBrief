@@ -8,7 +8,9 @@ import {
   hashPin,
   setSupabaseSessionHeaders,
   isNickAvailable,
-  isEmailAvailable
+  isEmailAvailable,
+  signInWithGoogle,
+  signOutSupabase
 } from '../lib/supabase';
 
 const AppContext = createContext();
@@ -461,6 +463,126 @@ export function AppProvider({ children }) {
     }
   }, [currentFreelancer?.nick, refreshFreelancerProfile]);
 
+  /**
+   * Synchronize Google OAuth user session with Supabase and AppContext
+   */
+  const syncGoogleUserSession = useCallback(async (sbUser) => {
+    if (!sbUser || !isSupabaseConfigured || !supabase) return;
+
+    try {
+      const email = sbUser.email;
+      const name = sbUser.user_metadata?.full_name || sbUser.user_metadata?.name || email?.split('@')[0] || 'Freelancer';
+      const avatar = sbUser.user_metadata?.avatar_url || sbUser.user_metadata?.picture || null;
+      let referralRef = null;
+      try {
+        referralRef = localStorage.getItem('dropbrief_referral_ref') || null;
+      } catch (e) {}
+
+      // Call Postgres RPC sync_google_freelancer (SECURITY DEFINER)
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('sync_google_freelancer', {
+        p_name: name,
+        p_avatar: avatar,
+        p_referred_by: referralRef,
+      });
+
+      let flRecord = null;
+      if (!rpcErr && rpcData?.success && rpcData.user) {
+        flRecord = {
+          ...rpcData.user,
+          authProvider: 'google',
+        };
+      } else {
+        console.warn('RPC sync_google_freelancer notice:', rpcErr?.message);
+        flRecord = {
+          id: sbUser.id,
+          nick: name,
+          email: email,
+          tier: 'free',
+          max_projects: 2,
+          maxProjects: 2,
+          referral_count: 0,
+          referralCount: 0,
+          referred_by: null,
+          referredBy: null,
+          createdAt: sbUser.created_at || new Date().toISOString(),
+          avatarUrl: avatar,
+          authProvider: 'google',
+        };
+      }
+
+      try {
+        localStorage.removeItem('dropbrief_referral_ref');
+      } catch (e) {}
+
+      try {
+        localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(flRecord));
+        const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
+        const filtered = localAccs.filter((a) => a.email?.toLowerCase() !== flRecord.email?.toLowerCase() && a.nick?.toLowerCase() !== flRecord.nick?.toLowerCase());
+        filtered.push(flRecord);
+        localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
+      } catch (e) {
+        console.error('Failed to save session to localStorage:', e);
+      }
+
+      setCurrentFreelancer(flRecord);
+      setSupabaseSessionHeaders({ nick: flRecord.nick, pinHash: null });
+      setIsAuthModalOpen(false);
+      addToast(`Signed in via Google as ${flRecord.nick}!`, 'success', 'Google Sign-In');
+    } catch (err) {
+      console.error('Failed to sync Google user session:', err);
+      addToast('Google login sync failed. Please try again.', 'error', 'Login Error');
+    }
+  }, [addToast]);
+
+  // Supabase Auth listener (Handles Google OAuth redirect return and state changes)
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    let isSubscribed = true;
+
+    // 1. Initial check of active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isSubscribed) return;
+      if (session?.user) {
+        syncGoogleUserSession(session.user);
+      }
+    });
+
+    // 2. Realtime auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isSubscribed) return;
+
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+        await syncGoogleUserSession(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentFreelancer((prev) => {
+          if (prev?.authProvider === 'google') {
+            try {
+              localStorage.removeItem('dropbrief_freelancer_session');
+            } catch (e) {}
+            return null;
+          }
+          return prev;
+        });
+      }
+    });
+
+    return () => {
+      isSubscribed = false;
+      subscription?.unsubscribe();
+    };
+  }, [syncGoogleUserSession]);
+
+  /**
+   * Initiate Google OAuth sign in
+   */
+  const loginWithGoogle = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    return await signInWithGoogle();
+  };
+
   const openAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
@@ -864,9 +986,10 @@ export function AppProvider({ children }) {
     return demoUser;
   };
 
-  const logoutFreelancer = () => {
+  const logoutFreelancer = async () => {
     localStorage.removeItem('dropbrief_freelancer_session');
     setSupabaseSessionHeaders({ nick: null, pinHash: null });
+    await signOutSupabase();
     setCurrentFreelancer(null);
     setCurrentView('dashboard');
     setActiveProjectSlug('demo-preview');
@@ -880,14 +1003,24 @@ export function AppProvider({ children }) {
   /**
    * Secure and irreversible deletion of freelancer account (GDPR Art. 17 - Right to Erasure)
    */
-  const deleteFreelancerAccount = async (enteredPin) => {
+  const deleteFreelancerAccount = async (enteredPinOrConfirm) => {
     if (!currentFreelancer) {
       throw new Error('You are not logged in to any account.');
     }
 
-    const cleanPin = String(enteredPin || '').trim();
-    if (!cleanPin || cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
-      throw new Error('Please enter your valid 6-digit security PIN to confirm deletion.');
+    const isGoogle = currentFreelancer.authProvider === 'google';
+    let cleanPin = '';
+
+    if (isGoogle) {
+      const cleanConfirm = String(enteredPinOrConfirm || '').trim().toUpperCase();
+      if (cleanConfirm !== 'DELETE' && cleanConfirm !== 'ZMAZAŤ') {
+        throw new Error('Please type DELETE or ZMAZAŤ to confirm account deletion.');
+      }
+    } else {
+      cleanPin = String(enteredPinOrConfirm || '').trim();
+      if (!cleanPin || cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
+        throw new Error('Please enter your valid 6-digit security PIN to confirm deletion.');
+      }
     }
 
     const nick = currentFreelancer.nick;
@@ -914,16 +1047,29 @@ export function AppProvider({ children }) {
     }
 
     // 2. Real cloud account – call serverless endpoint /api/delete-account
+    let authToken = null;
+    if (isGoogle && supabase) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        authToken = session?.access_token || null;
+      } catch (e) {}
+    }
+
     let apiSuccess = false;
     let apiErrorMsg = '';
 
     try {
       const response = await fetch('/api/delete-account', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
         body: JSON.stringify({
           identifier: userIdentifier,
-          pin: cleanPin,
+          pin: isGoogle ? 'GOOGLE' : cleanPin,
+          isGoogle: isGoogle,
+          accessToken: authToken,
         }),
         signal: AbortSignal.timeout(15000), // 15 seconds for bulk cloud file deletion
       });
@@ -933,20 +1079,20 @@ export function AppProvider({ children }) {
       if (response.ok && data.success) {
         apiSuccess = true;
       } else {
-        apiErrorMsg = data.error || 'Account deletion failed. Please check your PIN and try again.';
+        apiErrorMsg = data.error || 'Account deletion failed. Please check your credentials and try again.';
         if (response.status === 401 || response.status === 429) {
           throw new Error(apiErrorMsg);
         }
       }
     } catch (fetchErr) {
-      if (fetchErr.message && (fetchErr.message.includes('PIN') || fetchErr.message.includes('pokusov'))) {
+      if (fetchErr.message && (fetchErr.message.includes('PIN') || fetchErr.message.includes('pokusov') || fetchErr.message.includes('Google') || fetchErr.message.includes('DELETE'))) {
         throw fetchErr;
       }
       console.warn('API /api/delete-account unreachable, attempting direct RPC fallback:', fetchErr);
     }
 
-    // 3. Fallback: Priame volanie Postgres RPC delete_freelancer_account (ak API endpoint zlyhal napr. offline)
-    if (!apiSuccess && isSupabaseConfigured && supabase) {
+    // 3. Fallback: Priame volanie Postgres RPC delete_freelancer_account (pre PIN účty)
+    if (!apiSuccess && !isGoogle && isSupabaseConfigured && supabase) {
       try {
         const saltedHash = await hashPin(cleanPin, true);
         const unsaltedHash = await hashPin(cleanPin, false);
@@ -979,11 +1125,15 @@ export function AppProvider({ children }) {
         localStorage.removeItem(`dropbrief_projects_${nick.toLowerCase()}`);
       }
       const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
-      const filtered = localAccs.filter((a) => a.nick?.toLowerCase() !== nick.toLowerCase());
+      const filtered = localAccs.filter((a) => a.nick?.toLowerCase() !== nick.toLowerCase() && (!a.email || a.email.toLowerCase() !== userIdentifier.toLowerCase()));
       localStorage.setItem('dropbrief_local_freelancers', JSON.stringify(filtered));
       localStorage.removeItem('dropbrief_login_attempts');
     } catch (storageErr) {
       console.warn('Local storage cleanup warning:', storageErr);
+    }
+
+    if (isGoogle) {
+      await signOutSupabase();
     }
 
     // 5. Reset app state and log out
@@ -1781,6 +1931,7 @@ export function AppProvider({ children }) {
         pendingRegistration,
         setPendingRegistration,
         loginFreelancer,
+        loginWithGoogle,
         resetFreelancerPin,
         loginAsDemo,
         logoutFreelancer,
