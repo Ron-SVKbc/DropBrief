@@ -187,10 +187,15 @@ export default async function handler(req, res) {
     clearRateLimit(rlKey);
 
     // ── 7. Find all projects of the user ──────────────────────────
+    let projFilter = `freelancer_id.eq.${user.id},freelancer_name.ilike.${user.nick}`;
+    if (user.email) {
+      projFilter += `,freelancer_email.ilike.${user.email}`;
+    }
+
     const { data: projects, error: projErr } = await supabase
       .from('projects')
       .select('id, slug, batches')
-      .or(`freelancer_id.eq.${user.id},freelancer_name.ilike.${user.nick}`);
+      .or(projFilter);
 
     if (projErr) {
       console.warn('[delete-account] Could not fetch projects:', projErr.message);
