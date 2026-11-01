@@ -18,7 +18,11 @@ import {
   Layers,
   Zap,
   RefreshCw,
-  Info
+  Info,
+  Copy,
+  Gift,
+  Users,
+  ShieldAlert
 } from 'lucide-react';
 
 const ICONS_MAP = {
@@ -41,6 +45,29 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   });
 
   const isLimitReached = Boolean(currentFreelancer && myActiveProjects.length >= maxProjects);
+
+  const [copiedInvite, setCopiedInvite] = useState(false);
+  const referralUrl = `https://usedropbrief.xyz/?ref=${encodeURIComponent(currentFreelancer?.nick || '')}`;
+  const referralCount = currentFreelancer?.referral_count ?? currentFreelancer?.referralCount ?? 0;
+  const bonusSlots = referralCount * 2;
+
+  const handleCopyInviteLink = () => {
+    navigator.clipboard.writeText(referralUrl);
+    setCopiedInvite(true);
+    addToast('Invite link copied to clipboard!', 'success', 'Referral');
+    setTimeout(() => setCopiedInvite(false), 2500);
+  };
+
+  // Inform the user with toast immediately when attempting to create a project with full slots
+  useEffect(() => {
+    if (isOpen && isLimitReached) {
+      addToast(
+        `You've reached your limit of ${maxProjects} active project slots. Share your invite link to get +2 extra project slots for every designer who joins!`,
+        'warning',
+        'Project Limit Reached'
+      );
+    }
+  }, [isOpen, isLimitReached, maxProjects, addToast]);
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
   const [projectType, setProjectType] = useState('one-off'); // 'one-off' | 'ongoing'
@@ -188,21 +215,22 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               width: '38px',
               height: '38px',
               borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
+              background: isLimitReached ? 'rgba(234, 88, 12, 0.12)' : 'var(--accent-gradient)',
+              color: isLimitReached ? 'var(--accent-cta)' : '#fff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff',
-              boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
+              boxShadow: isLimitReached ? 'none' : '0 0 15px rgba(99, 102, 241, 0.4)',
+              border: isLimitReached ? '1px solid rgba(234, 88, 12, 0.25)' : 'none'
             }}>
-              <Plus size={20} aria-hidden="true" />
+              {isLimitReached ? <ShieldAlert size={20} aria-hidden="true" /> : <Plus size={20} aria-hidden="true" />}
             </div>
             <div>
-              <h2 id="create-project-modal-title" style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Create New Asset Collection
+              <h2 id="create-project-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                {isLimitReached ? 'Active Project Limit Reached' : 'Create New Asset Collection'}
               </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Choose a template or custom brief. Link is generated with zero registration for client.
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>
+                {isLimitReached ? `${myActiveProjects.length} / ${maxProjects} active slots in use` : 'Choose a template or custom brief. Link is generated with zero registration for client.'}
               </p>
             </div>
           </div>
@@ -219,33 +247,159 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '26px', flex: 1 }}>
-          
-          {/* Active Slot Limit Warning */}
-          {isLimitReached && (
+        {isLimitReached ? (
+          <div style={{ padding: '36px 28px', textAlign: 'center', overflowY: 'auto', flex: 1 }}>
             <div style={{
-              background: 'rgba(234, 88, 12, 0.08)',
-              border: '1px solid rgba(234, 88, 12, 0.3)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px',
-              marginBottom: '22px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px'
+              width: '68px',
+              height: '68px',
+              borderRadius: '50%',
+              background: 'rgba(234, 88, 12, 0.1)',
+              color: 'var(--accent-cta)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '18px',
+              border: '1px solid rgba(234, 88, 12, 0.25)',
+              boxShadow: '0 8px 24px rgba(234, 88, 12, 0.12)'
             }}>
-              <AlertCircle size={20} color="var(--accent-cta)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-              <div style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
-                <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px', fontWeight: 700 }}>
-                  Active Slot Limit Reached ({myActiveProjects.length} / {maxProjects} slots)
-                </strong>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  You've reached your limit of {maxProjects} active project slots. Share your invite link to get +2 extra project slots for every designer who joins!
+              <ShieldAlert size={34} aria-hidden="true" />
+            </div>
+
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <span className="badge" style={{
+                background: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)',
+                color: '#c2410c',
+                border: '1px solid #fdba74',
+                fontWeight: 800,
+                padding: '5px 14px',
+                fontSize: '0.825rem'
+              }}>
+                Active Slots Full
+              </span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                {myActiveProjects.length} / {maxProjects} slots used
+              </span>
+            </div>
+
+            <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '-0.025em' }}>
+              You've Reached Your Limit of {maxProjects} Active Project Slots
+            </h3>
+
+            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', maxWidth: '520px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+              You currently have <strong style={{ color: 'var(--text-primary)' }}>{myActiveProjects.length} active collections</strong> in your workspace. Share your personal invite link with a fellow web designer: <strong style={{ color: 'var(--accent-primary)' }}>you get +2 extra project slots</strong> and <strong style={{ color: 'var(--accent-primary)' }}>+50 MB storage</strong> for every designer who joins!
+            </p>
+
+            {/* Referral Link & 1-Click Copy Card */}
+            <div style={{
+              background: 'var(--bg-base)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              padding: '22px',
+              maxWidth: '560px',
+              margin: '0 auto 22px',
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)' }}>
+                  Your Personal Invite Link
+                </span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: referralCount > 0 ? 'var(--success)' : 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <Users size={14} aria-hidden="true" />
+                  Designers referred: {referralCount} (+{bonusSlots} bonus slots)
                 </span>
               </div>
-            </div>
-          )}
 
-          {/* Step 1: Template Selection */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={referralUrl}
+                  onClick={(e) => e.target.select()}
+                  aria-label="Your personal invite link"
+                  style={{
+                    flex: '1 1 260px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.85rem',
+                    padding: '10px 14px',
+                    background: '#ffffff',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    color: 'var(--text-primary)',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  type="button"
+                  id="btn-copy-invite-modal"
+                  onClick={handleCopyInviteLink}
+                  className="btn btn-primary btn-pill"
+                  style={{ whiteSpace: 'nowrap', gap: '6px', padding: '10px 18px', fontWeight: 700, boxShadow: 'var(--glow-accent)' }}
+                >
+                  {copiedInvite ? (
+                    <>
+                      <Check size={16} aria-hidden="true" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} aria-hidden="true" />
+                      <span>Copy Invite Link</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+                marginTop: '16px',
+                paddingTop: '16px',
+                borderTop: '1px solid var(--border-hairline)',
+                fontSize: '0.825rem',
+                color: 'var(--text-secondary)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Gift size={16} color="var(--accent-cta)" aria-hidden="true" />
+                  <span><strong>+2 Project Slots</strong> per designer</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Zap size={16} color="var(--accent-primary)" aria-hidden="true" />
+                  <span><strong>+50 MB Storage</strong> per designer</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Completion Tip */}
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 28px', lineHeight: 1.5 }}>
+              💡 <strong>Alternative:</strong> Have you finished collecting assets for a client? Marking that project as <span style={{ color: 'var(--success)', fontWeight: 700 }}>completed</span> in your dashboard will immediately free up an active project slot.
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-secondary btn-pill"
+                style={{ padding: '10px 24px', fontWeight: 600 }}
+              >
+                Back to Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyInviteLink}
+                className="btn btn-primary btn-pill"
+                style={{ padding: '10px 24px', gap: '8px', fontWeight: 700, boxShadow: 'var(--glow-accent)' }}
+              >
+                <Share2 size={16} aria-hidden="true" />
+                <span>{copiedInvite ? 'Link Copied!' : 'Copy & Share Invite Link'}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '26px', flex: 1 }}>
+
+            {/* Step 1: Template Selection */}
           <div style={{ marginBottom: '22px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
               1. Choose Industry Template
@@ -690,6 +844,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           </div>
 
         </form>
+        )}
       </div>
     </div>
   );
