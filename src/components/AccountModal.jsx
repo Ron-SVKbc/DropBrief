@@ -39,6 +39,7 @@ export default function AccountModal() {
   const [copiedPin, setCopiedPin] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Reset state on modal open/close
   useEffect(() => {
@@ -184,9 +185,22 @@ export default function AccountModal() {
               justifyContent: 'center',
               color: isConfirmingDelete ? 'var(--danger)' : 'var(--accent-primary-light)',
               boxShadow: isConfirmingDelete ? 'var(--glow-red)' : 'var(--glow-accent)',
-              transition: 'var(--transition)'
+              transition: 'var(--transition)',
+              overflow: 'hidden'
             }}>
-              {isConfirmingDelete ? <AlertTriangle size={22} /> : <User size={22} />}
+              {isConfirmingDelete ? (
+                <AlertTriangle size={22} />
+              ) : currentFreelancer?.avatarUrl && !avatarError ? (
+                <img 
+                  src={currentFreelancer.avatarUrl} 
+                  alt={currentFreelancer.nick}
+                  referrerPolicy="no-referrer"
+                  onError={() => setAvatarError(true)}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <User size={22} />
+              )}
             </div>
             <div>
               <h2 id="account-modal-title" style={{

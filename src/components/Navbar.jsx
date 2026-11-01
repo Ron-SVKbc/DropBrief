@@ -36,7 +36,12 @@ export default function Navbar({ onOpenCreateModal }) {
 
   const [copiedPin, setCopiedPin] = useState(false);
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [currentFreelancer?.avatarUrl]);
 
   // Close dropdown on click outside or Escape
   useEffect(() => {
@@ -455,10 +460,12 @@ export default function Navbar({ onOpenCreateModal }) {
                   }
                 }}
               >
-                {currentFreelancer.avatarUrl ? (
+                {currentFreelancer.avatarUrl && !avatarError ? (
                   <img 
                     src={currentFreelancer.avatarUrl} 
                     alt={currentFreelancer.nick} 
+                    referrerPolicy="no-referrer"
+                    onError={() => setAvatarError(true)}
                     style={{
                       width: '24px', 
                       height: '24px',
@@ -469,15 +476,19 @@ export default function Navbar({ onOpenCreateModal }) {
                     }} 
                   />
                 ) : (
-                  <div style={{
-                    width: '24px', height: '24px',
-                    borderRadius: '50%',
-                    background: 'var(--gradient-brand)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: '0.7rem', color: '#fff',
-                    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.35)',
-                    flexShrink: 0
-                  }} aria-hidden="true">
+                  <div 
+                    style={{
+                      width: '24px', height: '24px',
+                      borderRadius: '50%',
+                      background: 'var(--gradient-brand)',
+                      display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 800, fontSize: '0.7rem', color: '#fff',
+                      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.35)',
+                      flexShrink: 0
+                    }} 
+                    aria-hidden="true"
+                  >
                     {(currentFreelancer.nick || 'F').charAt(0).toUpperCase()}
                   </div>
                 )}
