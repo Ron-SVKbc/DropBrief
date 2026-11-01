@@ -56,7 +56,9 @@ export default async function handler(req, res) {
       try { bodyData = JSON.parse(bodyData); } catch (e) { bodyData = {}; }
     }
 
-    const { email, nick, pin, challengeToken } = bodyData;
+    const { email, nick, pin, challengeToken, referredBy, referred_by } = bodyData;
+    const rawRef = referredBy || referred_by || null;
+    const cleanRef = rawRef && typeof rawRef === 'string' ? rawRef.trim() : null;
 
     if (!email || !pin || !challengeToken) {
       return res.status(400).json({
@@ -166,32 +168,81 @@ export default async function handler(req, res) {
           });
         }
 
-        // Insert account into Supabase (try with permitted columns id, nick, created_at)
+        // 1. Primarily register via secure SECURITY DEFINER RPC function (handles referrals & atomic slot rewards)
+        let rpcSucceeded = false;
         try {
-          const { data: inserted, error: insertError } = await supabase
-            .from('freelancers')
-            .insert({
-              nick: finalNick,
-              email: cleanEmail,
-              pin_code: saltedHash
-            })
-            .select('id, nick, created_at')
-            .maybeSingle();
+          const { data: rpcRes, error: rpcErr } = await supabase.rpc('register_freelancer', {
+            p_nick: finalNick,
+            p_pin_hash: saltedHash,
+            p_email: cleanEmail,
+            p_referred_by: cleanRef,
+          });
 
-          if (!insertError && inserted) {
-            savedUser = inserted;
-          } else if (insertError) {
-            // Bare INSERT as fallback
-            await supabase
+          if (!rpcErr && rpcRes?.success && rpcRes.user) {
+            savedUser = rpcRes.user;
+            rpcSucceeded = true;
+          } else if (rpcErr) {
+            console.warn('[verify-registration] register_freelancer RPC warning:', rpcErr.message);
+          }
+        } catch (rpcEx) {
+          console.warn('[verify-registration] register_freelancer RPC exception:', rpcEx.message);
+        }
+
+        // 2. Fallback if RPC was not deployed yet (direct service_role queries)
+        if (!rpcSucceeded) {
+          let validInviter = null;
+          if (cleanRef && cleanRef.toLowerCase() !== finalNick.toLowerCase()) {
+            try {
+              const { data: inviter } = await supabase
+                .from('freelancers')
+                .select('nick, max_projects, referral_count')
+                .ilike('nick', cleanRef)
+                .maybeSingle();
+
+              if (inviter) {
+                validInviter = inviter.nick;
+                await supabase
+                  .from('freelancers')
+                  .update({
+                    referral_count: (inviter.referral_count || 0) + 1,
+                    max_projects: (inviter.max_projects || 2) + 2,
+                  })
+                  .ilike('nick', cleanRef);
+              }
+            } catch (invErr) {
+              console.warn('[verify-registration] inviter update fallback error:', invErr);
+            }
+          }
+
+          try {
+            const { data: inserted, error: insertError } = await supabase
               .from('freelancers')
               .insert({
                 nick: finalNick,
                 email: cleanEmail,
-                pin_code: saltedHash
-              });
+                pin_code: saltedHash,
+                tier: 'free',
+                max_projects: 2,
+                referred_by: validInviter,
+                referral_count: 0,
+              })
+              .select('id, nick, email, created_at, tier, max_projects, referral_count, referred_by')
+              .maybeSingle();
+
+            if (!insertError && inserted) {
+              savedUser = inserted;
+            } else if (insertError) {
+              await supabase
+                .from('freelancers')
+                .insert({
+                  nick: finalNick,
+                  email: cleanEmail,
+                  pin_code: saltedHash,
+                });
+            }
+          } catch (insertEx) {
+            console.warn('[verify-registration] Supabase insert fallback exception:', insertEx.message);
           }
-        } catch (insertEx) {
-          console.warn('[verify-registration] Supabase insert fallback exception:', insertEx.message);
         }
       } catch (dbErr) {
         console.error('[verify-registration] Supabase error:', dbErr);
@@ -203,7 +254,14 @@ export default async function handler(req, res) {
       id: savedUser?.id || fallbackId,
       nick: savedUser?.nick || finalNick,
       email: savedUser?.email || cleanEmail,
-      createdAt: savedUser?.created_at || new Date().toISOString(),
+      tier: savedUser?.tier || 'free',
+      max_projects: savedUser?.max_projects || savedUser?.maxProjects || 2,
+      maxProjects: savedUser?.maxProjects || savedUser?.max_projects || 2,
+      referral_count: savedUser?.referral_count ?? savedUser?.referralCount ?? 0,
+      referralCount: savedUser?.referralCount ?? savedUser?.referral_count ?? 0,
+      referred_by: savedUser?.referred_by || savedUser?.referredBy || cleanRef || null,
+      referredBy: savedUser?.referredBy || savedUser?.referred_by || cleanRef || null,
+      createdAt: savedUser?.created_at || savedUser?.createdAt || new Date().toISOString(),
       pinHash: saltedHash,
       pin: cleanPin,
     };

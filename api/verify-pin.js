@@ -125,7 +125,7 @@ export default async function handler(req, res) {
       const { data: dbUser, error } = await withTimeout(
         supabase
           .from('freelancers')
-          .select('id, nick, email, created_at, pin_code')
+          .select('id, nick, email, created_at, pin_code, tier, max_projects, referral_count, referred_by')
           .or(`nick.ilike.${cleanNick},email.ilike.${cleanNick}`)
           .maybeSingle()
       );
@@ -171,13 +171,20 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       user: {
-        id:        user.id,
-        nick:      user.nick,
-        email:     user.email || '',
-        createdAt: user.created_at || user.createdAt || new Date().toISOString(),
+        id:             user.id,
+        nick:           user.nick,
+        email:          user.email || '',
+        tier:           user.tier || 'free',
+        max_projects:   user.max_projects || user.maxProjects || 2,
+        maxProjects:    user.maxProjects || user.max_projects || 2,
+        referral_count: user.referral_count ?? user.referralCount ?? 0,
+        referralCount:  user.referralCount ?? user.referral_count ?? 0,
+        referred_by:    user.referred_by || user.referredBy || null,
+        referredBy:     user.referredBy || user.referred_by || null,
+        createdAt:      user.created_at || user.createdAt || new Date().toISOString(),
         // pinHash is returned only for local cache (offline login) –
         // transferred over HTTPS and stored only in localStorage, never in plaintext
-        pinHash:   user.pin_code || user.pinHash || saltedHash,
+        pinHash:        user.pin_code || user.pinHash || saltedHash,
       },
     });
 

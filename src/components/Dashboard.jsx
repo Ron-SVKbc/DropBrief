@@ -30,7 +30,10 @@ import {
   RefreshCw, 
   Eye, 
   Settings,
-  ArrowRight
+  ArrowRight,
+  Gift,
+  Users,
+  Share2
 } from 'lucide-react';
 
 export default function Dashboard({ onOpenCreateModal }) {
@@ -61,6 +64,29 @@ export default function Dashboard({ onOpenCreateModal }) {
     if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;
   });
+
+  const [copiedInvite, setCopiedInvite] = useState(false);
+
+  // Tier & Referral data with defensive fallbacks
+  const tier = currentFreelancer?.tier || 'free';
+  const isVipPro = tier === 'pro';
+  const maxProjects = currentFreelancer?.max_projects || currentFreelancer?.maxProjects || (isVipPro ? 5 : 2);
+  const referralCount = currentFreelancer?.referral_count ?? currentFreelancer?.referralCount ?? 0;
+  const bonusSlots = referralCount * 2;
+
+  const activeProjects = myProjects.filter((p) => p.status !== 'completed');
+  const activeProjectsCount = activeProjects.length;
+  const usagePercentage = Math.min(100, Math.round((activeProjectsCount / maxProjects) * 100));
+
+  const referralUrl = `https://usedropbrief.xyz/?ref=${encodeURIComponent(currentFreelancer?.nick || '')}`;
+
+  const copyInviteLink = () => {
+    navigator.clipboard.writeText(referralUrl);
+    setCopiedInvite(true);
+    addToast('Invite link copied to clipboard!', 'success', 'Referral');
+    setTimeout(() => setCopiedInvite(false), 2500);
+  };
+
 
   const filteredProjects = myProjects.filter((p) => {
     const term = searchTerm.toLowerCase().trim();
@@ -122,7 +148,9 @@ export default function Dashboard({ onOpenCreateModal }) {
               <Sparkles size={12} aria-hidden="true" />
               <span style={{ fontWeight: 700 }}>{currentFreelancer?.nick || 'Freelancer'}</span>
             </span>
-            <span className="badge badge-neutral" style={{ padding: '4px 9px' }}>Pro Workspace</span>
+            <span className="badge badge-neutral" style={{ padding: '4px 9px' }}>
+              {isVipPro ? '⭐ VIP PRO Workspace' : 'Starter Workspace'}
+            </span>
           </div>
 
           <h1 style={{ 
@@ -247,6 +275,189 @@ export default function Dashboard({ onOpenCreateModal }) {
           <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>~{totalProjects * 4} hours saved</div>
         </div>
 
+      </div>
+
+      {/* ── Referral & Tier Card ──────────────────────────────── */}
+      <div 
+        id="referral-tier-card"
+        style={{
+          background: '#ffffff',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-xl)',
+          padding: 'clamp(20px, 3vw, 28px)',
+          marginBottom: '32px',
+          boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '24px',
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Left Column: Tier Badge, Usage & Reward Incentive */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {isVipPro ? (
+              <span 
+                className="badge" 
+                style={{
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  color: '#92400e',
+                  border: '1px solid #fcd34d',
+                  fontWeight: 800,
+                  padding: '5px 12px',
+                  fontSize: '0.825rem',
+                  letterSpacing: '0.01em',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.15)'
+                }}
+              >
+                ⭐ VIP Founding PRO
+              </span>
+            ) : (
+              <span 
+                className="badge badge-neutral" 
+                style={{
+                  fontWeight: 700,
+                  padding: '5px 12px',
+                  fontSize: '0.825rem',
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                Free Plan
+              </span>
+            )}
+
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              {activeProjectsCount} / {maxProjects} active slots used
+            </span>
+          </div>
+
+          {/* Slot Progress Bar */}
+          <div style={{ width: '100%', maxWidth: '420px' }}>
+            <div 
+              style={{
+                height: '8px',
+                background: 'var(--bg-base)',
+                borderRadius: '999px',
+                overflow: 'hidden',
+                border: '1px solid var(--border-hairline)'
+              }}
+              role="progressbar"
+              aria-valuenow={activeProjectsCount}
+              aria-valuemin={0}
+              aria-valuemax={maxProjects}
+              aria-label="Project slot progress"
+            >
+              <div 
+                style={{
+                  height: '100%',
+                  width: `${usagePercentage}%`,
+                  background: activeProjectsCount >= maxProjects 
+                    ? 'var(--accent-cta)' 
+                    : 'linear-gradient(90deg, var(--accent-primary) 0%, #7c3aed 100%)',
+                  borderRadius: '999px',
+                  transition: 'width 0.4s ease'
+                }} 
+              />
+            </div>
+          </div>
+
+          {/* Reward Incentive Copy */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '2px' }}>
+            <Gift size={16} color="var(--accent-cta)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Invite a fellow web designer: you get +2 project slots & +50 MB storage for every designer who signs up.
+            </span>
+          </div>
+        </div>
+
+        {/* Right Column: Referral Link Generator, 1-Click Copy & Stat Counter */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '12px',
+          background: 'var(--bg-base)',
+          padding: '16px 18px',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-hairline)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ 
+              fontSize: '0.78rem', 
+              fontWeight: 700, 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.05em', 
+              color: 'var(--text-tertiary)' 
+            }}>
+              Your Referral Link
+            </span>
+
+            {/* Stat Counter */}
+            <span style={{ 
+              fontSize: '0.8rem', 
+              fontWeight: 700, 
+              color: referralCount > 0 ? 'var(--success)' : 'var(--text-muted)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}>
+              <Users size={14} aria-hidden="true" />
+              Designers referred: {referralCount} (+{bonusSlots} bonus slots unlocked)
+            </span>
+          </div>
+
+          {/* 1-Click Copy Link Box */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <input 
+              type="text"
+              readOnly
+              value={referralUrl}
+              aria-label="Your personal referral link"
+              onClick={(e) => e.target.select()}
+              style={{
+                flex: 1,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.8rem',
+                padding: '8px 12px',
+                background: '#ffffff',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            />
+            <button
+              id="btn-copy-invite-link"
+              type="button"
+              onClick={copyInviteLink}
+              className="btn btn-primary btn-sm btn-pill"
+              style={{ 
+                whiteSpace: 'nowrap', 
+                gap: '6px', 
+                padding: '8px 16px',
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                boxShadow: 'var(--glow-accent)'
+              }}
+            >
+              {copiedInvite ? (
+                <>
+                  <Check size={14} aria-hidden="true" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={14} aria-hidden="true" />
+                  <span>Copy Invite Link</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Filter & Search Toolbar ───────────────────────────── */}

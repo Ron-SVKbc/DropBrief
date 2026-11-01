@@ -48,6 +48,13 @@ export default function AuthModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
+  const [referralRef, setReferralRef] = useState(() => {
+    try {
+      return localStorage.getItem('dropbrief_referral_ref') || null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   // 5-minute countdown and resend cooldown
   const [timeLeft, setTimeLeft] = useState(300);
@@ -57,6 +64,9 @@ export default function AuthModal() {
     if (isAuthModalOpen) {
       setErrorMessage('');
       setForgotSuccess('');
+      try {
+        setReferralRef(localStorage.getItem('dropbrief_referral_ref') || null);
+      } catch (e) {}
       if (authModalMode === 'pin_reveal') {
         try {
           confetti({
@@ -510,6 +520,23 @@ export default function AuthModal() {
             {/* FORM 2: REGISTER (Step 1 - Name & Email) */}
             {authModalMode === 'register' && (
               <form onSubmit={handleRegisterRequestSubmit} style={{ padding: '26px' }}>
+                {referralRef && (
+                  <div style={{
+                    background: 'rgba(37, 99, 235, 0.08)',
+                    border: '1px solid rgba(37, 99, 235, 0.25)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '10px 14px',
+                    marginBottom: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.825rem',
+                    color: 'var(--text-secondary)'
+                  }}>
+                    <Sparkles size={16} color="var(--accent-primary)" aria-hidden="true" />
+                    <span>Referred by <strong style={{ color: 'var(--text-primary)' }}>{referralRef}</strong> — welcome bonus applied!</span>
+                  </div>
+                )}
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="register-nick-input" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Your Name or Studio Name <span style={{ color: 'var(--accent-primary)' }}>*</span>

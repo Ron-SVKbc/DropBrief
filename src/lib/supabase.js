@@ -109,7 +109,7 @@ export async function getCloudFreelancer(nick) {
   try {
     const { data: dbUser, error } = await supabase
       .from('freelancers')
-      .select('id, nick, created_at')
+      .select('id, nick, created_at, tier, max_projects, referral_count, referred_by')
       .ilike('nick', cleanNick)
       .maybeSingle();
 
@@ -119,6 +119,13 @@ export async function getCloudFreelancer(nick) {
           id: dbUser.id,
           nick: dbUser.nick,
           createdAt: dbUser.created_at,
+          tier: dbUser.tier || 'free',
+          max_projects: dbUser.max_projects || 2,
+          maxProjects: dbUser.max_projects || 2,
+          referral_count: dbUser.referral_count ?? 0,
+          referralCount: dbUser.referral_count ?? 0,
+          referred_by: dbUser.referred_by || null,
+          referredBy: dbUser.referred_by || null,
         };
       }
       // If table exists and returned null, user with this nickname does not exist in DB.

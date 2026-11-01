@@ -7,11 +7,22 @@ create table if not exists public.freelancers (
   nick text unique not null,
   pin_code text not null, -- POZOR: ukladame len SHA-256 hash PINu, nikdy plain-text!
   email text default '',
+  tier text not null default 'free',            -- 'free' | 'pro'
+  max_projects integer not null default 2,      -- free = 2 sloty, VIP PRO = 5 slotov (+2 za referral)
+  referred_by text default null,                -- nickname používateľa, ktorý poslal pozvánku
+  referral_count integer not null default 0,    -- počet úspešných odporúčaní
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 create index if not exists idx_freelancers_nick on public.freelancers(lower(nick));
 create index if not exists idx_freelancers_email on public.freelancers(lower(email));
+create index if not exists idx_freelancers_referred_by on public.freelancers(lower(referred_by));
+
+-- Idempotentná migrácia stĺpcov pre existujúce databázy
+alter table public.freelancers add column if not exists tier text not null default 'free';
+alter table public.freelancers add column if not exists max_projects integer not null default 2;
+alter table public.freelancers add column if not exists referred_by text default null;
+alter table public.freelancers add column if not exists referral_count integer not null default 0;
 
 -- 1. Tabuľka projektov
 create table if not exists public.projects (
@@ -165,7 +176,7 @@ $$;
 
 grant execute on function public.check_email_available(text) to anon, authenticated, service_role;
 
--- Bezpečné overenie PIN kódu na serverovej úrovni (podporuje Nick aj E-mail)
+-- Bezpečné overenie PIN kódu na serverovej úrovni (podporuje Nick aj E-mail, vracia tier a limity)
 create or replace function public.verify_freelancer_pin(
   p_nick text,
   p_salted_hash text,
@@ -183,7 +194,7 @@ begin
     return jsonb_build_object('success', false, 'error', 'Chýbajúce prihlasovacie údaje.');
   end if;
 
-  select id, nick, email, created_at, pin_code
+  select id, nick, email, created_at, pin_code, tier, max_projects, referral_count, referred_by
   into v_user
   from public.freelancers
   where lower(nick) = lower(trim(p_nick)) or lower(email) = lower(trim(p_nick));
@@ -200,7 +211,14 @@ begin
         'nick', v_user.nick,
         'email', v_user.email,
         'createdAt', v_user.created_at,
-        'pinHash', v_user.pin_code
+        'pinHash', v_user.pin_code,
+        'tier', coalesce(v_user.tier, 'free'),
+        'max_projects', coalesce(v_user.max_projects, 2),
+        'maxProjects', coalesce(v_user.max_projects, 2),
+        'referral_count', coalesce(v_user.referral_count, 0),
+        'referralCount', coalesce(v_user.referral_count, 0),
+        'referred_by', v_user.referred_by,
+        'referredBy', v_user.referred_by
       )
     );
   else
@@ -210,6 +228,114 @@ end;
 $$;
 
 grant execute on function public.verify_freelancer_pin(text, text, text) to anon, authenticated, service_role;
+
+-- Bezpečná registrácia freelancera so spracovaním referralov (SECURITY DEFINER)
+create or replace function public.register_freelancer(
+  p_nick text,
+  p_pin_hash text,
+  p_email text default '',
+  p_referred_by text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_clean_nick text;
+  v_clean_email text;
+  v_clean_ref text;
+  v_inviter record;
+  v_valid_inviter text := null;
+  v_new_user record;
+begin
+  -- Kontrola nicku (dĺžka 2 až 50 znakov)
+  if p_nick is null or length(trim(p_nick)) < 2 or length(trim(p_nick)) > 50 then
+    return jsonb_build_object('success', false, 'error', 'Nickname must be between 2 and 50 characters.');
+  end if;
+
+  -- Kontrola PIN hashu (64-znakový SHA-256)
+  if p_pin_hash is null or length(trim(p_pin_hash)) != 64 then
+    return jsonb_build_object('success', false, 'error', 'Invalid PIN hash.');
+  end if;
+
+  v_clean_nick := trim(p_nick);
+  v_clean_email := lower(trim(coalesce(p_email, '')));
+  v_clean_ref := nullif(trim(coalesce(p_referred_by, '')), '');
+
+  -- Overenie dostupnosti nicku
+  if exists (select 1 from public.freelancers where lower(nick) = lower(v_clean_nick)) then
+    return jsonb_build_object('success', false, 'error', 'Nickname is already taken.');
+  end if;
+
+  -- Overenie dostupnosti e-mailu (ak bol zadaný)
+  if v_clean_email != '' and exists (select 1 from public.freelancers where lower(email) = v_clean_email) then
+    return jsonb_build_object('success', false, 'error', 'An account with this email already exists.');
+  end if;
+
+  -- Validácia referralu:
+  -- 1. Zákaz self-referralu (používateľ nesmie odporučiť sám seba)
+  -- 2. Overenie existencie pozývajúceho v tabuľke freelancers
+  if v_clean_ref is not null and lower(v_clean_ref) != lower(v_clean_nick) then
+    select nick into v_inviter
+    from public.freelancers
+    where lower(nick) = lower(v_clean_ref);
+
+    if found then
+      v_valid_inviter := v_inviter.nick;
+      -- Odmena: navýšenie počtu odporúčaní o +1 a odomknutie +2 slotov pre pozývajúceho
+      update public.freelancers
+      set referral_count = coalesce(referral_count, 0) + 1,
+          max_projects = coalesce(max_projects, 2) + 2
+      where lower(nick) = lower(v_clean_ref);
+    end if;
+  end if;
+
+  -- Vloženie nového freelancera do databázy
+  insert into public.freelancers (
+    nick,
+    pin_code,
+    email,
+    tier,
+    max_projects,
+    referred_by,
+    referral_count
+  ) values (
+    v_clean_nick,
+    trim(p_pin_hash),
+    v_clean_email,
+    'free',
+    2,
+    v_valid_inviter,
+    0
+  )
+  returning id, nick, email, tier, max_projects, referral_count, referred_by, created_at, pin_code
+  into v_new_user;
+
+  return jsonb_build_object(
+    'success', true,
+    'user', jsonb_build_object(
+      'id', v_new_user.id,
+      'nick', v_new_user.nick,
+      'email', v_new_user.email,
+      'tier', v_new_user.tier,
+      'max_projects', v_new_user.max_projects,
+      'maxProjects', v_new_user.max_projects,
+      'referral_count', v_new_user.referral_count,
+      'referralCount', v_new_user.referral_count,
+      'referred_by', v_new_user.referred_by,
+      'referredBy', v_new_user.referred_by,
+      'createdAt', v_new_user.created_at,
+      'pinHash', v_new_user.pin_code
+    )
+  );
+end;
+$$;
+
+grant execute on function public.register_freelancer(text, text, text, text) to anon, authenticated, service_role;
+
+-- ─── SQL Príkaz na povýšenie early VIP používateľov na Founding PRO (5 slotov) ──
+-- update public.freelancers set tier = 'pro', max_projects = 5 where lower(nick) in ('marko', 'studio creative');
 
 -- Bezpečná obnova PINu na serveri pre /api/reset-pin (VÝHRADNE service_role, NIKDY anon!)
 create or replace function public.reset_freelancer_pin(

@@ -116,7 +116,19 @@ export function AppProvider({ children }) {
   const [currentFreelancer, setCurrentFreelancer] = useState(() => {
     try {
       const saved = localStorage.getItem('dropbrief_freelancer_session');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (!parsed) return null;
+      return {
+        ...parsed,
+        tier: parsed.tier || 'free',
+        max_projects: parsed.max_projects || parsed.maxProjects || 2,
+        maxProjects: parsed.maxProjects || parsed.max_projects || 2,
+        referral_count: parsed.referral_count ?? parsed.referralCount ?? 0,
+        referralCount: parsed.referralCount ?? parsed.referral_count ?? 0,
+        referred_by: parsed.referred_by || parsed.referredBy || null,
+        referredBy: parsed.referredBy || parsed.referred_by || null,
+      };
     } catch (e) {
       console.error('Failed to parse freelancer session:', e);
       return null;
@@ -410,6 +422,45 @@ export function AppProvider({ children }) {
     };
   }, [fetchSupabaseProjects, currentFreelancer]);
 
+  const refreshFreelancerProfile = useCallback(async () => {
+    if (!currentFreelancer?.nick || !isSupabaseConfigured || !supabase) return;
+    try {
+      const { data: dbUser, error } = await supabase
+        .from('freelancers')
+        .select('id, nick, email, tier, max_projects, referral_count, referred_by, created_at')
+        .ilike('nick', currentFreelancer.nick.trim())
+        .maybeSingle();
+
+      if (!error && dbUser) {
+        setCurrentFreelancer((prev) => {
+          if (!prev) return null;
+          const updated = {
+            ...prev,
+            tier: dbUser.tier || 'free',
+            max_projects: dbUser.max_projects || 2,
+            maxProjects: dbUser.max_projects || 2,
+            referral_count: dbUser.referral_count ?? 0,
+            referralCount: dbUser.referral_count ?? 0,
+            referred_by: dbUser.referred_by || null,
+            referredBy: dbUser.referred_by || null,
+          };
+          try {
+            localStorage.setItem('dropbrief_freelancer_session', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      }
+    } catch (e) {
+      // Non-critical background sync
+    }
+  }, [currentFreelancer?.nick]);
+
+  useEffect(() => {
+    if (currentFreelancer?.nick) {
+      refreshFreelancerProfile();
+    }
+  }, [currentFreelancer?.nick, refreshFreelancerProfile]);
+
   const openAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
@@ -501,6 +552,14 @@ export function AppProvider({ children }) {
 
     const cleanPin = String(enteredPin).trim();
 
+    let referralRef = null;
+    try {
+      const storedRef = localStorage.getItem('dropbrief_referral_ref');
+      if (storedRef && typeof storedRef === 'string') {
+        referralRef = storedRef.trim();
+      }
+    } catch (e) {}
+
     const response = await fetch('/api/verify-registration', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -509,6 +568,7 @@ export function AppProvider({ children }) {
         nick: pendingRegistration.nick,
         pin: cleanPin,
         challengeToken: pendingRegistration.challengeToken,
+        referredBy: referralRef || null,
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -524,9 +584,21 @@ export function AppProvider({ children }) {
       id: user.id,
       nick: user.nick,
       email: user.email,
+      tier: user.tier || 'free',
+      max_projects: user.max_projects || user.maxProjects || 2,
+      maxProjects: user.maxProjects || user.max_projects || 2,
+      referral_count: user.referral_count ?? user.referralCount ?? 0,
+      referralCount: user.referralCount ?? user.referral_count ?? 0,
+      referred_by: user.referred_by || user.referredBy || null,
+      referredBy: user.referredBy || user.referred_by || null,
       createdAt: user.createdAt,
       pinHash: user.pinHash,
     };
+
+    // Upon successful registration, remove dropbrief_referral_ref from localStorage
+    try {
+      localStorage.removeItem('dropbrief_referral_ref');
+    } catch (e) {}
 
     // Save to localStorage (session + local accounts cache)
     try {
@@ -613,6 +685,13 @@ export function AppProvider({ children }) {
             id: found.id, 
             nick: found.nick, 
             email: found.email || '', 
+            tier: found.tier || 'free',
+            max_projects: found.max_projects || found.maxProjects || 2,
+            maxProjects: found.maxProjects || found.max_projects || 2,
+            referral_count: found.referral_count ?? found.referralCount ?? 0,
+            referralCount: found.referralCount ?? found.referral_count ?? 0,
+            referred_by: found.referred_by || found.referredBy || null,
+            referredBy: found.referredBy || found.referred_by || null,
             createdAt: found.createdAt,
             pinHash: found.pinHash || computedSalted
           };
@@ -648,11 +727,18 @@ export function AppProvider({ children }) {
         if (verifyResponse.ok && verifyData.success && verifyData.user) {
           const userPinHash = verifyData.user.pinHash || (await hashPin(cleanPin, true));
           matchedUser = {
-            id:        verifyData.user.id,
-            nick:      verifyData.user.nick,
-            email:     verifyData.user.email || '',
-            createdAt: verifyData.user.createdAt || verifyData.user.created_at,
-            pinHash:   userPinHash,
+            id:             verifyData.user.id,
+            nick:           verifyData.user.nick,
+            email:          verifyData.user.email || '',
+            tier:           verifyData.user.tier || 'free',
+            max_projects:   verifyData.user.max_projects || verifyData.user.maxProjects || 2,
+            maxProjects:    verifyData.user.maxProjects || verifyData.user.max_projects || 2,
+            referral_count: verifyData.user.referral_count ?? verifyData.user.referralCount ?? 0,
+            referralCount:  verifyData.user.referralCount ?? verifyData.user.referral_count ?? 0,
+            referred_by:    verifyData.user.referred_by || verifyData.user.referredBy || null,
+            referredBy:     verifyData.user.referredBy || verifyData.user.referred_by || null,
+            createdAt:      verifyData.user.createdAt || verifyData.user.created_at,
+            pinHash:        userPinHash,
           };
           // Save to local cache for future fast offline logins
           try {
@@ -689,11 +775,18 @@ export function AppProvider({ children }) {
         if (!rpcErr && rpcData?.success && rpcData.user) {
           const u = rpcData.user;
           matchedUser = {
-            id:        u.id,
-            nick:      u.nick,
-            email:     u.email || '',
-            createdAt: u.createdAt || u.created_at,
-            pinHash:   u.pinHash || saltedHash,
+            id:             u.id,
+            nick:           u.nick,
+            email:          u.email || '',
+            tier:           u.tier || 'free',
+            max_projects:   u.max_projects || u.maxProjects || 2,
+            maxProjects:    u.maxProjects || u.max_projects || 2,
+            referral_count: u.referral_count ?? u.referralCount ?? 0,
+            referralCount:  u.referralCount ?? u.referral_count ?? 0,
+            referred_by:    u.referred_by || u.referredBy || null,
+            referredBy:     u.referredBy || u.referred_by || null,
+            createdAt:      u.createdAt || u.created_at,
+            pinHash:        u.pinHash || saltedHash,
           };
           try {
             const localAccs = JSON.parse(localStorage.getItem('dropbrief_local_freelancers') || '[]');
@@ -927,6 +1020,23 @@ export function AppProvider({ children }) {
   };
 
   const createProject = async (newProjData) => {
+    // 🛡️ Slot Limit Enforcement
+    if (currentFreelancer) {
+      const maxSlots = currentFreelancer.max_projects || currentFreelancer.maxProjects || 2;
+      const myActiveProjects = projects.filter((p) => {
+        const isOwner = (p.freelancerId && p.freelancerId === currentFreelancer.id) ||
+          (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) ||
+          (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental'));
+        return isOwner && p.status !== 'completed';
+      });
+
+      if (myActiveProjects.length >= maxSlots) {
+        const limitMsg = `You've reached your limit of ${maxSlots} active project slots. Share your invite link to get +2 extra project slots for every designer who joins!`;
+        addToast(limitMsg, 'warning', 'Project Limit Reached');
+        throw new Error(limitMsg);
+      }
+    }
+
     let randomSlug = generateSecureSlug(newProjData.clientName || 'client', 8);
     let attempts = 0;
     const MAX_COLLISION_ATTEMPTS = 20;
@@ -1685,6 +1795,7 @@ export function AppProvider({ children }) {
         submitOngoingBatch,
         seedDemoProjectForFreelancer,
         purgeProjectFilesNow,
+        refreshFreelancerProfile,
       }}
     >
       {children}

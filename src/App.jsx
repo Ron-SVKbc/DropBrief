@@ -26,8 +26,28 @@ export default function App() {
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Check URL query parameters and Hash for direct client portal links
+  // Check URL query parameters and Hash for direct client portal links & referral capture
   useEffect(() => {
+    // 0. Referral capture (?ref=<nickname>)
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const refParam = searchParams.get('ref');
+      if (refParam) {
+        const cleanRef = refParam.trim();
+        // Safely validate clean string (alphanumeric, dashes, underscores, spaces, 2-50 chars)
+        if (/^[a-zA-Z0-9_\-\s]{2,50}$/.test(cleanRef)) {
+          localStorage.setItem('dropbrief_referral_ref', cleanRef);
+        }
+        // Clean the URL using window.history.replaceState so it doesn't look messy
+        searchParams.delete('ref');
+        const remainingQuery = searchParams.toString();
+        const newUrl = window.location.pathname + (remainingQuery ? `?${remainingQuery}` : '') + window.location.hash;
+        window.history.replaceState(window.history.state, '', newUrl);
+      }
+    } catch (e) {
+      console.warn('Failed to parse referral parameter:', e);
+    }
+
     const handleUrlRoute = () => {
       // 1. Check Query Params (?p=slug or ?project=slug)
       const searchParams = new URLSearchParams(window.location.search);

@@ -29,7 +29,18 @@ const ICONS_MAP = {
 };
 
 export default function CreateProjectModal({ isOpen, onClose }) {
-  const { createProject, openClientPortal, currentFreelancer } = useApp();
+  const { createProject, openClientPortal, currentFreelancer, projects, addToast } = useApp();
+
+  const maxProjects = currentFreelancer?.max_projects || currentFreelancer?.maxProjects || 2;
+  const myActiveProjects = (projects || []).filter((p) => {
+    if (!currentFreelancer) return false;
+    const isOwner = (p.freelancerId && p.freelancerId === currentFreelancer.id) ||
+      (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) ||
+      (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental'));
+    return isOwner && p.status !== 'completed';
+  });
+
+  const isLimitReached = Boolean(currentFreelancer && myActiveProjects.length >= maxProjects);
 
   const [selectedTemplateId, setSelectedTemplateId] = useState('web-design');
   const [projectType, setProjectType] = useState('one-off'); // 'one-off' | 'ongoing'
@@ -108,6 +119,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (isLimitReached) {
+      addToast(
+        `You've reached your limit of ${maxProjects} active project slots. Share your invite link to get +2 extra project slots for every designer who joins!`,
+        'warning',
+        'Project Limit Reached'
+      );
+      return;
+    }
+
     if (!clientName.trim()) {
       alert('Please enter client name.');
       return;
@@ -200,6 +221,30 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         {/* Modal Body */}
         <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '26px', flex: 1 }}>
           
+          {/* Active Slot Limit Warning */}
+          {isLimitReached && (
+            <div style={{
+              background: 'rgba(234, 88, 12, 0.08)',
+              border: '1px solid rgba(234, 88, 12, 0.3)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '16px',
+              marginBottom: '22px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <AlertCircle size={20} color="var(--accent-cta)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+              <div style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
+                <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px', fontWeight: 700 }}>
+                  Active Slot Limit Reached ({myActiveProjects.length} / {maxProjects} slots)
+                </strong>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  You've reached your limit of {maxProjects} active project slots. Share your invite link to get +2 extra project slots for every designer who joins!
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Template Selection */}
           <div style={{ marginBottom: '22px' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '10px' }}>
