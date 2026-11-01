@@ -60,6 +60,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
+    if (currentFreelancer.email && p.freelancerEmail && p.freelancerEmail.toLowerCase() === currentFreelancer.email.toLowerCase()) return true;
     // Built-in demo account Marko has access to sample demo projects
     if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;

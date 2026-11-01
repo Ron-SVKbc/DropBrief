@@ -258,6 +258,7 @@ export function AppProvider({ children }) {
     try {
       setIsLoadingDb(true);
       const cleanNick = (currentFreelancer.nick || '').trim();
+      const cleanEmail = (currentFreelancer.email || '').trim().toLowerCase();
       const flId = currentFreelancer.id || '';
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(flId);
 
@@ -267,10 +268,15 @@ export function AppProvider({ children }) {
         .order('created_at', { ascending: false })
         .limit(100); // Pagination safety ceiling to prevent memory exhaustion
 
-      if (isUuid) {
-        query = query.or(`freelancer_id.eq.${flId},freelancer_name.ilike.${cleanNick}`);
+      const orConditions = [];
+      if (isUuid) orConditions.push(`freelancer_id.eq.${flId}`);
+      if (cleanNick) orConditions.push(`freelancer_name.ilike.${cleanNick}`);
+      if (cleanEmail) orConditions.push(`freelancer_email.ilike.${cleanEmail}`);
+
+      if (orConditions.length > 0) {
+        query = query.or(orConditions.join(','));
       } else {
-        query = query.ilike('freelancer_name', cleanNick);
+        query = query.ilike('freelancer_name', cleanNick || 'Freelancer');
       }
 
       let { data, error } = await query;
@@ -524,10 +530,23 @@ export function AppProvider({ children }) {
         console.error('Failed to save session to localStorage:', e);
       }
 
+      // Check local cache for existing projects of this user
+      try {
+        const userKey = `dropbrief_projects_${flRecord.nick.toLowerCase()}`;
+        const cached = localStorage.getItem(userKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProjects(parsed);
+          }
+        }
+      } catch (e) {}
+
       setCurrentFreelancer(flRecord);
       setSupabaseSessionHeaders({ nick: flRecord.nick, pinHash: null });
       setIsAuthModalOpen(false);
       addToast(`Signed in via Google as ${flRecord.nick}!`, 'success', 'Google Sign-In');
+      fetchSupabaseProjects();
     } catch (err) {
       console.error('Failed to sync Google user session:', err);
       addToast('Google login sync failed. Please try again.', 'error', 'Login Error');

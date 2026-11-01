@@ -70,6 +70,7 @@ export default function AccountModal() {
   const myProjects = projects.filter((p) => {
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
+    if (currentFreelancer.email && p.freelancerEmail && p.freelancerEmail.toLowerCase() === currentFreelancer.email.toLowerCase()) return true;
     if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;
   });
