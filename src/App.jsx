@@ -49,6 +49,11 @@ export default function App() {
     }
 
     const handleUrlRoute = () => {
+      // 0. Direct hash route for privacy and terms (#privacy, #terms, #legal)
+      if (window.location.hash === '#privacy' || window.location.hash === '#terms' || window.location.hash === '#legal') {
+        setIsLegalModalOpen(true);
+      }
+
       // 1. Check Query Params (?p=slug or ?project=slug)
       const searchParams = new URLSearchParams(window.location.search);
       const querySlug = searchParams.get('p') || searchParams.get('project');
