@@ -350,7 +350,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_fl_name text;
+  v_proj record;
   v_fl_nick text;
   v_fl_auth text;
 BEGIN
@@ -362,18 +362,7 @@ BEGIN
     RETURN true;
   END IF;
 
-  v_fl_nick := public.get_request_header('x-freelancer-nick');
-  v_fl_auth := public.get_request_header('x-freelancer-auth');
-
-  IF v_fl_nick IS NULL OR v_fl_auth IS NULL THEN
-    RETURN false;
-  END IF;
-
-  IF NOT public.is_freelancer_authenticated(v_fl_nick, v_fl_auth) THEN
-    RETURN false;
-  END IF;
-
-  SELECT freelancer_name INTO v_fl_name
+  SELECT id, freelancer_id, freelancer_name, freelancer_email INTO v_proj
   FROM public.projects
   WHERE id = p_project_id;
 
@@ -381,7 +370,34 @@ BEGIN
     RETURN false;
   END IF;
 
-  RETURN lower(v_fl_name) = lower(v_fl_nick);
+  -- 1. Prihlásený cez Supabase Auth (Google OAuth)
+  IF auth.uid() IS NOT NULL THEN
+    IF v_proj.freelancer_id IS NOT NULL AND v_proj.freelancer_id = auth.uid() THEN
+      RETURN true;
+    END IF;
+    IF auth.jwt()->>'email' IS NOT NULL AND lower(coalesce(v_proj.freelancer_email, '')) = lower(auth.jwt()->>'email') THEN
+      RETURN true;
+    END IF;
+    IF EXISTS (
+      SELECT 1 FROM public.freelancers f
+      WHERE (f.id = auth.uid() OR lower(f.email) = lower(auth.jwt()->>'email'))
+        AND (f.id = v_proj.freelancer_id OR lower(f.nick) = lower(v_proj.freelancer_name))
+    ) THEN
+      RETURN true;
+    END IF;
+  END IF;
+
+  -- 2. Freelancer cez PIN hlavičky
+  v_fl_nick := public.get_request_header('x-freelancer-nick');
+  v_fl_auth := public.get_request_header('x-freelancer-auth');
+
+  IF v_fl_nick IS NOT NULL AND v_fl_auth IS NOT NULL THEN
+    IF public.is_freelancer_authenticated(v_fl_nick, v_fl_auth) AND lower(v_proj.freelancer_name) = lower(v_fl_nick) THEN
+      RETURN true;
+    END IF;
+  END IF;
+
+  RETURN false;
 END;
 $$;
 

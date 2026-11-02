@@ -1330,7 +1330,14 @@ export function AppProvider({ children }) {
           }));
 
           const { error: iErr } = await supabase.from('project_items').insert(itemsToInsert);
-          if (iErr) throw iErr;
+          if (iErr) {
+            try {
+              await supabase.from('projects').delete().eq('id', insertedProj.id);
+            } catch (delErr) {
+              console.warn('Failed to rollback project after items failure:', delErr);
+            }
+            throw iErr;
+          }
 
           fetchSupabaseProjects();
         }
