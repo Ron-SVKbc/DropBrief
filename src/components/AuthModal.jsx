@@ -248,38 +248,23 @@ export default function AuthModal() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '22px 26px',
+          padding: '20px 24px',
           borderBottom: '1px solid var(--border-hairline)',
           background: 'var(--bg-base)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
-            }}>
-              <KeyRound size={20} aria-hidden="true" />
-            </div>
-            <div>
-              <h3 id="auth-modal-title" style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-                {authModalMode === 'pin_reveal' ? '🎉 Your account is ready!' : 
-                 authModalMode === 'verify_register_pin' ? 'Verify Email (Enter PIN)' :
-                 authModalMode === 'register' ? 'New Freelancer Account' : 
-                 authModalMode === 'forgot_pin' ? 'Reset PIN Code' : 'Log In to Dashboard'}
-              </h3>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                {authModalMode === 'pin_reveal' ? 'Your account is verified and ready' :
-                 authModalMode === 'verify_register_pin' ? 'Enter the 6-digit PIN sent to your email (valid for 5 minutes)' :
-                 authModalMode === 'register' ? 'Verified and secure account in under a minute' : 
-                 authModalMode === 'forgot_pin' ? 'Enter your registered email to receive a new PIN' : 'Enter your name / email and 6-digit PIN'}
-              </span>
-            </div>
+          <div>
+            <h3 id="auth-modal-title" style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+              {authModalMode === 'pin_reveal' ? '🎉 Your account is ready!' : 
+               authModalMode === 'verify_register_pin' ? 'Verify Email (Enter PIN)' :
+               authModalMode === 'register' ? 'New Freelancer Account' : 
+               authModalMode === 'forgot_pin' ? 'Reset PIN Code' : 'Log In to Dashboard'}
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: 2, display: 'block' }}>
+              {authModalMode === 'pin_reveal' ? 'Your account is verified and ready' :
+               authModalMode === 'verify_register_pin' ? 'Enter the 6-digit PIN sent to your email (valid for 5 minutes)' :
+               authModalMode === 'register' ? 'Verified and secure account in under a minute' : 
+               authModalMode === 'forgot_pin' ? 'Enter your registered email to receive a new PIN' : 'Enter your name / email and 6-digit PIN'}
+            </span>
           </div>
 
           <button 
@@ -464,7 +449,7 @@ export default function AuthModal() {
                     fontWeight: 700,
                     fontSize: '0.92rem',
                     cursor: isGoogleLoading ? 'wait' : 'pointer',
-                    transition: 'all var(--transition-fast)',
+                    transition: 'border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
                     boxShadow: '0 2px 6px rgba(15, 23, 42, 0.05)',
                     marginBottom: '18px'
                   }}
@@ -611,7 +596,7 @@ export default function AuthModal() {
                     fontWeight: 700,
                     fontSize: '0.92rem',
                     cursor: isGoogleLoading ? 'wait' : 'pointer',
-                    transition: 'all var(--transition-fast)',
+                    transition: 'border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease',
                     boxShadow: '0 2px 6px rgba(15, 23, 42, 0.05)',
                     marginBottom: '18px'
                   }}

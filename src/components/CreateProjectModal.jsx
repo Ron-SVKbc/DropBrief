@@ -206,33 +206,17 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '20px 26px',
+          padding: '20px 24px',
           borderBottom: '1px solid var(--border-hairline)',
           background: 'var(--bg-base)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: isLimitReached ? 'rgba(234, 88, 12, 0.12)' : 'var(--accent-gradient)',
-              color: isLimitReached ? 'var(--accent-cta)' : '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: isLimitReached ? 'none' : '0 0 15px rgba(99, 102, 241, 0.4)',
-              border: isLimitReached ? '1px solid rgba(234, 88, 12, 0.25)' : 'none'
-            }}>
-              {isLimitReached ? <ShieldAlert size={20} aria-hidden="true" /> : <Plus size={20} aria-hidden="true" />}
-            </div>
-            <div>
-              <h2 id="create-project-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                {isLimitReached ? 'Active Project Limit Reached' : 'Create New Asset Collection'}
-              </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>
-                {isLimitReached ? `${myActiveProjects.length} / ${maxProjects} active slots in use` : 'Choose a template or custom brief. Link is generated with zero registration for client.'}
-              </p>
-            </div>
+          <div>
+            <h2 id="create-project-modal-title" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+              {isLimitReached ? 'Active Project Limit Reached' : 'Create New Asset Collection'}
+            </h2>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', margin: 0, marginTop: 2 }}>
+              {isLimitReached ? `${myActiveProjects.length} / ${maxProjects} active slots in use` : 'Choose a template or custom brief. Link is generated with zero registration for client.'}
+            </p>
           </div>
 
           <button 
@@ -426,7 +410,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                       border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                       boxShadow: isSelected ? '0 0 16px rgba(37, 99, 235, 0.15)' : 'none',
                       cursor: 'pointer',
-                      transition: 'var(--transition)',
+                      transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
                       textAlign: 'center',
                       display: 'flex',
                       flexDirection: 'column',
@@ -481,7 +465,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     : 'var(--bg-base)',
                   border: projectType === 'one-off' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                   boxShadow: projectType === 'one-off' ? '0 4px 14px rgba(37, 99, 235, 0.12)' : 'none',
-                  transition: 'var(--transition)',
+                  transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
@@ -527,7 +511,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                     : 'var(--bg-base)',
                   border: projectType === 'ongoing' ? '2px solid var(--accent-violet)' : '1px solid var(--border-subtle)',
                   boxShadow: projectType === 'ongoing' ? '0 4px 14px rgba(124, 58, 237, 0.12)' : 'none',
-                  transition: 'var(--transition)',
+                  transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
@@ -604,7 +588,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                           color: isSel ? '#fff' : 'var(--text-secondary)',
                           border: isSel ? '1px solid #c084fc' : '1px solid var(--border-subtle)',
                           boxShadow: isSel ? '0 0 12px rgba(168, 85, 247, 0.35)' : 'none',
-                          transition: 'all 0.15s ease'
+                          transition: 'background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease'
                         }}
                       >
                         {isSel && <Check size={12} color="#c084fc" style={{ marginRight: '5px' }} />}

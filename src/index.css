@@ -1053,3 +1053,111 @@ select.select {
   box-shadow: 0 30px 70px -15px rgba(37, 99, 235, 0.2), 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
 
+
+/* ── Welcome / Landing ───────────────────────────────────── */
+.wv-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.wv-showcase {
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.wv-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px dashed var(--accent-primary);
+  background: rgba(37, 99, 235, 0.03);
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--font-sans);
+  color: inherit;
+  font-size: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wv-upload-zone:hover {
+  background: rgba(37, 99, 235, 0.07);
+  border-color: var(--accent-primary-hover);
+}
+
+.wv-upload-zone:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.wv-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.wv-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.wv-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.wv-faq-btn {
+  width: 100%;
+  padding: 20px 0;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.wv-faq-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.wv-faq-chevron {
+  transition: transform 0.2s var(--ease-spring);
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.wv-faq-btn[aria-expanded="true"] .wv-faq-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 900px) {
+  .wv-hero {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 700px) {
+  .wv-steps,
+  .wv-compare,
+  .wv-features {
+    grid-template-columns: 1fr;
+  }
+  .wv-steps { gap: 28px; }
+}
