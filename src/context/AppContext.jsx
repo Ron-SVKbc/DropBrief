@@ -202,6 +202,12 @@ export function AppProvider({ children }) {
   const [previewEmailProject, setPreviewEmailProject] = useState(null);
   const [exportModalProject, setExportModalProject] = useState(null);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState('overview');
+
+  const openLegalModal = (tab = 'overview') => {
+    if (tab) setLegalModalTab(tab);
+    setIsLegalModalOpen(true);
+  };
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
 
@@ -1939,6 +1945,9 @@ export function AppProvider({ children }) {
         closeExportModal,
         isLegalModalOpen,
         setIsLegalModalOpen,
+        legalModalTab,
+        setLegalModalTab,
+        openLegalModal,
         isLiveDb: isSupabaseConfigured,
         isLoadingDb,
         // Freelancer Auth

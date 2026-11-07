@@ -26,6 +26,7 @@ export default function Navbar({ onOpenCreateModal }) {
     openClientPortal, 
     activeProjectSlug, 
     setIsLegalModalOpen,
+    openLegalModal,
     isLiveDb,
     currentFreelancer,
     logoutFreelancer,
@@ -421,7 +422,7 @@ export default function Navbar({ onOpenCreateModal }) {
           
           <button
             id="btn-security-info"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('overview')}
             aria-label="Data security and GDPR information"
             className="btn btn-secondary btn-sm btn-pill"
             title="Data security & GDPR information"

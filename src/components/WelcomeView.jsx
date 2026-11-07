@@ -4,7 +4,7 @@ import confetti from 'canvas-confetti';
 import '../styles/neo-brutalist.css';
 
 export default function WelcomeView({ onOpenCreateModal }) {
-  const { openAuthModal, openClientPortal, addToast, setIsLegalModalOpen } = useApp();
+  const { openAuthModal, openClientPortal, addToast, openLegalModal } = useApp();
 
   // Interactive ticket state matching style-neo-brutalist.html
   const [ticketState, setTicketState] = useState({
@@ -53,7 +53,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button" 
             className="ticker-link"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('tos')}
             id="ticker-btn-tos"
             title="Read DropBrief Terms of Service & Liability"
           >
@@ -63,7 +63,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button" 
             className="ticker-link"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('privacy')}
             id="ticker-btn-privacy"
             title="Read GDPR & Data Privacy Policy"
           >
@@ -73,7 +73,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button" 
             className="ticker-link"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('cookies')}
             id="ticker-btn-cookies"
             title="100% Cookie-free & zero third-party tracking policy"
           >
@@ -84,7 +84,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button" 
             className="ticker-link"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('retention')}
             id="ticker-btn-retention"
             title="Automated 30-day cloud storage purge policy"
           >
@@ -93,7 +93,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button" 
             className="ticker-pill-btn"
-            onClick={() => setIsLegalModalOpen(true)}
+            onClick={() => openLegalModal('overview')}
             id="ticker-btn-modal"
             title="Open comprehensive legal specification modal"
           >
@@ -523,10 +523,50 @@ export default function WelcomeView({ onOpenCreateModal }) {
             <button
               type="button"
               className="neo-footer-btn"
-              onClick={() => setIsLegalModalOpen(true)}
-              aria-label="GDPR compliance and privacy modal"
+              onClick={() => openLegalModal('tos')}
+              aria-label="Terms of service"
             >
-              <span>🔒</span> GDPR &amp; Privacy (Cookie-free)
+              <span>📜</span> Terms of Service (TOS)
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => openLegalModal('privacy')}
+              aria-label="GDPR compliance and privacy policy"
+            >
+              <span>🔒</span> Privacy &amp; GDPR
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => openLegalModal('cookies')}
+              aria-label="Cookie-free declaration"
+            >
+              <span>🍪</span> 100% Cookie-free
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => openLegalModal('retention')}
+              aria-label="30-day retention and purge policy"
+            >
+              <span>⏱️</span> 30-Day Purge
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => openLegalModal('dpa')}
+              aria-label="Data processing agreement"
+            >
+              <span>📑</span> DPA (Art. 28)
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => openLegalModal('impressum')}
+              aria-label="Operator information and contacts"
+            >
+              <span>🏢</span> Impressum &amp; Contact
             </button>
             <button
               type="button"

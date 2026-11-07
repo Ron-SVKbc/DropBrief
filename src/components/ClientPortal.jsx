@@ -124,7 +124,8 @@ export default function ClientPortal() {
     fetchProjectBySlug,
     isLoadingDb,
     currentFreelancer,
-    openAuthModal
+    openAuthModal,
+    openLegalModal
   } = useApp();
 
   // Demo mode is ONLY active if activeProjectSlug is explicitly 'demo-preview'
@@ -1944,40 +1945,120 @@ export default function ClientPortal() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-              <span className="badge" style={{
-                background: 'var(--bg-base)',
-                border: '1px solid var(--border-hairline)',
-                color: 'var(--text-secondary)',
-                fontSize: '0.74rem',
-                padding: '5px 12px',
-                gap: '6px',
-                fontWeight: 600
-              }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => openLegalModal('privacy')}
+                className="badge"
+                title="Inspect DropBrief data privacy and encryption details"
+                style={{
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-hairline)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.74rem',
+                  padding: '5px 12px',
+                  gap: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
                 <Lock size={12} color="var(--accent-primary)" /> 256-bit AES SSL
-              </span>
-              <span className="badge" style={{
-                background: 'var(--bg-base)',
-                border: '1px solid var(--border-hairline)',
-                color: 'var(--text-secondary)',
-                fontSize: '0.74rem',
-                padding: '5px 12px',
-                gap: '6px',
-                fontWeight: 600
-              }}>
+              </button>
+              <button
+                type="button"
+                onClick={() => openLegalModal('privacy')}
+                className="badge"
+                title="Read GDPR compliance and European data hosting policy"
+                style={{
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-hairline)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.74rem',
+                  padding: '5px 12px',
+                  gap: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
                 <Globe size={12} color="var(--success)" /> Ireland EU (GDPR)
-              </span>
-              <span className="badge" style={{
-                background: 'var(--bg-base)',
-                border: '1px solid var(--border-hairline)',
-                color: 'var(--text-secondary)',
-                fontSize: '0.74rem',
-                padding: '5px 12px',
-                gap: '6px',
-                fontWeight: 600
-              }}>
+              </button>
+              <button
+                type="button"
+                onClick={() => openLegalModal('retention')}
+                className="badge"
+                title="Learn about automated 30-day cloud storage purge"
+                style={{
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-hairline)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.74rem',
+                  padding: '5px 12px',
+                  gap: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
                 <Clock size={12} color="var(--warning)" /> Auto-purge 30d
-              </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => openLegalModal('cookies')}
+                className="badge"
+                title="DropBrief uses zero tracking cookies"
+                style={{
+                  background: 'var(--bg-base)',
+                  border: '1px solid var(--border-hairline)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.74rem',
+                  padding: '5px 12px',
+                  gap: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <ShieldCheck size={12} color="var(--emerald, #10B981)" /> 100% Cookie-free
+              </button>
+            </div>
+          </div>
+
+          {/* Client Notice and DSA links */}
+          <div style={{
+            marginTop: '14px',
+            paddingTop: '12px',
+            borderTop: '1px dashed var(--border-hairline)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px',
+            fontSize: '0.74rem',
+            color: 'var(--text-muted)'
+          }}>
+            <span>
+              Files are stored temporarily and delivered exclusively to your creative lead.
+            </span>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => openLegalModal('tos')}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+              >
+                Terms of Service
+              </button>
+              <button
+                type="button"
+                onClick={() => openLegalModal('privacy')}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+              >
+                Privacy &amp; GDPR
+              </button>
+              <button
+                type="button"
+                onClick={() => openLegalModal('aup')}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+              >
+                Report suspicious link (DSA)
+              </button>
             </div>
           </div>
         </div>

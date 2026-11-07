@@ -21,7 +21,8 @@ export default function App() {
     setActiveProjectSlug, 
     openClientPortal, 
     currentFreelancer,
-    setIsLegalModalOpen
+    setIsLegalModalOpen,
+    openLegalModal
   } = useApp();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -50,9 +51,24 @@ export default function App() {
     }
 
     const handleUrlRoute = () => {
-      // 0. Direct hash route for privacy and terms (#privacy, #terms, #legal)
-      if (window.location.hash === '#privacy' || window.location.hash === '#terms' || window.location.hash === '#legal') {
-        setIsLegalModalOpen(true);
+      // 0. Direct hash route for legal documents (#privacy, #terms, #tos, #cookies, #retention, #dpa, #legal, #impressum, #aup)
+      const currentHash = (window.location.hash || '').toLowerCase();
+      if (currentHash === '#privacy' || currentHash === '#gdpr') {
+        openLegalModal('privacy');
+      } else if (currentHash === '#terms' || currentHash === '#tos') {
+        openLegalModal('tos');
+      } else if (currentHash === '#cookies' || currentHash === '#cookie-free') {
+        openLegalModal('cookies');
+      } else if (currentHash === '#retention' || currentHash === '#purge') {
+        openLegalModal('retention');
+      } else if (currentHash === '#dpa') {
+        openLegalModal('dpa');
+      } else if (currentHash === '#aup' || currentHash === '#acceptable-use') {
+        openLegalModal('aup');
+      } else if (currentHash === '#impressum' || currentHash === '#contact') {
+        openLegalModal('impressum');
+      } else if (currentHash === '#legal') {
+        openLegalModal('overview');
       }
 
       // 1. Check Query Params (?p=slug or ?project=slug)
@@ -157,7 +173,7 @@ export default function App() {
 
               <button 
                 type="button"
-                onClick={() => setIsLegalModalOpen(true)}
+                onClick={() => openLegalModal('overview')}
                 aria-label="GDPR and data privacy information"
                 style={{
                   background: 'none',

@@ -35,7 +35,8 @@ export default function AuthModal() {
     verifyRegisterPin,
     resendRegisterPin,
     resetFreelancerPin,
-    addToast
+    addToast,
+    openLegalModal
   } = useApp();
 
   const [nick, setNick] = useState('');
@@ -588,6 +589,25 @@ export default function AuthModal() {
                 >
                   {isSubmitting ? 'Verifying…' : 'Log In to Dashboard'}
                 </button>
+
+                <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                  Protected by 256-bit encryption &bull;{' '}
+                  <button
+                    type="button"
+                    onClick={() => openLegalModal('privacy')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                  >
+                    GDPR Privacy
+                  </button>
+                  {' '}&bull;{' '}
+                  <button
+                    type="button"
+                    onClick={() => openLegalModal('tos')}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                  >
+                    Terms
+                  </button>
+                </div>
               </form>
             )}
 
@@ -705,6 +725,26 @@ export default function AuthModal() {
                 >
                   {isSubmitting ? 'Sending code…' : 'Send Verification PIN →'}
                 </button>
+
+                <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  By signing up, you agree to DropBrief's{' '}
+                  <button
+                    type="button"
+                    onClick={() => openLegalModal('tos')}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit', fontWeight: 600 }}
+                  >
+                    Terms of Service
+                  </button>
+                  {' '}and acknowledge our{' '}
+                  <button
+                    type="button"
+                    onClick={() => openLegalModal('privacy')}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit', fontWeight: 600 }}
+                  >
+                    Privacy Policy (GDPR)
+                  </button>
+                  . 100% cookie-free.
+                </div>
               </form>
             )}
 

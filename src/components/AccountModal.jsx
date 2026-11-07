@@ -29,6 +29,7 @@ export default function AccountModal() {
     deleteFreelancerAccount,
     logoutFreelancer,
     setIsLegalModalOpen,
+    openLegalModal,
     addToast
   } = useApp();
 
@@ -397,35 +398,78 @@ export default function AccountModal() {
               </div>
             </div>
 
-            {/* GDPR guarantee */}
+            {/* GDPR & Legal Center Box */}
             <div style={{
               background: 'rgba(16, 185, 129, 0.04)',
               border: '1px solid var(--success-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 14px',
+              borderRadius: 'var(--radius-lg)',
+              padding: '14px 16px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
               gap: '10px',
               marginBottom: '24px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="var(--success)" flexShrink={0} />
-                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                  Data stored in EU (GDPR Art. 17 – Right to erasure)
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={18} color="var(--success)" flexShrink={0} />
+                  <div>
+                    <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
+                      EU Data Protection &amp; Compliance (GDPR)
+                    </strong>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                      Ireland EU cloud &bull; AES-256 encryption &bull; 0 tracking cookies
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeAccountModal();
+                    openLegalModal('overview');
+                  }}
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '0.72rem', padding: '4px 10px', height: 'auto', fontWeight: 600 }}
+                >
+                  Legal Spec ↗
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  closeAccountModal();
-                  setIsLegalModalOpen(true);
-                }}
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.7rem', padding: '3px 8px', height: 'auto' }}
-              >
-                Learn more
-              </button>
+
+              {/* Quick links to DPA, TOS, Retention */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingTop: '6px', borderTop: '1px dashed var(--border-hairline)' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeAccountModal();
+                    openLegalModal('dpa');
+                  }}
+                  className="badge"
+                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
+                >
+                  📑 Art. 28 DPA Contract
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeAccountModal();
+                    openLegalModal('tos');
+                  }}
+                  className="badge"
+                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
+                >
+                  📜 Terms of Service
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeAccountModal();
+                    openLegalModal('retention');
+                  }}
+                  className="badge"
+                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
+                >
+                  ⏱️ 30-Day Purge Policy
+                </button>
+              </div>
             </div>
 
             {/* ── Danger Zone ───────────────────────────────────────── */}
