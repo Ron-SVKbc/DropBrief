@@ -54,16 +54,21 @@ export default function LegalModal() {
 
   const currentTab = legalModalTab || 'overview';
 
-  const tabs = [
-    { id: 'overview', label: 'LEGAL SPEC', icon: ShieldCheck, badge: 'MATRIX' },
-    { id: 'tos', label: 'TERMS OF SERVICE', icon: Scale, badge: 'TOS' },
-    { id: 'privacy', label: 'PRIVACY & GDPR', icon: Lock, badge: 'GDPR' },
-    { id: 'cookies', label: '100% COOKIE-FREE', icon: Cookie, badge: '0-COOKIE' },
-    { id: 'retention', label: '30-DAY RETENTION', icon: Clock, badge: 'ART. 5' },
-    { id: 'dpa', label: 'DPA CONTRACT', icon: FileCheck, badge: 'ART. 28' },
-    { id: 'aup', label: 'ACCEPTABLE USE', icon: AlertTriangle, badge: 'DSA' },
-    { id: 'impressum', label: 'IMPRESSUM', icon: Building, badge: 'CONTACT' },
+  const primaryTabs = [
+    { id: 'overview', label: 'LEGAL SPEC', icon: ShieldCheck },
+    { id: 'tos', label: 'TERMS OF SERVICE', icon: Scale },
+    { id: 'privacy', label: 'PRIVACY & GDPR', icon: Lock },
+    { id: 'cookies', label: '100% COOKIE-FREE', icon: Cookie },
+    { id: 'retention', label: '30-DAY RETENTION', icon: Clock },
   ];
+
+  const secondaryTabs = [
+    { id: 'dpa', label: 'DPA CONTRACT (ART. 28)', icon: FileCheck },
+    { id: 'aup', label: 'ACCEPTABLE USE (DSA)', icon: AlertTriangle },
+    { id: 'impressum', label: 'IMPRESSUM & CONTACT', icon: Building },
+  ];
+
+  const allTabs = [...primaryTabs, ...secondaryTabs];
 
   const handleCopyDpaText = () => {
     const dpaText = `DATA PROCESSING AGREEMENT (DPA) - DropBrief
@@ -151,30 +156,52 @@ Governing Law: Laws of the Slovak Republic and the European Union.`;
           </button>
         </div>
 
-        {/* Dossier Folder Tabs */}
-        <div 
-          role="tablist"
-          aria-label="Legal document categories"
-          className="legal-dossier-tabstrip"
-        >
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setLegalModalTab(tab.id)}
-                className={`legal-tab-btn ${isActive ? 'is-active' : ''}`}
-                id={`legal-tab-${tab.id}`}
-              >
-                <Icon size={14} strokeWidth={2.5} aria-hidden="true" />
-                <span>{tab.label}</span>
-                <span className="legal-tab-pill">{tab.badge}</span>
-              </button>
-            );
-          })}
+        {/* Dossier Folder Tabs (Two-Tier Structure: 5 Core Primary + 3 Statutory Addenda) */}
+        <div className="legal-dossier-tabstrip">
+          {/* Tier 1: Core 5 Compliance Documents (Matches Homepage Ticker 1:1) */}
+          <div className="legal-tabs-primary" role="tablist" aria-label="Core legal specifications">
+            {primaryTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setLegalModalTab(tab.id)}
+                  className={`legal-tab-btn ${isActive ? 'is-active' : ''}`}
+                  id={`legal-tab-${tab.id}`}
+                  title={tab.label}
+                >
+                  <Icon size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tier 2: Additional Statutory Addenda */}
+          <div className="legal-tabs-secondary" role="tablist" aria-label="Statutory addenda and corporate disclosure">
+            <span className="legal-secondary-label">ADDENDA:</span>
+            {secondaryTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setLegalModalTab(tab.id)}
+                  className={`legal-subtab-btn ${isActive ? 'is-active' : ''}`}
+                  id={`legal-tab-${tab.id}`}
+                  title={tab.label}
+                >
+                  <Icon size={13} strokeWidth={2.5} aria-hidden="true" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Scrollable Dossier Body */}
@@ -1071,9 +1098,9 @@ Processing commences upon account activation and terminates upon project purge (
             <button 
               type="button"
               onClick={() => {
-                const currentIndex = tabs.findIndex(t => t.id === currentTab);
-                const nextIndex = (currentIndex + 1) % tabs.length;
-                setLegalModalTab(tabs[nextIndex].id);
+                const currentIndex = allTabs.findIndex(t => t.id === currentTab);
+                const nextIndex = (currentIndex + 1) % allTabs.length;
+                setLegalModalTab(allTabs[nextIndex].id);
               }}
               className="btn-dossier-nav"
               title="Navigate to next legal document"
