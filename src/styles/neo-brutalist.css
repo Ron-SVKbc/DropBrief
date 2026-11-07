@@ -808,6 +808,13 @@
   margin-bottom: 12px;
 }
 
+.neo-brutalist-page .ref-main-title .badge-storage,
+.neo-brutalist-page .ref-main-title .badge-slots {
+  display: inline-block !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
 .neo-brutalist-page .ref-subtitle {
   font-size: 1.05rem;
   color: #262626;
