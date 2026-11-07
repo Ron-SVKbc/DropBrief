@@ -89,6 +89,49 @@
       border-radius: 2px;
       font-size: 0.7rem;
     }
+    .ticker-link {
+      background: none;
+      border: none;
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: color 0.15s, background-color 0.15s;
+    }
+    .ticker-link:hover {
+      color: var(--ink);
+      background: var(--yellow);
+      text-decoration: none;
+    }
+    .ticker-pill-btn {
+      background: var(--yellow);
+      color: var(--ink);
+      border: 1px solid #111;
+      padding: 2px 8px;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .ticker-pill-btn:hover {
+      background: var(--orange);
+      color: #fff;
+    }
+    .ticker-sep {
+      color: var(--ink-dim);
+      opacity: 0.7;
+    }
 
     /* Navigation Bar */
     .nav-bar {
@@ -758,15 +801,19 @@
 </head>
 <body>
 
-  <!-- Top Strip Ticker -->
-  <div class="top-ticker">
+  <!-- Top Strip Legal & Compliance Bar -->
+  <div class="top-ticker" role="region" aria-label="Legal & compliance strip">
     <div class="ticker-left">
-      <span class="status-dot"></span>
-      <span>SYS_ENGINE: LIVE (EU-WEST)</span>
-      <span class="ticker-pill">NO PASSWORDS REQUIRED</span>
+      <span style="color:var(--yellow); font-weight:800;">DOC_SPEC:</span>
+      <a href="https://usedropbrief.xyz/#terms" class="ticker-link">TERMS OF SERVICE (TOS)</a>
+      <span class="ticker-sep">•</span>
+      <a href="https://usedropbrief.xyz/#privacy" class="ticker-link">PRIVACY &amp; GDPR</a>
+      <span class="ticker-sep">•</span>
+      <a href="https://usedropbrief.xyz/#legal" class="ticker-link">100% COOKIE-FREE</a>
     </div>
-    <div>
-      <span>MAX_PAYLOAD: 50MB // GDPR_PURGE: 30 DAYS</span>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="https://usedropbrief.xyz/#legal" class="ticker-link">30-DAY RETENTION (GDPR ART. 5)</a>
+      <a href="https://usedropbrief.xyz/#legal" class="ticker-pill-btn">LEGAL SPEC ↗</a>
     </div>
   </div>
 

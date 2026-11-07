@@ -46,15 +46,59 @@ export default function WelcomeView({ onOpenCreateModal }) {
   return (
     <div className="neo-brutalist-page">
 
-      {/* Top Strip Ticker */}
-      <div className="top-ticker" role="region" aria-label="System status ticker">
+      {/* Top Strip Legal & Compliance Bar */}
+      <div className="top-ticker" role="region" aria-label="Terms of service and legal compliance bar">
         <div className="ticker-left">
-          <span className="status-dot" aria-hidden="true"></span>
-          <span>SYS_ENGINE: LIVE (EU-WEST)</span>
-          <span className="ticker-pill">NO PASSWORDS REQUIRED</span>
+          <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>DOC_SPEC:</span>
+          <button 
+            type="button" 
+            className="ticker-link"
+            onClick={() => setIsLegalModalOpen(true)}
+            id="ticker-btn-tos"
+            title="Read DropBrief Terms of Service & Liability"
+          >
+            TERMS OF SERVICE (TOS)
+          </button>
+          <span className="ticker-sep" aria-hidden="true">•</span>
+          <button 
+            type="button" 
+            className="ticker-link"
+            onClick={() => setIsLegalModalOpen(true)}
+            id="ticker-btn-privacy"
+            title="Read GDPR & Data Privacy Policy"
+          >
+            PRIVACY &amp; GDPR
+          </button>
+          <span className="ticker-sep" aria-hidden="true">•</span>
+          <button 
+            type="button" 
+            className="ticker-link"
+            onClick={() => setIsLegalModalOpen(true)}
+            id="ticker-btn-cookies"
+            title="100% Cookie-free & zero third-party tracking policy"
+          >
+            100% COOKIE-FREE
+          </button>
         </div>
-        <div>
-          <span>MAX_PAYLOAD: 50MB // GDPR_PURGE: 30 DAYS</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button 
+            type="button" 
+            className="ticker-link"
+            onClick={() => setIsLegalModalOpen(true)}
+            id="ticker-btn-retention"
+            title="Automated 30-day cloud storage purge policy"
+          >
+            30-DAY RETENTION (GDPR ART. 5)
+          </button>
+          <button 
+            type="button" 
+            className="ticker-pill-btn"
+            onClick={() => setIsLegalModalOpen(true)}
+            id="ticker-btn-modal"
+            title="Open comprehensive legal specification modal"
+          >
+            <span>LEGAL SPEC ↗</span>
+          </button>
         </div>
       </div>
 
