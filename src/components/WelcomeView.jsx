@@ -428,11 +428,11 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
           <h2 className="ref-main-title" id="referral-title">
             INVITE A CREATIVE PEER, GET{' '}
-            <span style={{ background: '#FFF', padding: '0 8px', border: '2px solid #111', boxShadow: '3px 3px 0 #111' }}>
+            <span style={{ background: '#FFF', padding: '0 8px', border: '2px solid #111', boxShadow: '3px 3px 0 #111', display: 'inline-block', whiteSpace: 'nowrap' }}>
               +50MB STORAGE
             </span>{' '}
             &amp;{' '}
-            <span style={{ background: 'var(--orange)', color: '#FFF', padding: '0 8px', border: '2px solid #111', boxShadow: '3px 3px 0 #111' }}>
+            <span style={{ background: 'var(--orange)', color: '#FFF', padding: '0 8px', border: '2px solid #111', boxShadow: '3px 3px 0 #111', display: 'inline-block', whiteSpace: 'nowrap' }}>
               +2 SLOTS
             </span>{' '}
             FOR LIFE.
