@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Creative Zine Collage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@800;900&family=Caveat:wght@700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --bg: #F4EFE6;
+      --paper: #FFFDF9;
+      --ink: #111111;
+      --tape: #FDE047;
+      --pink: #F43F5E;
+      --cyan: #06B6D4;
+      --neon-green: #22C55E;
+      --border-thick: 2.5px solid #111111;
+      --shadow-hard: 5px 5px 0px #111111;
+      --shadow-hard-sm: 3px 3px 0px #111111;
+      --shadow-hard-lg: 8px 8px 0px #111111;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      line-height: 1.45;
+      background-image: 
+        linear-gradient(rgba(17, 17, 17, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 17, 17, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow-x: hidden;
+    }
+
+    /* Top Zine Header */
+    .zine-nav {
+      max-width: 1220px;
+      margin: 16px auto 0;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-sticker {
+      background: var(--ink);
+      color: #fff;
+      padding: 6px 14px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 1.15rem;
+      border-radius: 4px;
+      transform: rotate(-1.5deg);
+      box-shadow: var(--shadow-hard-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .nav-tape-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn-zine-login {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--ink);
+      padding: 6px 12px;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .btn-zine-login:hover {
+      border-bottom: 2px solid var(--ink);
+    }
+    .btn-zine-cta {
+      background: var(--tape);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 9px 18px;
+      border: var(--border-thick);
+      box-shadow: var(--shadow-hard-sm);
+      text-decoration: none;
+      transform: rotate(1deg);
+      transition: transform 0.15s;
+    }
+    .btn-zine-cta:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px #111; }
+
+    /* Main Container */
+    .zine-wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    /* Asymmetric Collage Layout */
+    .collage-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 40px;
+      align-items: start;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 960px) {
+      .collage-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Left Side: Editorial & Sticky Notes */
+    .zine-hero-left {
+      position: relative;
+    }
+    .masking-tape {
+      background: var(--tape);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      display: inline-block;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+      transform: rotate(-2deg);
+      margin-bottom: 18px;
+    }
+    .zine-title {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: clamp(2.5rem, 4.8vw, 4rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .highlighter {
+      background: linear-gradient(120deg, rgba(253, 224, 71, 0.8) 0%, rgba(253, 224, 71, 0.8) 100%);
+      background-repeat: no-repeat;
+      background-size: 100% 40%;
+      background-position: 0 88%;
+      display: inline;
+    }
+    .zine-sub {
+      font-size: 1.15rem;
+      color: #333;
+      line-height: 1.55;
+      margin-bottom: 28px;
+      max-width: 540px;
+    }
+
+    /* Hand-Drawn Post-It Notes Duo */
+    .sticky-notes-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 600px) {
+      .sticky-notes-row { grid-template-columns: 1fr; }
+    }
+    .sticky-note {
+      padding: 18px 20px;
+      border: var(--border-thick);
+      box-shadow: var(--shadow-hard-sm);
+      position: relative;
+    }
+    .sticky-yellow {
+      background: #FEF08A;
+      transform: rotate(-2deg);
+    }
+    .sticky-pink {
+      background: #FECDD3;
+      transform: rotate(2deg);
+    }
+    .sticky-pin {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      background: #EF4444;
+      border-radius: 50%;
+      border: 2px solid #111;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    }
+    .sticky-note h5 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sticky-handwriting {
+      font-family: 'Caveat', cursive;
+      font-size: 1.25rem;
+      line-height: 1.25;
+      color: #111;
+    }
+
+    .zine-cta-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-huge-zine {
+      background: var(--ink);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+      box-shadow: var(--shadow-hard);
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+    .btn-huge-zine:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px #111;
+    }
+
+    /* Right Side: The Physical Manila Intake Clipboard */
+    .clipboard-frame {
+      background: #C49868;
+      border: var(--border-thick);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-hard-lg);
+      position: relative;
+    }
+    .clip-metal {
+      width: 100px;
+      height: 28px;
+      background: linear-gradient(180deg, #E2E8F0 0%, #94A3B8 100%);
+      border: var(--border-thick);
+      border-radius: 6px 6px 0 0;
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .manila-sheet {
+      background: var(--paper);
+      border: var(--border-thick);
+      border-radius: 6px;
+      padding: 28px 24px;
+      position: relative;
+    }
+    .sheet-stamp-zero {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      border: 2px dashed var(--pink);
+      color: var(--pink);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      transform: rotate(8deg);
+      text-transform: uppercase;
+    }
+    .sheet-header h4 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .sheet-header p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    /* Interactive Docket Items */
+    .zine-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .zine-item-card {
+      border: var(--border-thick);
+      border-radius: 6px;
+      padding: 14px 16px;
+      background: #FFF9F2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: var(--shadow-hard-sm);
+      transition: all 0.15s;
+    }
+    .zine-item-card:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #111;
+      background: #FFF;
+    }
+    .zine-item-card.stamped {
+      background: #F0FDF4;
+      border-color: #111;
+    }
+    .zine-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .zine-checkbox {
+      width: 22px;
+      height: 22px;
+      border: var(--border-thick);
+      border-radius: 3px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+    .zine-item-card.stamped .zine-checkbox {
+      background: var(--neon-green);
+      color: #000;
+    }
+    .zine-item-meta h5 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .zine-item-meta p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: #666;
+    }
+    .zine-stamp-action {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: var(--tape);
+      padding: 4px 8px;
+      border: 1.5px solid #111;
+      box-shadow: 1.5px 1.5px 0px #111;
+    }
+    .zine-item-card.stamped .zine-stamp-action {
+      background: #DCFCE7;
+      color: #15803D;
+      border-color: #15803D;
+      box-shadow: none;
+    }
+
+    /* Progress Tape */
+    .progress-tape-dock {
+      border: var(--border-thick);
+      background: #FFF;
+      padding: 14px 18px;
+      box-shadow: var(--shadow-hard-sm);
+      margin-top: 16px;
+    }
+    .tape-dock-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tape-track {
+      height: 10px;
+      background: #E5E7EB;
+      border: 1.5px solid #111;
+      overflow: hidden;
+    }
+    .tape-fill {
+      height: 100%;
+      width: 33%;
+      background: var(--neon-green);
+      transition: width 0.3s ease;
+    }
+
+    /* 3 Collage Pillars */
+    .zine-pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 800px) {
+      .zine-pillars { grid-template-columns: 1fr; }
+    }
+    .pillar-sticker-box {
+      background: var(--paper);
+      border: var(--border-thick);
+      border-radius: 6px;
+      padding: 24px;
+      box-shadow: var(--shadow-hard-sm);
+      position: relative;
+    }
+    .sticker-corner-tag {
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: var(--pink);
+      color: #fff;
+      padding: 2px 8px;
+      border: 1.5px solid #111;
+    }
+    .pillar-sticker-box h4 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 900;
+      margin-top: 6px;
+      margin-bottom: 8px;
+    }
+    .pillar-sticker-box p {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    /* Referral Box */
+    .zine-referral-docket {
+      background: #FEF08A;
+      border: var(--border-thick);
+      box-shadow: var(--shadow-hard);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      transform: rotate(-0.5deg);
+    }
+    @media (max-width: 768px) {
+      .zine-referral-docket { flex-direction: column; text-align: left; }
+    }
+    .zine-referral-docket h4 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .zine-referral-docket p {
+      font-size: 0.95rem;
+      color: #222;
+    }
+    .btn-zine-referral {
+      background: var(--ink);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 800;
+      padding: 12px 22px;
+      border: var(--border-thick);
+      box-shadow: 3px 3px 0px #FFF;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="zine-nav">
+    <a href="#" class="brand-sticker">
+      <span>DROPBRIEF ⚡</span>
+    </a>
+
+    <div class="nav-tape-links">
+      <a href="https://usedropbrief.xyz/#" class="btn-zine-login">LOG IN</a>
+      <a href="https://usedropbrief.xyz/#" class="btn-zine-cta">START FREE (3 SLOTS)</a>
+    </div>
+  </nav>
+
+  <div class="zine-wrap">
+    <!-- Asymmetric Collage -->
+    <div class="collage-grid">
+      <!-- Left Editorial & Sticky Notes -->
+      <div class="zine-hero-left">
+        <span class="masking-tape">CLIENT INTAKE // NO CORPORATE BULLSH*T</span>
+
+        <h1 class="zine-title">
+          COLLECT ASSETS <br>
+          WITHOUT THE <span class="highlighter">PASSWORD DRAMA.</span>
+        </h1>
+
+        <p class="zine-sub">
+          Stop digging through messy WhatsApp threads and expired links. Send 1 branded drop page — clients upload without signing up, and assets land on your disk.
+        </p>
+
+        <!-- Sticky Notes Duo -->
+        <div class="sticky-notes-row">
+          <div class="sticky-note sticky-yellow">
+            <div class="sticky-pin"></div>
+            <h5>WHY PROJECTS STALL</h5>
+            <div class="sticky-handwriting">
+              Clients hate logins! Give them 1 link with no signup & they finish in 5 min.
+            </div>
+          </div>
+
+          <div class="sticky-note sticky-pink">
+            <div class="sticky-pin"></div>
+            <h5>HONEST BETA POOL</h5>
+            <div class="sticky-handwriting">
+              3 free slots forever. Refer a designer buddy & get +2 slots each!
+            </div>
+          </div>
+        </div>
+
+        <div class="zine-cta-strip">
+          <a href="https://usedropbrief.xyz/#" class="btn-huge-zine">GET STARTED FREE →</a>
+          <span style="font-family:'Space Mono', monospace; font-size:0.75rem; color:#666;">
+            ★ 50MB UPLOADS • GDPR 30-DAY PURGE
+          </span>
+        </div>
+      </div>
+
+      <!-- Right Physical Manila Intake Clipboard -->
+      <div class="clipboard-frame">
+        <div class="clip-metal"></div>
+
+        <div class="manila-sheet">
+          <div class="sheet-stamp-zero">NO PASSWORD REQ.</div>
+
+          <div class="sheet-header">
+            <h4>Nordic Bakery Redesign</h4>
+            <p>INTAKE DOSSIER #DB-77 • CLICK ITEMS TO STAMP ASSET</p>
+          </div>
+
+          <!-- Items -->
+          <div class="zine-items-list">
+            <!-- Item 1 (Done) -->
+            <div class="zine-item-card stamped" id="z-item-1" onclick="toggleZine('z-item-1')">
+              <div class="zine-item-left">
+                <div class="zine-checkbox">✓</div>
+                <div class="zine-item-meta">
+                  <h5>01 / Creative Questionnaire</h5>
+                  <p>TEXT • 3 ANSWERS SUBMITTED</p>
+                </div>
+              </div>
+              <span class="zine-stamp-action">STAMPED ✓</span>
+            </div>
+
+            <!-- Item 2 (Interactive) -->
+            <div class="zine-item-card" id="z-item-2" onclick="toggleZine('z-item-2')">
+              <div class="zine-item-left">
+                <div class="zine-checkbox">[ ]</div>
+                <div class="zine-item-meta">
+                  <h5>02 / Master Vector Logo (.SVG)</h5>
+                  <p>FILE SPEC • MAX 50MB</p>
+                </div>
+              </div>
+              <span class="zine-stamp-action" id="z-tag-z-item-2">+ CLICK TO DROP</span>
+            </div>
+
+            <!-- Item 3 (Interactive) -->
+            <div class="zine-item-card" id="z-item-3" onclick="toggleZine('z-item-3')">
+              <div class="zine-item-left">
+                <div class="zine-checkbox">[ ]</div>
+                <div class="zine-item-meta">
+                  <h5>03 / Hero Photo Gallery</h5>
+                  <p>RAW PACK • HIGH RESOLUTION</p>
+                </div>
+              </div>
+              <span class="zine-stamp-action" id="z-tag-z-item-3">+ CLICK TO DROP</span>
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div class="progress-tape-dock">
+            <div class="tape-dock-header">
+              <span>DOSSIER PROGRESS:</span>
+              <span id="zine-progress-text" style="color:#15803D;">33% (1 / 3 COMPLETE)</span>
+            </div>
+            <div class="tape-track">
+              <div class="tape-fill" id="zine-progress-fill" style="width:33%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 Collage Pillars -->
+    <div class="zine-pillars">
+      <div class="pillar-sticker-box">
+        <span class="sticker-corner-tag">RULE #1</span>
+        <h4>Zero Account Barrier</h4>
+        <p>Clients never drop off because of password resets. One link opens on phone or laptop and works instantaneously.</p>
+      </div>
+
+      <div class="pillar-sticker-box">
+        <span class="sticker-corner-tag">RULE #2</span>
+        <h4>Automated Nudges</h4>
+        <p>Polite pre-scheduled reminders ping the client right before deadline, freeing you from awkward follow-up messages.</p>
+      </div>
+
+      <div class="pillar-sticker-box">
+        <span class="sticker-corner-tag">RULE #3</span>
+        <h4>30-Day Auto Incinerate</h4>
+        <p>GDPR-clean peace of mind. Project files are completely eradicated 30 days after handoff. No leftover liability.</p>
+      </div>
+    </div>
+
+    <!-- Referral Docket -->
+    <div class="zine-referral-docket">
+      <div>
+        <h4>Early Adopter Loot: 3 Free Slots Forever</h4>
+        <p>We build for real freelancers. Start with 3 free slots. Invite a designer colleague and unlock <strong>+2 slots permanently</strong>.</p>
+      </div>
+      <a href="https://usedropbrief.xyz/#" class="btn-zine-referral">CLAIM ACCESS NOW ⚡</a>
+    </div>
+  </div>
+
+  <script>
+    const zineState = {
+      'z-item-1': true,
+      'z-item-2': false,
+      'z-item-3': false
+    };
+
+    function toggleZine(id) {
+      zineState[id] = !zineState[id];
+      const card = document.getElementById(id);
+      const tag = document.getElementById('z-tag-' + id);
+      const box = card.querySelector('.zine-checkbox');
+
+      if (zineState[id]) {
+        card.classList.add('stamped');
+        box.textContent = '✓';
+        if (tag) tag.textContent = 'STAMPED ✓';
+      } else {
+        card.classList.remove('stamped');
+        box.textContent = '[ ]';
+        if (tag) tag.textContent = '+ CLICK TO DROP';
+      }
+
+      updateZineProgress();
+    }
+
+    function updateZineProgress() {
+      const total = Object.keys(zineState).length;
+      const count = Object.values(zineState).filter(Boolean).length;
+      const pct = Math.round((count / total) * 100);
+
+      document.getElementById('zine-progress-fill').style.width = pct + '%';
+      const label = document.getElementById('zine-progress-text');
+      label.textContent = pct + '% (' + count + ' / ' + total + ' COMPLETE)';
+
+      if (count === total) {
+        label.textContent = '100% COMPLETE — READY TO DELIVER!';
+        label.style.color = '#15803D';
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

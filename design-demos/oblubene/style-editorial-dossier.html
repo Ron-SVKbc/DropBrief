@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Pure Editorial Dossier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      /* Pure Copenhagen / Tokyo Studio Editorial Palette (Zero Comic Brutalism) */
+      --paper: #F8F6F0;
+      --paper-card: #FFFFFF;
+      --paper-tint: #F1ECE1;
+      --paper-subtle: #EBE5D8;
+      
+      --ink: #141413;
+      --ink-muted: #57554E;
+      --ink-light: #87847A;
+
+      /* Refined Bespoke Accents */
+      --copper: #A8422B;
+      --copper-tint: rgba(168, 66, 43, 0.08);
+      --evergreen: #234B3B;
+      --evergreen-tint: rgba(35, 75, 59, 0.08);
+
+      /* Exquisite Hairline Borders (1px Precision, NO 3.5px comic lines) */
+      --rule-hairline: 1px solid #141413;
+      --rule-subtle: 1px solid #D8D4C7;
+      --rule-light: 1px solid #E6E2D6;
+
+      /* Gentle, Quiet Luxury Shadows (NO cartoon offset block shadows) */
+      --shadow-dossier: 0 16px 40px -12px rgba(20, 20, 19, 0.06), 0 1px 3px rgba(20, 20, 19, 0.04);
+      --shadow-card: 0 4px 20px -4px rgba(20, 20, 19, 0.04);
+
+      /* Typography */
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 96px;
+    }
+
+    /* Refined Masthead Utility Strip */
+    .editorial-masthead-top {
+      border-bottom: var(--rule-subtle);
+      padding: 10px 24px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .masthead-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .masthead-inner strong { color: var(--ink); }
+
+    /* Navigation Bar */
+    .editorial-nav {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 24px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: var(--rule-hairline);
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .nav-links-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .btn-ed-login {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: color 0.15s;
+    }
+    .btn-ed-login:hover { color: var(--ink); }
+    .btn-ed-start {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 9px 18px;
+      text-decoration: none;
+      border: 1px solid var(--ink);
+      transition: all 0.2s;
+    }
+    .btn-ed-start:hover {
+      background: var(--copper);
+      border-color: var(--copper);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 24px 0;
+    }
+
+    /* Hero Section: Left Story & Right Architectural Docket */
+    .hero-editorial-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 56px;
+      align-items: start;
+      padding-bottom: 56px;
+      border-bottom: var(--rule-subtle);
+      margin-bottom: 56px;
+    }
+    @media (max-width: 980px) {
+      .hero-editorial-grid { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    /* Left Column */
+    .issue-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--copper);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .hero-h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 4.8vw, 3.9rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 24px;
+      color: var(--ink);
+    }
+    .hero-h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--copper);
+    }
+    .hero-deck {
+      font-size: 1.15rem;
+      color: var(--ink-muted);
+      line-height: 1.65;
+      margin-bottom: 32px;
+      max-width: 540px;
+    }
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .btn-action-primary {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 26px;
+      text-decoration: none;
+      border: 1px solid var(--ink);
+      transition: all 0.2s;
+    }
+    .btn-action-primary:hover {
+      background: var(--copper);
+      border-color: var(--copper);
+    }
+    .btn-action-secondary {
+      background: transparent;
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 14px 22px;
+      text-decoration: none;
+      border: 1px solid var(--rule-subtle);
+      transition: background 0.15s;
+    }
+    .btn-action-secondary:hover {
+      background: var(--paper-tint);
+    }
+
+    .specs-strip {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+    }
+    .specs-strip span { display: flex; align-items: center; gap: 6px; }
+
+    /* Right Column: Architectural Intake Docket (Delicate 1px Lines) */
+    .docket-card {
+      background: var(--paper-card);
+      border: var(--rule-hairline);
+      box-shadow: var(--shadow-dossier);
+      padding: 32px;
+      position: relative;
+    }
+    .docket-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px dashed var(--ink-light);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .docket-folio {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+    }
+    .docket-tag-clean {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--evergreen);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .docket-header h3 {
+      font-family: var(--font-serif);
+      font-size: 1.45rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: -0.015em;
+    }
+    .docket-header p {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Checklist */
+    .intake-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .intake-row {
+      border: var(--rule-subtle);
+      padding: 16px 18px;
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .intake-row:hover {
+      border-color: var(--ink);
+      background: #FFFFFF;
+    }
+    .intake-row.completed {
+      background: var(--evergreen-tint);
+      border-color: var(--evergreen);
+    }
+    .row-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .round-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--ink);
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .intake-row.completed .round-check {
+      background: var(--evergreen);
+      border-color: var(--evergreen);
+    }
+    .round-check svg {
+      width: 11px;
+      height: 11px;
+      color: #FFFFFF;
+      display: none;
+    }
+    .intake-row.completed .round-check svg { display: block; }
+    .item-copy h4 {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .item-copy p {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+    }
+    .row-action-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--copper);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--copper);
+    }
+    .intake-row.completed .row-action-label {
+      border-color: var(--evergreen);
+      color: var(--evergreen);
+      background: transparent;
+    }
+
+    /* Subtle Progress Bar */
+    .progress-module {
+      border-top: var(--rule-subtle);
+      padding-top: 18px;
+    }
+    .progress-text-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+      color: var(--ink-muted);
+    }
+    .progress-line-track {
+      height: 4px;
+      background: var(--paper-subtle);
+      overflow: hidden;
+    }
+    .progress-line-fill {
+      height: 100%;
+      width: 33%;
+      background: var(--evergreen);
+      transition: width 0.35s ease;
+    }
+
+    /* Incident Audit Report (Clean Broadsheet Table) */
+    .audit-broadsheet {
+      margin-bottom: 64px;
+      border-bottom: var(--rule-subtle);
+      padding-bottom: 48px;
+    }
+    .audit-title-block {
+      margin-bottom: 24px;
+    }
+    .audit-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--copper);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .audit-heading {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .audit-table-clean {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin-top: 20px;
+    }
+    .audit-table-clean th {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1.5px solid var(--ink);
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .audit-table-clean td {
+      padding: 14px;
+      border-bottom: var(--rule-light);
+      color: var(--ink-muted);
+    }
+    .audit-table-clean tr.total-sum td {
+      border-top: 1.5px solid var(--ink);
+      border-bottom: 1.5px solid var(--ink);
+      font-weight: 700;
+      color: var(--copper);
+      font-size: 0.95rem;
+    }
+
+    /* 4 Axioms Grid */
+    .axioms-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      margin-bottom: 64px;
+      border-bottom: var(--rule-subtle);
+      padding-bottom: 56px;
+    }
+    @media (max-width: 900px) {
+      .axioms-row { grid-template-columns: 1fr 1fr; gap: 28px; }
+    }
+    @media (max-width: 540px) {
+      .axioms-row { grid-template-columns: 1fr; }
+    }
+    .axiom-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .col-idx {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--copper);
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+    .axiom-col h4 {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.015em;
+    }
+    .axiom-col p {
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+
+    /* Honest Early-Adopter Bulletin */
+    .bulletin-box {
+      border: var(--rule-hairline);
+      background: var(--paper-tint);
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    @media (max-width: 800px) {
+      .bulletin-box { flex-direction: column; text-align: left; }
+    }
+    .bulletin-box h4 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: -0.015em;
+    }
+    .bulletin-box p {
+      font-size: 0.92rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+    .btn-bulletin {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: 1px solid var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-bulletin:hover {
+      background: var(--copper);
+      border-color: var(--copper);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Strip -->
+  <div class="editorial-masthead-top">
+    <div class="masthead-inner">
+      <span>DROPBRIEF STUDIO DOSSIER • ISSUE NO. 01 • PRIVATE ASSET INTAKE</span>
+      <span>STORAGE NODE: <strong>EU-WEST (IRELAND)</strong> // GDPR ARTICLE 17 PURGE</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="editorial-nav">
+    <a href="#" class="brand-wrap">
+      <span class="brand-title">DropBrief</span>
+      <span class="brand-subtitle">// Studio Edition</span>
+    </a>
+
+    <div class="nav-links-wrap">
+      <a href="https://usedropbrief.xyz/#" class="btn-ed-login">Sign In</a>
+      <a href="https://usedropbrief.xyz/#" class="btn-ed-start">Commence Free (3 Slots)</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <div class="hero-editorial-grid">
+      <!-- Left Column: Editorial Proposition -->
+      <div>
+        <span class="issue-label">MEMORANDUM 01 // FRICTIONLESS TRANSIT</span>
+
+        <h1 class="hero-h1">
+          The civilized method for collecting client assets. <em>Without passwords.</em>
+        </h1>
+
+        <p class="hero-deck">
+          Creative engagements stall when clients are forced to configure accounts, decipher Google Drive permissions, or salvage expiring WeTransfer links. DropBrief replaces the friction with a single branded intake link.
+        </p>
+
+        <div class="actions-group">
+          <a href="https://usedropbrief.xyz/#" class="btn-action-primary">Begin Free Protocol (3 Slots)</a>
+          <a href="https://usedropbrief.xyz/#" class="btn-action-secondary">Studio Archive Access</a>
+        </div>
+
+        <div class="specs-strip">
+          <span>● 3 PERMANENT PROJECT SLOTS</span>
+          <span>● 50MB RAW PAYLOAD LIMIT</span>
+          <span>● 30-DAY GDPR SCRUB</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Architectural Intake Docket -->
+      <div class="docket-card">
+        <div class="docket-topline">
+          <span class="docket-folio">DOCKET #DB-8842 // FOLIO NORD</span>
+          <span class="docket-tag-clean">ZERO CLIENT REGISTRATION</span>
+        </div>
+
+        <div class="docket-header">
+          <h3>Nordic Bakery — Web Identity Assets</h3>
+          <p>CLIENT LINK LIVE SIMULATION • TAP ROWS TO TRANSMIT</p>
+        </div>
+
+        <!-- Checklist -->
+        <div class="intake-stack">
+          <!-- Item 1 (Done) -->
+          <div class="intake-row completed" id="ed-1" onclick="toggleEditorial('ed-1')">
+            <div class="row-meta-left">
+              <div class="round-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="item-copy">
+                <h4>01 // Core Brand Strategy Brief</h4>
+                <p>TEXT • 3 DELIVERABLES RECORDED</p>
+              </div>
+            </div>
+            <span class="row-action-label">SUBMITTED ✓</span>
+          </div>
+
+          <!-- Item 2 (Interactive) -->
+          <div class="intake-row" id="ed-2" onclick="toggleEditorial('ed-2')">
+            <div class="row-meta-left">
+              <div class="round-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="item-copy">
+                <h4>02 // Vector Master Logo (.SVG / .AI)</h4>
+                <p>FILE SPEC • UP TO 50MB VECTOR</p>
+              </div>
+            </div>
+            <span class="row-action-label" id="btn-ed-2">TRANSMIT FILE</span>
+          </div>
+
+          <!-- Item 3 (Interactive) -->
+          <div class="intake-row" id="ed-3" onclick="toggleEditorial('ed-3')">
+            <div class="row-meta-left">
+              <div class="round-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="item-copy">
+                <h4>03 // Brand Photography Gallery</h4>
+                <p>RAW PACK • HIGH RESOLUTION</p>
+              </div>
+            </div>
+            <span class="row-action-label" id="btn-ed-3">TRANSMIT FILE</span>
+          </div>
+        </div>
+
+        <!-- Progress Line -->
+        <div class="progress-module">
+          <div class="progress-text-row">
+            <span>INTAKE DOCKET PROGRESS</span>
+            <span id="ed-progress-txt" style="color:var(--evergreen); font-weight:600;">33% (1 OF 3 DELIVERED)</span>
+          </div>
+          <div class="progress-line-track">
+            <div class="progress-line-fill" id="ed-progress-fill" style="width:33%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incident Audit Broadsheet Table -->
+    <div class="audit-broadsheet">
+      <div class="audit-title-block">
+        <span class="audit-kicker">ECONOMIC INVESTIGATION // STUDIO EFFICIENCY</span>
+        <h2 class="audit-heading">The 14.5 Hours Dissolved in Client Onboarding Logistics</h2>
+      </div>
+
+      <table class="audit-table-clean">
+        <thead>
+          <tr>
+            <th>POINT OF DISRUPTION</th>
+            <th>LOGISTICAL CONSEQUENCE</th>
+            <th style="text-align:right;">HOURS LOST</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>WhatsApp & Messenger Chasing</strong></td>
+            <td>Extracting compressed low-res logos sent between voice notes</td>
+            <td style="text-align:right;">4.5 hrs</td>
+          </tr>
+          <tr>
+            <td><strong>Expired WeTransfer Links</strong></td>
+            <td>Writing awkward follow-up emails requesting repeat uploads</td>
+            <td style="text-align:right;">3.2 hrs</td>
+          </tr>
+          <tr>
+            <td><strong>Google Drive Access Requests</strong></td>
+            <td>Resolving permission denials that freeze agency velocity</td>
+            <td style="text-align:right;">4.8 hrs</td>
+          </tr>
+          <tr>
+            <td><strong>Follow-up Reminder Anxiety</strong></td>
+            <td>Drafting polite nudges so you do not appear impatient</td>
+            <td style="text-align:right;">2.0 hrs</td>
+          </tr>
+          <tr class="total-sum">
+            <td colspan="2">TOTAL DEPLETION PER CLIENT ENGAGEMENT</td>
+            <td style="text-align:right;">14.5 HRS</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4 Axioms Grid -->
+    <div class="axioms-row">
+      <div class="axiom-col">
+        <span class="col-idx">AXIOM 01</span>
+        <h4>Zero Client Logins</h4>
+        <p>Clients never register or configure passwords. One authenticated token URL works in Safari, Chrome, and Mobile.</p>
+      </div>
+
+      <div class="axiom-col">
+        <span class="col-idx">AXIOM 02</span>
+        <h4>Automated Nudges</h4>
+        <p>Polite pre-scheduled reminders ping clients before deadlines without you having to write awkward follow-up emails.</p>
+      </div>
+
+      <div class="axiom-col">
+        <span class="col-idx">AXIOM 03</span>
+        <h4>GDPR 30-Day Purge</h4>
+        <p>Client materials are permanently scrubbed from EU cloud storage 30 days after project sign-off. Zero legal baggage.</p>
+      </div>
+
+      <div class="axiom-col">
+        <span class="col-idx">AXIOM 04</span>
+        <h4>Packaged Deliverables</h4>
+        <p>Receive all approved vector assets, texts, and photos neatly organized in a single structured ZIP archive.</p>
+      </div>
+    </div>
+
+    <!-- Early-Adopter Bulletin -->
+    <div class="bulletin-box">
+      <div>
+        <h4>Early Adopter Alliance: 3 Permanent Slots</h4>
+        <p>
+          We operate DropBrief without venture-backed noise. Begin with 3 active project portals at 0 €/month. Refer one fellow designer and receive <strong>+2 permanent slots</strong> for each studio invited.
+        </p>
+      </div>
+      <a href="https://usedropbrief.xyz/#" class="btn-bulletin">Claim Studio Slots</a>
+    </div>
+  </div>
+
+  <script>
+    const edState = {
+      'ed-1': true,
+      'ed-2': false,
+      'ed-3': false
+    };
+
+    function toggleEditorial(id) {
+      edState[id] = !edState[id];
+      const row = document.getElementById(id);
+      const btn = document.getElementById('btn-' + id);
+
+      if (edState[id]) {
+        row.classList.add('completed');
+        if (btn) btn.textContent = 'TRANSMITTED ✓';
+      } else {
+        row.classList.remove('completed');
+        if (btn) btn.textContent = 'TRANSMIT FILE';
+      }
+
+      updateEditorialProgress();
+    }
+
+    function updateEditorialProgress() {
+      const total = Object.keys(edState).length;
+      const count = Object.values(edState).filter(Boolean).length;
+      const pct = Math.round((count / total) * 100);
+
+      document.getElementById('ed-progress-fill').style.width = pct + '%';
+      const label = document.getElementById('ed-progress-txt');
+      label.textContent = pct + '% (' + count + ' OF ' + total + ' DELIVERED)';
+
+      if (count === total) {
+        label.textContent = '100% COMPLETE — READY FOR ARCHIVAL EXPORT';
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

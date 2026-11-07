@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Technical Blueprint Spec | Zero-Friction Client Intake</title>
+  <meta name="description" content="Technical blueprint specification aesthetic for industrial-grade creative studios and digital architects.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      /* Technical Blueprint Palette */
+      --bg: #091524;
+      --bg-surface: #0f2238;
+      --bg-card: rgba(15, 34, 56, 0.85);
+      --blueprint-line: rgba(56, 189, 248, 0.15);
+      --border-tech: 1.5px solid rgba(56, 189, 248, 0.35);
+      --border-heavy: 2.5px solid rgba(56, 189, 248, 0.6);
+      --text-main: #f0fdf4;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.2);
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.25);
+      --emerald: #10b981;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+      --shadow-tech: 4px 4px 0 rgba(56, 189, 248, 0.2);
+      --shadow-tech-lg: 8px 8px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-display);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      /* Architectural blueprint grid */
+      background-image: 
+        linear-gradient(to right, var(--blueprint-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--blueprint-line) 1px, transparent 1px);
+      background-size: 32px 32px;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top Technical Ticker */
+    .tech-ticker {
+      background: #060e18;
+      border-bottom: 1.5px solid rgba(56, 189, 248, 0.3);
+      padding: 8px 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .status-crosshair {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    /* Header */
+    header {
+      background: rgba(9, 21, 36, 0.9);
+      border-bottom: 2px solid rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 0;
+    }
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .brand-caliper {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--cyan);
+      background: rgba(56, 189, 248, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+    }
+    .brand-spec-no {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--amber);
+    }
+
+    /* Technical Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 11px 22px;
+      border: 1.5px solid var(--cyan);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      min-height: 44px;
+    }
+    .btn-outline {
+      background: rgba(56, 189, 248, 0.05);
+      color: var(--cyan);
+      box-shadow: 2px 2px 0 rgba(56, 189, 248, 0.2);
+    }
+    .btn-outline:hover {
+      background: rgba(56, 189, 248, 0.15);
+      transform: translate(-1px, -1px);
+    }
+    .btn-amber {
+      background: var(--amber);
+      color: #000;
+      border-color: #f59e0b;
+      box-shadow: 3px 3px 0 #000;
+    }
+    .btn-amber:hover {
+      background: #fbbf24;
+      box-shadow: 4px 4px 0 #000;
+      transform: translate(-1px, -1px);
+    }
+
+    /* Hero Section: Split */
+    .hero-sec {
+      padding: 64px 0 80px;
+      position: relative;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
+    .spec-badges-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .spec-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.08);
+      color: var(--cyan);
+    }
+    .spec-amber {
+      border-color: var(--amber);
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--amber);
+    }
+
+    .hero-h1 {
+      font-size: clamp(36px, 4.8vw, 60px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .hero-h1 span.hl {
+      color: var(--cyan);
+      border-bottom: 2px dashed var(--cyan);
+    }
+    .hero-lead {
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 560px;
+      margin-bottom: 32px;
+      font-family: var(--font-mono);
+    }
+    .hero-cta-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .trust-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+    }
+
+    .hero-tech-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      border-top: 1.5px dashed rgba(56, 189, 248, 0.3);
+      padding-top: 24px;
+    }
+    .tech-metric-box {
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      background: rgba(15, 34, 56, 0.5);
+      padding: 16px;
+    }
+    .tech-metric-val {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .tech-metric-lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* Right Column: Blueprint Schematic Manifest */
+    .blueprint-manifest {
+      background: var(--bg-surface);
+      border: 2px solid var(--cyan);
+      box-shadow: var(--shadow-tech-lg);
+      position: sticky;
+      top: 100px;
+    }
+    .manifest-bar {
+      background: rgba(56, 189, 248, 0.15);
+      border-bottom: 1.5px solid var(--cyan);
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+    }
+    .manifest-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1.5px dashed rgba(56, 189, 248, 0.3);
+    }
+    .manifest-url {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .manifest-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+    .manifest-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Progress */
+    .m-prog-box {
+      padding: 16px 24px 0;
+    }
+    .m-prog-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+    .m-prog-track {
+      height: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--cyan);
+      overflow: hidden;
+    }
+    .m-prog-fill {
+      height: 100%;
+      background: var(--amber);
+      width: 75%;
+      transition: width 0.4s ease;
+    }
+
+    /* Checklist */
+    .m-checklist {
+      padding: 16px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .m-row {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .m-row.done {
+      border-color: rgba(16, 185, 129, 0.5);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .m-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .m-check-caliper {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .m-row.done .m-check-caliper {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #000;
+    }
+    .m-item-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .m-item-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .m-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+    }
+    .m-badge.done {
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+
+    .blueprint-dropzone {
+      border: 2px dashed var(--amber);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: all 0.2s;
+    }
+    .blueprint-dropzone:hover {
+      background: rgba(245, 158, 11, 0.15);
+      transform: translate(-1px, -1px);
+    }
+    .m-footer {
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1.5px solid var(--cyan);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Section 2: Audit Diagnostic */
+    .audit-sec {
+      padding: 0 0 80px;
+    }
+    .audit-box {
+      background: var(--bg-surface);
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+      padding: 36px;
+      box-shadow: var(--shadow-tech-lg);
+    }
+    .audit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1.5px dashed rgba(56, 189, 248, 0.3);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .incidents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .incident-row {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      align-items: center;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .incident-row { grid-template-columns: 1fr; gap: 8px; }
+    }
+    .audit-foot {
+      border-top: 1.5px dashed rgba(56, 189, 248, 0.3);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .stamp-approved {
+      border: 2px solid var(--emerald);
+      color: var(--emerald);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* Section 3: The 4 Axioms */
+    .axioms-sec {
+      padding: 0 0 80px;
+    }
+    .axioms-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .axioms-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 580px) {
+      .axioms-grid { grid-template-columns: 1fr; }
+    }
+    .ax-box {
+      background: var(--bg-surface);
+      border: 1.5px solid rgba(56, 189, 248, 0.3);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .ax-box:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+    .ax-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+    .ax-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .ax-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-family: var(--font-mono);
+    }
+
+    /* Section 4: Honest Early Adopter Banner */
+    .early-banner {
+      background: #060e18;
+      border: 2px solid var(--amber);
+      padding: 48px 36px;
+      text-align: center;
+      margin-bottom: 80px;
+      box-shadow: var(--shadow-tech-lg);
+    }
+    .perks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      max-width: 860px;
+      margin: 28px auto;
+      text-align: left;
+    }
+    .perk-box {
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(15, 34, 56, 0.4);
+      padding: 14px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1.5px solid rgba(56, 189, 248, 0.3);
+      padding: 32px 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #060e18;
+      color: var(--cyan);
+      border: 1.5px solid var(--cyan);
+      padding: 12px 20px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      display: none;
+      z-index: 100;
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Tech Ticker -->
+  <div class="tech-ticker">
+    <div class="status-crosshair">
+      <span>[+]</span>
+      <span>SYSTEM SPEC: DROPBRIEF TECHNICAL BLUEPRINT v5.3</span>
+    </div>
+    <div>
+      <span>HOST: SUPABASE IRELAND (EU) // ENCRYPTED 256-BIT // ZERO COOKIES</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-layout">
+      <a href="#" class="brand-group">
+        <div class="brand-caliper">DB</div>
+        <div>
+          <div class="brand-title">DropBrief</div>
+          <div class="brand-spec-no">SPEC: PROTOCOL-01</div>
+        </div>
+      </a>
+
+      <div style="display: flex; gap: 12px;">
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-outline">
+          Log In
+        </a>
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-amber">
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-sec">
+    <div class="container hero-grid">
+      
+      <!-- Left Hero Column -->
+      <div>
+        <div class="spec-badges-row">
+          <span class="spec-chip spec-amber">ZERO CLIENT PASSWORDS</span>
+          <span class="spec-chip">50MB RAW ASSET SPEC</span>
+          <span class="spec-chip">GDPR 30-DAY PURGE</span>
+        </div>
+
+        <h1 class="hero-h1">
+          A civilized end to chasing clients for <span class="hl">raw logos.</span>
+        </h1>
+
+        <p class="hero-lead">
+          One permanent link. Your client drags and drops vector SVGs, brand guidelines, and 50MB photography archives in seconds without creating an account or resetting passwords.
+        </p>
+
+        <div class="hero-cta-cluster">
+          <a href="https://www.usedropbrief.xyz/#" class="btn btn-amber" style="font-size: 14px; padding: 14px 28px; width: fit-content;">
+            Create Free Project Checklist
+          </a>
+          <div class="trust-strip">
+            <span>[✓] Zero Credit Card</span>
+            <span>//</span>
+            <span>[✓] Zero Client Auth</span>
+            <span>//</span>
+            <span>[✓] EU Ireland Cloud</span>
+          </div>
+        </div>
+
+        <div class="hero-tech-metrics">
+          <div class="tech-metric-box">
+            <div class="tech-metric-val">0 AUTH</div>
+            <div class="tech-metric-lbl">Direct mobile &amp; desktop upload without passwords.</div>
+          </div>
+          <div class="tech-metric-box">
+            <div class="tech-metric-val" style="color: var(--amber);">7.4 DAYS</div>
+            <div class="tech-metric-lbl">Average onboarding lag eradicated per assignment.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Hero Column: Blueprint Schematic Manifest -->
+      <div>
+        <div class="blueprint-manifest">
+          <div class="manifest-bar">
+            <span>SPEC SHEET #26-BP</span>
+            <span style="color: var(--emerald);">● WEBSOCKET LIVE</span>
+          </div>
+
+          <div class="manifest-header">
+            <div class="manifest-url">
+              <span>usedropbrief.xyz/?p=nordic-atelier</span>
+              <a href="https://usedropbrief.xyz/?p=brand-identity" target="_blank" style="color: var(--amber); text-decoration: underline; margin-left: 6px;">
+                Open Demo ↗
+              </a>
+            </div>
+            <div class="manifest-title">Nordic Atelier Brand Spec</div>
+            <div class="manifest-sub">Client: Astrid Lindholm // Single-Link Intake</div>
+          </div>
+
+          <div class="m-prog-box">
+            <div class="m-prog-meta">
+              <span>CHECKLIST PROGRESS</span>
+              <span id="p-text" style="color: var(--amber); font-weight: 700;">75% COMPLETE (3 OF 4)</span>
+            </div>
+            <div class="m-prog-track">
+              <div id="p-bar" class="m-prog-fill"></div>
+            </div>
+          </div>
+
+          <div class="m-checklist">
+            <div class="m-row done">
+              <div class="m-left">
+                <div class="m-check-caliper">✓</div>
+                <div>
+                  <div class="m-item-title">Primary Vector Logo</div>
+                  <div class="m-item-meta">nordic-primary.svg • 140 KB</div>
+                </div>
+              </div>
+              <span class="m-badge done">.SVG</span>
+            </div>
+
+            <div class="m-row done">
+              <div class="m-left">
+                <div class="m-check-caliper">✓</div>
+                <div>
+                  <div class="m-item-title">Brand Styleguide Book</div>
+                  <div class="m-item-meta">guidelines-2026.pdf • 4.8 MB</div>
+                </div>
+              </div>
+              <span class="m-badge done">.PDF</span>
+            </div>
+
+            <div class="m-row done">
+              <div class="m-left">
+                <div class="m-check-caliper">✓</div>
+                <div>
+                  <div class="m-item-title">Brand Voice &amp; Manifesto</div>
+                  <div class="m-item-meta">320 words entered by Astrid</div>
+                </div>
+              </div>
+              <span class="m-badge done">TEXT</span>
+            </div>
+
+            <div id="interactive-row" class="m-row" style="border-color: var(--amber); background: rgba(245, 158, 11, 0.05);">
+              <div class="m-left">
+                <div id="check-target" class="m-check-caliper"></div>
+                <div>
+                  <div class="m-item-title">High-Res Lookbook Photography</div>
+                  <div id="desc-target" class="m-item-meta">Click simulation zone below</div>
+                </div>
+              </div>
+              <span id="badge-target" class="m-badge">PENDING .ZIP</span>
+            </div>
+
+            <div class="blueprint-dropzone" onclick="simulateUpload()">
+              <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--amber);">
+                [+] CLICK TO SIMULATE CLIENT UPLOAD
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Uploads 46MB raw .ZIP, fills gauge to 100%, triggers confetti
+              </div>
+            </div>
+          </div>
+
+          <div class="m-footer">
+            <span id="storage-status">STORAGE: 5.2 MB</span>
+            <span style="color: var(--emerald);">256-BIT ENCRYPTION ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Audit Diagnostic -->
+  <section class="audit-sec">
+    <div class="container">
+      <div class="audit-box">
+        <div class="audit-top">
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: #ef4444; font-weight: 700; margin-bottom: 6px;">INCIDENT REPORT #403</div>
+            <h2 style="font-size: 24px; font-weight: 800; color: #fff; text-transform: uppercase;">The Real Anatomy of Onboarding Delay</h2>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); text-align: right;">
+            <div>STUDIO AUDIT: CLIENT INTAKE</div>
+            <div>AVERAGE LAG: 7.4 BUSINESS DAYS</div>
+          </div>
+        </div>
+
+        <div class="incidents-list">
+          <div class="incident-row">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: #ef4444;">HTTP 403</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">Corporate Google Drive Lock</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono);">Locked behind @clientcorp.com domains. Designer awaits IT administrator clearance.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #ef4444; text-align: right;">+3.5 DAYS</span>
+          </div>
+
+          <div class="incident-row">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: #ef4444;">24 KB ARTIFACT</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">WhatsApp &amp; Slack Image Compression</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono);">Vector asset transmitted via chat thread. Stripped into a low-resolution pixelated artifact.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #ef4444; text-align: right;">+1.5 DAYS</span>
+          </div>
+
+          <div class="incident-row">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: #ef4444;">404 EXPIRED</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">The Dead WeTransfer Link</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono);">Files sent on Thursday; by Tuesday Figma launch, the 7-day download window has expired.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #ef4444; text-align: right;">+2.4 DAYS</span>
+          </div>
+        </div>
+
+        <div class="audit-foot">
+          <div>
+            <div style="font-size: 15px; font-weight: 700; color: #fff; font-family: var(--font-mono);">Total Studio Friction: 7.4 Days per client project</div>
+            <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">DropBrief eliminates all 3 bottlenecks with one permanent link.</div>
+          </div>
+          <div class="stamp-approved">
+            [+] VERIFIED BY DROPBRIEF
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: The 4 Axioms -->
+  <section class="axioms-sec">
+    <div class="container">
+      <div class="axioms-grid">
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 01</div>
+          <div class="ax-title">Zero Client Logins</div>
+          <p class="ax-body">If a client must register or remember a password to deliver brand assets, project delay is inevitable. Zero auth is absolute.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 02</div>
+          <div class="ax-title">50MB Raw Fidelity</div>
+          <p class="ax-body">Vector graphics belong in SVG and AI. Photography belongs in uncompressed master packages. 100% byte fidelity guaranteed.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 03</div>
+          <div class="ax-title">1-Click Nudges</div>
+          <p class="ax-body">Never send an awkward email asking for files again. Send polite, automated checklist reminders powered by Resend transactional email.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 04</div>
+          <div class="ax-title">GDPR 30-Day Purge</div>
+          <p class="ax-body">Client assets belong to the assignment. Exactly 30 days after project completion, DropBrief purges all files under GDPR Article 17.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Honest Early Adopter Banner -->
+  <section class="container">
+    <div class="early-banner">
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--cyan); border: 1px solid var(--cyan); padding: 4px 10px; background: rgba(56, 189, 248, 0.1);">
+          [EARLY ADOPTER ACCESS // 100% FREE FOREVER]
+        </span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--amber); border: 1px solid var(--amber); padding: 4px 10px; background: rgba(245, 158, 11, 0.1);">
+          [+2 SLOTS PER REFERRAL]
+        </span>
+      </div>
+
+      <h2 style="font-size: clamp(26px, 3.8vw, 42px); font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: -0.03em; text-transform: uppercase;">
+        Start with 3 free active project slots.<br><span style="color: var(--amber);">Unlock +2 extra slots</span> for every designer you invite.
+      </h2>
+
+      <p style="font-size: 15px; color: var(--text-muted); max-width: 680px; margin: 0 auto; line-height: 1.6; font-family: var(--font-mono);">
+        DropBrief is built for independent creatives—100% free with no credit card, no trial expirations, and no subscriptions. Need more active client slots? Simply share your referral link with fellow web designers or freelancers: each colleague who joins automatically unlocks <strong>+2 permanent active project slots</strong> and extended cloud capacity.
+      </p>
+
+      <div class="perks-grid">
+        <div class="perk-box">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--cyan); font-weight: 700;">DEFAULT TIER</div>
+          <div style="font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">3 Active Slots</div>
+          <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">Free forever on signup</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--emerald); font-weight: 700;">INVITE BONUS</div>
+          <div style="font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">+2 Slots / Peer</div>
+          <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">Permanent bonus for both</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--amber); font-weight: 700;">ASSET LIMIT</div>
+          <div style="font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">50 MB / File</div>
+          <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">Raw uncompressed uploads</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #f472b6; font-weight: 700;">NO SURPRISE FEES</div>
+          <div style="font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">0 € / Month</div>
+          <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">No credit card required</div>
+        </div>
+      </div>
+
+      <a href="https://www.usedropbrief.xyz/#" class="btn btn-amber" style="font-size: 14px; padding: 14px 32px;">
+        Create Free Project Checklist
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>DROPBRIEF // TECHNICAL INTAKE ARCHITECTURE</div>
+      <div>SUPABASE IRELAND (EU) // ZERO COOKIES // 256-BIT SSL</div>
+    </div>
+  </footer>
+
+  <div id="toast">Notification text</div>
+
+  <script>
+    let isUploaded = false;
+    function simulateUpload() {
+      isUploaded = !isUploaded;
+      const row = document.getElementById('interactive-row');
+      const box = document.getElementById('check-target');
+      const desc = document.getElementById('desc-target');
+      const badge = document.getElementById('badge-target');
+      const bar = document.getElementById('p-bar');
+      const txt = document.getElementById('p-text');
+      const status = document.getElementById('storage-status');
+
+      if (isUploaded) {
+        row.style.background = 'rgba(16, 185, 129, 0.08)';
+        row.style.borderColor = 'var(--emerald)';
+        box.innerText = '✓';
+        box.style.background = 'var(--emerald)';
+        box.style.borderColor = 'var(--emerald)';
+        box.style.color = '#000';
+        desc.innerText = 'nordic-lookbook-raw.zip (46.2 MB) • Delivered';
+        badge.innerText = 'DELIVERED';
+        badge.className = 'm-badge done';
+        bar.style.width = '100%';
+        bar.style.background = 'var(--emerald)';
+        txt.innerText = '100% COMPLETE (4 OF 4)';
+        txt.style.color = 'var(--emerald)';
+        status.innerText = 'STORAGE: 51.4 MB (READY)';
+        status.style.color = 'var(--emerald)';
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
+        }
+        showToast('⚡ Client upload simulated: 46.2 MB delivered. Project at 100%!');
+      } else {
+        row.style.background = 'rgba(245, 158, 11, 0.05)';
+        row.style.borderColor = 'var(--amber)';
+        box.innerText = '';
+        box.style.background = '';
+        box.style.borderColor = '';
+        desc.innerText = 'Click simulation zone below';
+        badge.innerText = 'PENDING .ZIP';
+        badge.className = 'm-badge';
+        bar.style.width = '75%';
+        bar.style.background = 'var(--amber)';
+        txt.innerText = '75% COMPLETE (3 OF 4)';
+        txt.style.color = 'var(--amber)';
+        status.innerText = 'STORAGE: 5.2 MB';
+        status.style.color = '';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+  </script>
+</body>
+</html>
+

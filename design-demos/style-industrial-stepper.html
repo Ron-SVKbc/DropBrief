@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Industrial Pipeline Apparatus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --chassis: #ECEBE4;
+      --panel: #F7F6F0;
+      --card: #FFFFFF;
+      --border-mech: #D3D1C7;
+      --border-dark: #1F2023;
+      --ink: #141517;
+      --ink-muted: #575960;
+      --ink-faint: #8E9099;
+      --signal-orange: #FF3B00;
+      --signal-orange-glow: rgba(255, 59, 0, 0.25);
+      --signal-green: #059669;
+      --signal-amber: #D97706;
+      --led-glow: #10B981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--chassis);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      line-height: 1.45;
+      background-image: 
+        radial-gradient(#C8C6BC 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Top Machine Header */
+    .machine-nav {
+      max-width: 1280px;
+      margin: 16px auto 0;
+      padding: 12px 24px;
+      background: var(--panel);
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 4px 4px 0px var(--border-dark);
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-stamp {
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .power-led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--signal-orange);
+      box-shadow: 0 0 8px var(--signal-orange);
+      display: inline-block;
+    }
+    .serial-no {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--ink-faint);
+      border-left: 1px solid var(--border-mech);
+      padding-left: 12px;
+    }
+    .nav-hardware-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mech-btn-ghost {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--ink);
+      padding: 8px 16px;
+      border: 1px solid var(--border-mech);
+      border-radius: 4px;
+      background: var(--card);
+      transition: all 0.15s;
+    }
+    .mech-btn-ghost:hover {
+      background: #E4E2D8;
+    }
+    .mech-btn-solid {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: #fff;
+      padding: 8px 18px;
+      border: 2px solid var(--border-dark);
+      border-radius: 4px;
+      background: var(--ink);
+      box-shadow: 2px 2px 0px var(--signal-orange);
+      transition: transform 0.15s;
+    }
+    .mech-btn-solid:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px var(--signal-orange);
+    }
+
+    /* Main Console Wrap */
+    .console-wrap {
+      max-width: 1280px;
+      margin: 24px auto 60px;
+      padding: 0 16px;
+    }
+
+    /* Asymmetric Apparatus Stage */
+    .apparatus-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 960px) {
+      .apparatus-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Left Control Column */
+    .control-deck {
+      background: var(--panel);
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 28px 24px;
+      box-shadow: 4px 4px 0px var(--border-dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .apparatus-badge {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--ink);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 3px;
+      margin-bottom: 16px;
+    }
+    .hero-h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+    .hero-h1 span.highlight {
+      color: var(--signal-orange);
+    }
+    .control-lead {
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    .cta-deck-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .btn-engage {
+      background: var(--signal-orange);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 20px;
+      border: 2px solid var(--border-dark);
+      border-radius: 4px;
+      text-decoration: none;
+      text-align: center;
+      box-shadow: 4px 4px 0px var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .btn-engage:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px var(--border-dark);
+    }
+
+    .spec-specs-table {
+      border-top: 1px dashed var(--border-mech);
+      padding-top: 18px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--ink-muted);
+    }
+    .spec-val { font-weight: 700; color: var(--ink); }
+
+    /* Right Stepper Mechanism Deck */
+    .stepper-deck {
+      background: var(--card);
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      box-shadow: 4px 4px 0px var(--border-dark);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Tab Pipeline Header */
+    .pipeline-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      border-bottom: 2px solid var(--border-dark);
+      background: var(--panel);
+    }
+    .tab-btn {
+      padding: 16px 14px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      border-right: 1px solid var(--border-mech);
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active {
+      background: var(--card);
+      border-bottom: 3px solid var(--signal-orange);
+    }
+    .tab-step-idx {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink-faint);
+    }
+    .tab-btn.active .tab-step-idx { color: var(--signal-orange); }
+    .tab-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* Stepper Content Pane */
+    .stage-canvas {
+      padding: 32px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .intake-banner-tape {
+      background: #FFFBEB;
+      border: 1px solid #FCD34D;
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.82rem;
+      font-family: 'Space Mono', monospace;
+    }
+    .tape-tag {
+      background: var(--signal-orange);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-weight: 700;
+      font-size: 0.7rem;
+    }
+
+    /* The Mechanical File Tray */
+    .file-tray {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .tray-row {
+      border: 1.5px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      background: var(--panel);
+      transition: all 0.15s;
+    }
+    .tray-row:hover {
+      border-color: var(--signal-orange);
+      background: #FFF7F5;
+    }
+    .tray-row.engaged {
+      background: #F0FDF4;
+      border-color: var(--signal-green);
+    }
+    .tray-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .mech-switch {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-dark);
+      border-radius: 4px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .tray-row.engaged .mech-switch {
+      background: var(--signal-green);
+      border-color: var(--signal-green);
+    }
+    .mech-switch svg {
+      width: 14px;
+      height: 14px;
+      color: #fff;
+      display: none;
+    }
+    .tray-row.engaged .mech-switch svg { display: block; }
+    .tray-meta h4 {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .tray-meta p {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      font-family: 'Space Mono', monospace;
+    }
+    .tray-action-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dark);
+      background: #fff;
+    }
+    .tray-row.engaged .tray-action-badge {
+      background: #DCFCE7;
+      color: var(--signal-green);
+      border-color: var(--signal-green);
+    }
+
+    /* Mechanical Telemetry Gauge */
+    .gauge-dock {
+      background: var(--panel);
+      border: 1.5px solid var(--border-mech);
+      border-radius: 6px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .gauge-info {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+    }
+    .gauge-meter-track {
+      flex: 1;
+      height: 12px;
+      background: #D8D6CC;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .gauge-meter-fill {
+      height: 100%;
+      width: 33%;
+      background: var(--signal-orange);
+      transition: width 0.3s ease;
+    }
+
+    /* Bottom Technical Apparatus Audit Bar */
+    .audit-strip {
+      background: var(--panel);
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      box-shadow: 4px 4px 0px var(--border-dark);
+      padding: 24px 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 800px) {
+      .audit-strip { grid-template-columns: 1fr; }
+    }
+    .audit-col h5 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--signal-orange);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .audit-col p {
+      font-size: 0.88rem;
+      color: var(--ink-muted);
+      line-height: 1.45;
+    }
+
+    /* Honest Early-Adopter Program Box */
+    .quota-box {
+      background: var(--card);
+      border: 2px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 24px 28px;
+      box-shadow: 4px 4px 0px var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .quota-box { flex-direction: column; text-align: left; }
+    }
+    .quota-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .quota-desc {
+      font-size: 0.88rem;
+      color: var(--ink-muted);
+    }
+    .quota-action a {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--ink);
+      padding: 10px 18px;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 2px 2px 0px var(--signal-orange);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Nav Apparatus -->
+  <nav class="machine-nav">
+    <div class="brand-group">
+      <div class="brand-stamp">
+        <span class="power-led"></span>
+        <span>DROPBRIEF</span>
+      </div>
+      <div class="serial-no">MOD_SPEC // ASSET_INTAKE_ENGINE</div>
+    </div>
+
+    <div class="nav-hardware-actions">
+      <a href="https://usedropbrief.xyz/#" class="mech-btn-ghost">LOG IN</a>
+      <a href="https://usedropbrief.xyz/#" class="mech-btn-solid">COMMENCE FREE</a>
+    </div>
+  </nav>
+
+  <div class="console-wrap">
+    <!-- Asymmetric Apparatus Grid -->
+    <div class="apparatus-grid">
+      <!-- Left Column: Controls & Value Proposition -->
+      <div class="control-deck">
+        <div>
+          <span class="apparatus-badge">STAGE 02 // LIVE APPARATUS</span>
+          <h1 class="hero-h1">
+            Zero-Friction <br>
+            Client Intake for <br>
+            <span class="highlight">Studio Makers.</span>
+          </h1>
+          <p class="control-lead">
+            Eliminate file fragmentation. No client logins. No expired links. A direct, calibrated intake pipe that lands organized assets on your disk.
+          </p>
+
+          <div class="cta-deck-group">
+            <a href="https://usedropbrief.xyz/#" class="btn-engage">
+              <span>INITIALIZE PORTAL</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="spec-specs-table">
+          <div class="spec-row">
+            <span>STORAGE NODE:</span>
+            <span class="spec-val">EU-WEST (IRELAND)</span>
+          </div>
+          <div class="spec-row">
+            <span>DEFAULT QUOTA:</span>
+            <span class="spec-val">3 ACTIVE PROJECTS</span>
+          </div>
+          <div class="spec-row">
+            <span>ENCRYPTION:</span>
+            <span class="spec-val">AES-256 / TLS 1.3</span>
+          </div>
+          <div class="spec-row">
+            <span>AUTO-PURGE:</span>
+            <span class="spec-val">30-DAY RETENTION</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: 3-Stage Pipeline Apparatus -->
+      <div class="stepper-deck">
+        <div class="pipeline-tabs">
+          <button class="tab-btn" onclick="alert('Stage 01: You select a prebuilt template (Web, Branding, Accounting) and generate the private drop link in under 15 seconds.')">
+            <span class="tab-step-idx">PHASE 01</span>
+            <span class="tab-title">1. Create Brief</span>
+          </button>
+          <button class="tab-btn active">
+            <span class="tab-step-idx">PHASE 02 [ACTIVE]</span>
+            <span class="tab-title">2. Client Drops Assets</span>
+          </button>
+          <button class="tab-btn" onclick="alert('Stage 03: Assets are checksummed, categorized, and downloaded in a single structured ZIP.')">
+            <span class="tab-step-idx">PHASE 03</span>
+            <span class="tab-title">3. Bundle & Build</span>
+          </button>
+        </div>
+
+        <div class="stage-canvas">
+          <div>
+            <div class="intake-banner-tape">
+              <span class="tape-tag">NO LOGIN</span>
+              <span>SIMULATION: Client accesses via private token link. Click rows to upload:</span>
+            </div>
+
+            <div class="file-tray">
+              <!-- Item 1 (Already complete) -->
+              <div class="tray-row engaged" id="t-row-1" onclick="toggleTray('t-row-1')">
+                <div class="tray-left">
+                  <div class="mech-switch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div class="tray-meta">
+                    <h4>01 // Core Brand Strategy Brief</h4>
+                    <p>FORMAT: TEXT / MD • STATUS: TRANSMITTED</p>
+                  </div>
+                </div>
+                <span class="tray-action-badge">STORED (4.2 KB)</span>
+              </div>
+
+              <!-- Item 2 (Interactive) -->
+              <div class="tray-row" id="t-row-2" onclick="toggleTray('t-row-2')">
+                <div class="tray-left">
+                  <div class="mech-switch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div class="tray-meta">
+                    <h4>02 // Vector Brand Identity (.SVG / .AI)</h4>
+                    <p>SPEC: MAX 50MB • CMYK & RGB PROFILES</p>
+                  </div>
+                </div>
+                <span class="tray-action-badge" id="tray-btn-t-row-2">PULL ASSET</span>
+              </div>
+
+              <!-- Item 3 (Interactive) -->
+              <div class="tray-row" id="t-row-3" onclick="toggleTray('t-row-3')">
+                <div class="tray-left">
+                  <div class="mech-switch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div class="tray-meta">
+                    <h4>03 // High-Res Photography Gallery</h4>
+                    <p>SPEC: RAW / ARCHIVE • MAX 50MB PER BATCH</p>
+                  </div>
+                </div>
+                <span class="tray-action-badge" id="tray-btn-t-row-3">PULL ASSET</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mechanical Telemetry Gauge -->
+          <div class="gauge-dock">
+            <div class="gauge-info">
+              <span>PAYLOAD STATUS:</span>
+              <strong id="gauge-val" style="color:var(--signal-orange);">33% (1 / 3)</strong>
+            </div>
+            <div class="gauge-meter-track">
+              <div class="gauge-meter-fill" id="gauge-fill" style="width: 33%;"></div>
+            </div>
+            <div class="gauge-info" id="gauge-state">
+              READY_TO_RECEIVE
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Audit Strip -->
+    <div class="audit-strip">
+      <div class="audit-col">
+        <h5>AUDIT 01: ZERO ACCOUNT OVERHEAD</h5>
+        <p>Clients never drop off at a signup barrier. No forgotten passwords, no magic links, no 2FA setup fatigue.</p>
+      </div>
+      <div class="audit-col">
+        <h5>AUDIT 02: AUTONOMOUS REMINDERS</h5>
+        <p>Pre-configured nudge cadences ping clients respectfully without making you sound impatient or micro-managing.</p>
+      </div>
+      <div class="audit-col">
+        <h5>AUDIT 03: 30-DAY AUTOMATIC SCRUB</h5>
+        <p>Complies with EU privacy protocols. All uploaded client materials are systematically wiped 30 days after sign-off.</p>
+      </div>
+    </div>
+
+    <!-- Honest Referral & Early Adopter Box -->
+    <div class="quota-box">
+      <div>
+        <div class="quota-title">EARLY ADOPTER POOL: 3 FREE SLOTS FOREVER</div>
+        <p class="quota-desc">
+          Zero venture-backed fluff. Start with 3 active client portals at 0 €/month. Refer 1 peer designer and unlock <strong>+2 slots permanently</strong>.
+        </p>
+      </div>
+      <div class="quota-action">
+        <a href="https://usedropbrief.xyz/#">CLAIM EARLY ACCESS</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const trayState = {
+      't-row-1': true,
+      't-row-2': false,
+      't-row-3': false
+    };
+
+    function toggleTray(id) {
+      trayState[id] = !trayState[id];
+      const row = document.getElementById(id);
+      const btn = document.getElementById('tray-btn-' + id);
+
+      if (trayState[id]) {
+        row.classList.add('engaged');
+        if (btn) btn.textContent = 'STORED (18.4 MB)';
+      } else {
+        row.classList.remove('engaged');
+        if (btn) btn.textContent = 'PULL ASSET';
+      }
+
+      updateGauge();
+    }
+
+    function updateGauge() {
+      const total = Object.keys(trayState).length;
+      const count = Object.values(trayState).filter(Boolean).length;
+      const pct = Math.round((count / total) * 100);
+
+      document.getElementById('gauge-fill').style.width = pct + '%';
+      document.getElementById('gauge-val').textContent = pct + '% (' + count + ' / ' + total + ')';
+
+      const stateLabel = document.getElementById('gauge-state');
+      if (count === total) {
+        stateLabel.textContent = 'PAYLOAD_COMPLETE ✓';
+        stateLabel.style.color = 'var(--signal-green)';
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+        }
+      } else {
+        stateLabel.textContent = 'TRANSMITTING...';
+        stateLabel.style.color = 'var(--signal-orange)';
+      }
+    }
+  </script>
+</body>
+</html>
+

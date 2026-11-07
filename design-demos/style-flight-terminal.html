@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Asset Flight Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --terminal-bg: #0C0E14;
+      --terminal-surface: #141824;
+      --terminal-card: #1A2030;
+      --flap-bg: #090B10;
+      --flap-border: #2B3349;
+      --signal-yellow: #FFD200;
+      --signal-yellow-glow: rgba(255, 210, 0, 0.25);
+      --signal-green: #00FF88;
+      --signal-cyan: #00E5FF;
+      --text-main: #F1F4F9;
+      --text-muted: #8E98AC;
+      --text-dim: #545F78;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--terminal-bg);
+      color: var(--text-main);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 210, 0, 0.08), transparent),
+        radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.05), transparent);
+    }
+
+    /* Terminal Nav */
+    .terminal-nav {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--flap-border);
+    }
+    .brand-gate {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .gate-indicator {
+      background: var(--signal-yellow);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 12px var(--signal-yellow-glow);
+    }
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+    .flight-status-live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--signal-green);
+      background: rgba(0, 255, 136, 0.08);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .beacon {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--signal-green);
+      box-shadow: 0 0 8px var(--signal-green);
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+    .nav-terminal-cta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-terminal-login {
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .btn-terminal-login:hover { color: #fff; }
+    .btn-terminal-start {
+      background: var(--signal-yellow);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 9px 18px;
+      border-radius: 4px;
+      text-decoration: none;
+      box-shadow: 0 0 16px var(--signal-yellow-glow);
+      transition: transform 0.15s;
+    }
+    .btn-terminal-start:hover { transform: translateY(-1px); }
+
+    /* Main Container */
+    .terminal-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* Solari Split-Flap Departure Board Hero */
+    .departure-board {
+      background: var(--flap-bg);
+      border: 2px solid var(--flap-border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--flap-border);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .board-header strong { color: var(--signal-yellow); }
+
+    /* The Mechanical Flap Headline */
+    .solari-headline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 3.8vw, 3rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .solari-tag {
+      background: #1E2536;
+      border: 1px solid #36415E;
+      color: var(--signal-yellow);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .departure-sub {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .telemetry-tape {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+    }
+    .tape-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .tape-item span.highlight { color: var(--signal-yellow); font-weight: 700; }
+
+    /* Interactive Baggage Carousel & Intake Manifest */
+    .carousel-section {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 960px) {
+      .carousel-section { grid-template-columns: 1fr; }
+    }
+
+    /* Left: Incident Baggage Delay Report */
+    .customs-report-card {
+      background: var(--terminal-surface);
+      border: 1px solid var(--flap-border);
+      border-radius: 12px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .customs-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #FF5555;
+      background: rgba(255, 85, 85, 0.1);
+      border: 1px solid rgba(255, 85, 85, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+    .customs-h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .customs-lead {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .friction-tags-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+    }
+    .friction-tag-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid #FF5555;
+      border-radius: 2px;
+    }
+    .friction-tag-row.solution {
+      border-left-color: var(--signal-green);
+      background: rgba(0, 255, 136, 0.05);
+    }
+
+    /* Right: Interactive Baggage Drop Manifest */
+    .baggage-docket-card {
+      background: var(--terminal-card);
+      border: 2px solid var(--flap-border);
+      border-radius: 12px;
+      padding: 28px;
+      position: relative;
+    }
+    .docket-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px dashed var(--flap-border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .docket-top h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .client-transit-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: var(--signal-yellow);
+      color: #000;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+
+    /* Conveyor Belt Items */
+    .baggage-tray {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .bag-tag {
+      background: #0E121B;
+      border: 1px solid var(--flap-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .bag-tag:hover {
+      border-color: var(--signal-yellow);
+      background: #141A27;
+    }
+    .bag-tag.cleared {
+      border-color: rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.04);
+    }
+    .bag-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .scanner-lamp {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid var(--flap-border);
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .bag-tag.cleared .scanner-lamp {
+      background: var(--signal-green);
+      color: #000;
+      font-weight: 800;
+      border-color: var(--signal-green);
+    }
+    .bag-meta h5 {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bag-meta p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .barcode-strip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+    }
+    .btn-cargo-drop {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--flap-border);
+      color: var(--signal-yellow);
+      transition: all 0.15s;
+    }
+    .bag-tag.cleared .btn-cargo-drop {
+      background: rgba(0, 255, 136, 0.1);
+      border-color: rgba(0, 255, 136, 0.3);
+      color: var(--signal-green);
+    }
+
+    /* Conveyor Telemetry Gauge */
+    .conveyor-gauge {
+      background: #0A0D14;
+      border: 1px solid var(--flap-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .gauge-top-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+    }
+    .gauge-belt-track {
+      height: 8px;
+      background: #1E2536;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .gauge-belt-fill {
+      height: 100%;
+      width: 33%;
+      background: linear-gradient(90deg, var(--signal-yellow), var(--signal-green));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* 3 Terminal Gate Axioms */
+    .gates-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 800px) {
+      .gates-grid { grid-template-columns: 1fr; }
+    }
+    .gate-box {
+      background: var(--terminal-surface);
+      border: 1px solid var(--flap-border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    .gate-header-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--signal-yellow);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .gate-box h4 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .gate-box p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Frequent Flyer Early-Adopter Alliance Banner */
+    .alliance-banner {
+      background: linear-gradient(135deg, rgba(255, 210, 0, 0.08), rgba(0, 229, 255, 0.04));
+      border: 2px solid var(--signal-yellow);
+      border-radius: 12px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .alliance-banner { flex-direction: column; text-align: left; }
+    }
+    .alliance-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--signal-yellow);
+      margin-bottom: 6px;
+    }
+    .alliance-sub {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+    .btn-alliance-claim {
+      background: var(--signal-yellow);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 12px 22px;
+      border-radius: 4px;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 0 16px var(--signal-yellow-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="terminal-nav">
+    <a href="#" class="brand-gate">
+      <span class="gate-indicator">GATE 01</span>
+      <span class="brand-title">DropBrief Terminal</span>
+    </a>
+
+    <div class="flight-status-live">
+      <span class="beacon"></span>
+      <span>INTAKE_RUNWAY: CLEAR (EU-WEST)</span>
+    </div>
+
+    <div class="nav-terminal-cta">
+      <a href="https://usedropbrief.xyz/#" class="btn-terminal-login">FLIGHT CREW LOGIN</a>
+      <a href="https://usedropbrief.xyz/#" class="btn-terminal-start">BOARD FREE →</a>
+    </div>
+  </nav>
+
+  <div class="terminal-container">
+    <!-- Solari Split-Flap Departure Board Hero -->
+    <header class="departure-board">
+      <div class="board-header">
+        <span>ASSET DISPATCH DEPARTURES // MOD 2026</span>
+        <span>STATUS: <strong>SCHEDULED ON TIME</strong></span>
+      </div>
+
+      <h1 class="solari-headline">
+        DIRECT FLIGHT TO <span class="solari-tag">ZERO PASSWORD</span> ASSET DELIVERY.
+      </h1>
+
+      <p class="departure-sub">
+        Expiring transfer links and misplaced logos don't fly here. Dispatch 1 private token link — your clients load digital cargo without accounts, and assets touch down neatly in your drive.
+      </p>
+
+      <div class="telemetry-tape">
+        <div class="tape-item">
+          <span>ALLOWANCE:</span> <span class="highlight">50 MB / PIECE</span>
+        </div>
+        <div class="tape-item">
+          <span>CUSTOMS:</span> <span class="highlight">0 PASSWORDS NEEDED</span>
+        </div>
+        <div class="tape-item">
+          <span>SCRUB CADENCE:</span> <span class="highlight">30-DAY GDPR PURGE</span>
+        </div>
+        <div class="tape-item">
+          <span>COMPLIMENTARY PASS:</span> <span class="highlight">3 ACTIVE PROJECTS</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Baggage Carousel Section -->
+    <section class="carousel-section">
+      <!-- Left: Customs Delays Report -->
+      <div class="customs-report-card">
+        <div>
+          <span class="customs-badge">INCIDENT REPORT // ASSET BOTTLENECK</span>
+          <h3 class="customs-h3">Why Creative Launches Get Grounded</h3>
+          <p class="customs-lead">
+            73% of web design delays are not caused by coding or design — they stall at the asset gate. Clients resist signing up for your internal storage tools.
+          </p>
+
+          <div class="friction-tags-list">
+            <div class="friction-tag-row">
+              <span>EXPIRED WETRANSFER LINKS</span>
+              <span style="color:#FF5555; font-weight:700;">+3.2 HRS LOST</span>
+            </div>
+            <div class="friction-tag-row">
+              <span>GOOGLE DRIVE PERMISSION DENIED</span>
+              <span style="color:#FF5555; font-weight:700;">+4.8 HRS LOST</span>
+            </div>
+            <div class="friction-tag-row solution">
+              <span>DROPBRIEF DIRECT TRANSIT LINK</span>
+              <span style="color:var(--signal-green); font-weight:700;">0 SEC FRICTION</span>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:0.8rem; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">
+          DropBrief is built specifically for solo makers and boutique design crews.
+        </p>
+      </div>
+
+      <!-- Right: Interactive Baggage Drop Manifest -->
+      <div class="baggage-docket-card">
+        <div class="docket-top">
+          <h4>BAGGAGE CARGO MANIFEST</h4>
+          <span class="client-transit-pill">CLIENT DIRECT DROP</span>
+        </div>
+
+        <p style="font-size:0.82rem; color:var(--text-muted); font-family:'JetBrains Mono', monospace; margin-bottom:18px;">
+          SIMULATION: Tap containers below to load asset payload into the intake bay:
+        </p>
+
+        <!-- Baggage Items -->
+        <div class="baggage-tray">
+          <!-- Item 1 (Done) -->
+          <div class="bag-tag cleared" id="bag-1" onclick="toggleBag('bag-1')">
+            <div class="bag-left">
+              <div class="scanner-lamp">✓</div>
+              <div class="bag-meta">
+                <h5>FLT-Brief // Strategy Brief <span class="barcode-strip">|||||||</span></h5>
+                <p>TEXT SPEC • MANIFEST CHECKED IN</p>
+              </div>
+            </div>
+            <span class="btn-cargo-drop">LOADED</span>
+          </div>
+
+          <!-- Item 2 (Interactive) -->
+          <div class="bag-tag" id="bag-2" onclick="toggleBag('bag-2')">
+            <div class="bag-left">
+              <div class="scanner-lamp">[ ]</div>
+              <div class="bag-meta">
+                <h5>FLT-Logo // Vector Identity (.SVG) <span class="barcode-strip">|||||||</span></h5>
+                <p>RAW VECTOR • MAX 50MB CARGO</p>
+              </div>
+            </div>
+            <span class="btn-cargo-drop" id="tag-bag-2">+ LOAD ASSET</span>
+          </div>
+
+          <!-- Item 3 (Interactive) -->
+          <div class="bag-tag" id="bag-3" onclick="toggleBag('bag-3')">
+            <div class="bag-left">
+              <div class="scanner-lamp">[ ]</div>
+              <div class="bag-meta">
+                <h5>FLT-Photos // High-Res Gallery <span class="barcode-strip">|||||||</span></h5>
+                <p>ORIGINAL BATCH • TAP TO LOAD</p>
+              </div>
+            </div>
+            <span class="btn-cargo-drop" id="tag-bag-3">+ LOAD ASSET</span>
+          </div>
+        </div>
+
+        <!-- Telemetry Gauge -->
+        <div class="conveyor-gauge">
+          <div class="gauge-top-row">
+            <span>BAY CONVEYOR STATUS:</span>
+            <span id="belt-status-text" style="color:var(--signal-yellow); font-weight:700;">33% (1 / 3 PIECES LOADED)</span>
+          </div>
+          <div class="gauge-belt-track">
+            <div class="gauge-belt-fill" id="belt-fill" style="width:33%;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 Terminal Gate Axioms -->
+    <div class="gates-grid">
+      <div class="gate-box">
+        <div class="gate-header-num">GATE PROTOCOL 01</div>
+        <h4>No Passports or Logins</h4>
+        <p>Clients never hit an authentication barrier. One cryptographically sealed token URL allows instant drag-and-drop on mobile and desktop.</p>
+      </div>
+
+      <div class="gate-box">
+        <div class="gate-header-num">GATE PROTOCOL 02</div>
+        <h4>Automated Tower Pings</h4>
+        <p>Automated polite nudges fire before deadlines so your launch dates never slip and you don't spend hours writing awkward follow-up emails.</p>
+      </div>
+
+      <div class="gate-box">
+        <div class="gate-header-num">GATE PROTOCOL 03</div>
+        <h4>30-Day Baggage Destruction</h4>
+        <p>Confidential NDA assets and raw customer files are systematically incinerated from EU storage 30 days post-project. Zero liability.</p>
+      </div>
+    </div>
+
+    <!-- Frequent Flyer Alliance Banner -->
+    <div class="alliance-banner">
+      <div>
+        <div class="alliance-title">FREQUENT FLYER ALLIANCE: 3 FREE SLOTS FOREVER</div>
+        <p class="alliance-sub">
+          We run DropBrief without VC venture fluff. Start with 3 free active project runways. Refer a fellow studio pilot to earn <strong>+2 slots permanently</strong> for each invite.
+        </p>
+      </div>
+      <a href="https://usedropbrief.xyz/#" class="btn-alliance-claim">CLAIM BOARDING PASS →</a>
+    </div>
+  </div>
+
+  <script>
+    const bagState = {
+      'bag-1': true,
+      'bag-2': false,
+      'bag-3': false
+    };
+
+    function toggleBag(id) {
+      bagState[id] = !bagState[id];
+      const tag = document.getElementById(id);
+      const btn = document.getElementById('tag-' + id);
+      const lamp = tag.querySelector('.scanner-lamp');
+
+      if (bagState[id]) {
+        tag.classList.add('cleared');
+        lamp.textContent = '✓';
+        if (btn) btn.textContent = 'LOADED';
+      } else {
+        tag.classList.remove('cleared');
+        lamp.textContent = '[ ]';
+        if (btn) btn.textContent = '+ LOAD ASSET';
+      }
+
+      updateConveyor();
+    }
+
+    function updateConveyor() {
+      const total = Object.keys(bagState).length;
+      const count = Object.values(bagState).filter(Boolean).length;
+      const pct = Math.round((count / total) * 100);
+
+      document.getElementById('belt-fill').style.width = pct + '%';
+      const label = document.getElementById('belt-status-text');
+      label.textContent = pct + '% (' + count + ' / ' + total + ' PIECES LOADED)';
+
+      if (count === total) {
+        label.textContent = 'ALL CARGO LOADED // READY FOR TAKEOFF ✈';
+        label.style.color = 'var(--signal-green)';
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        }
+      } else {
+        label.style.color = 'var(--signal-yellow)';
+      }
+    }
+  </script>
+</body>
+</html>
+

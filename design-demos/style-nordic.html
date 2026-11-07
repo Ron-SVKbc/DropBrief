@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Nordic Organic Studio | Civilized Client Intake</title>
+  <meta name="description" content="Understated Scandinavian luxury and organic typography for bespoke digital ateliers and design studios.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      /* Nordic Organic Palette */
+      --travertine: #f4f1ea;
+      --pine: #162821;
+      --pine-light: #233d33;
+      --sand: #e5dfd5;
+      --sand-light: #ece7df;
+      --clay: #c85a32;
+      --clay-tint: #faeee9;
+      --white: #ffffff;
+      --border-sand: #d8d0c4;
+      --border-pine: #162821;
+      --text-main: #162821;
+      --text-muted: #546059;
+      --text-subtle: #7d8881;
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-soft: 0 4px 20px -2px rgba(22, 40, 33, 0.08);
+      --shadow-deep: 0 16px 40px -8px rgba(22, 40, 33, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--travertine);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top Strip */
+    .nordic-top-bar {
+      border-bottom: 1px solid var(--border-sand);
+      background: var(--sand-light);
+      padding: 8px 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .pine-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--clay);
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border-sand);
+      background: rgba(244, 241, 234, 0.9);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 18px 0;
+    }
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--pine);
+    }
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      background: var(--pine);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--travertine);
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .brand-name {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      min-height: 44px;
+      border: 1px solid transparent;
+    }
+    .btn-sand {
+      background: var(--white);
+      border-color: var(--border-sand);
+      color: var(--pine);
+      box-shadow: 0 1px 3px rgba(22, 40, 33, 0.04);
+    }
+    .btn-sand:hover {
+      background: var(--sand-light);
+      border-color: var(--pine);
+    }
+    .btn-pine {
+      background: var(--pine);
+      color: var(--travertine);
+      box-shadow: var(--shadow-soft);
+    }
+    .btn-pine:hover {
+      background: var(--pine-light);
+      transform: translateY(-1px);
+    }
+    .btn-clay {
+      background: var(--clay);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(200, 90, 50, 0.25);
+    }
+    .btn-clay:hover {
+      background: #b54f2a;
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section: Split */
+    .hero-sec {
+      padding: 64px 0 80px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
+    .organic-pills-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .org-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--white);
+      border: 1px solid var(--border-sand);
+      color: var(--pine);
+    }
+    .org-clay {
+      background: var(--clay-tint);
+      color: var(--clay);
+      border-color: rgba(200, 90, 50, 0.3);
+    }
+
+    .hero-h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(38px, 4.8vw, 62px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.08;
+      color: var(--pine);
+      margin-bottom: 20px;
+    }
+    .hero-h1 em {
+      font-style: italic;
+      color: var(--clay);
+      font-weight: 400;
+    }
+    .hero-lead {
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      max-width: 560px;
+      margin-bottom: 32px;
+    }
+    .hero-cta-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .trust-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-subtle);
+      flex-wrap: wrap;
+    }
+
+    .hero-metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      border-top: 1px solid var(--border-sand);
+      padding-top: 24px;
+    }
+    .metric-card {
+      background: var(--white);
+      border: 1px solid var(--border-sand);
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+    .metric-val {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--pine);
+    }
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Right Column: Crafted Nordic Studio Card */
+    .sample-form-box {
+      background: var(--white);
+      border: 1px solid var(--border-sand);
+      border-radius: 8px;
+      box-shadow: var(--shadow-deep);
+      overflow: hidden;
+      position: sticky;
+      top: 100px;
+    }
+    .form-top-bar {
+      background: var(--sand-light);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-sand);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .form-header {
+      padding: 22px 24px 16px;
+      border-bottom: 1px dashed var(--border-sand);
+    }
+    .url-chip {
+      background: var(--travertine);
+      border: 1px solid var(--border-sand);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .form-title {
+      font-family: var(--font-serif);
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--pine);
+    }
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .prog-section {
+      padding: 16px 24px 0;
+    }
+    .prog-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--pine);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .prog-track {
+      height: 7px;
+      background: var(--sand);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--clay);
+      width: 75%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .checklist-rows {
+      padding: 16px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .c-row {
+      background: var(--travertine);
+      border: 1px solid var(--border-sand);
+      border-radius: 6px;
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .c-row.done {
+      background: #ffffff;
+      border-color: var(--border-sand);
+    }
+    .c-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .c-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      border: 1px solid var(--border-sand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      background: #fff;
+      color: var(--pine);
+    }
+    .c-row.done .c-box {
+      background: var(--pine);
+      border-color: var(--pine);
+      color: #fff;
+    }
+    .c-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--pine);
+    }
+    .c-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+    .c-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 3px;
+    }
+    .tag-stone { background: var(--sand-light); color: var(--pine); border: 1px solid var(--border-sand); }
+    .tag-clay { background: var(--clay-tint); color: var(--clay); border: 1px solid rgba(200, 90, 50, 0.3); }
+
+    .dropzone-action {
+      border: 2px dashed var(--clay);
+      background: var(--clay-tint);
+      border-radius: 6px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dropzone-action:hover {
+      background: #f7e4dd;
+      transform: translateY(-1px);
+    }
+    .form-foot {
+      padding: 12px 24px;
+      background: var(--sand-light);
+      border-top: 1px solid var(--border-sand);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+
+    /* Section 2: Audit Receipt */
+    .audit-sec {
+      padding: 0 0 80px;
+    }
+    .audit-card {
+      background: var(--white);
+      border: 1px solid var(--border-sand);
+      border-radius: 8px;
+      padding: 36px;
+      box-shadow: var(--shadow-soft);
+    }
+    .audit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px dashed var(--border-sand);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .audit-incidents {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .incident-item {
+      background: var(--travertine);
+      border: 1px solid var(--border-sand);
+      border-radius: 6px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      align-items: center;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .incident-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+    .audit-total-bar {
+      border-top: 1px dashed var(--border-sand);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .audit-stamp {
+      border: 1px solid var(--pine);
+      color: var(--pine);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 4px;
+    }
+
+    /* Section 3: The 4 Axioms */
+    .axioms-sec {
+      padding: 0 0 80px;
+    }
+    .axioms-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .axioms-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 580px) {
+      .axioms-grid { grid-template-columns: 1fr; }
+    }
+    .axiom-tile {
+      background: var(--white);
+      border: 1px solid var(--border-sand);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+      transition: all 0.2s;
+    }
+    .axiom-tile:hover {
+      border-color: var(--pine);
+      transform: translateY(-2px);
+    }
+    .ax-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--clay);
+      font-weight: 700;
+    }
+    .ax-h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--pine);
+    }
+    .ax-p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Section 4: Honest Early Adopter Banner */
+    .early-banner {
+      background: var(--pine);
+      color: var(--travertine);
+      border-radius: 8px;
+      padding: 52px 36px;
+      text-align: center;
+      margin-bottom: 80px;
+      box-shadow: var(--shadow-deep);
+    }
+    .banner-perks-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      max-width: 860px;
+      margin: 28px auto;
+      text-align: left;
+    }
+    .perk-cell {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-sand);
+      padding: 32px 0;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--pine);
+      color: var(--travertine);
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      display: none;
+      z-index: 100;
+      box-shadow: var(--shadow-deep);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Strip -->
+  <div class="nordic-top-bar">
+    <div>
+      <span class="pine-dot"></span>
+      <span>NORDIC ATELIER INTAKE SPECIFICATION // VOL. V</span>
+    </div>
+    <div>
+      <span>SUPABASE IRELAND (EU) • 100% COOKIE-FREE • ZERO PASSWORDS</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-layout">
+      <a href="#" class="brand-wrap">
+        <div class="brand-mark">DB</div>
+        <div>
+          <div class="brand-name">DropBrief</div>
+          <div class="brand-tag">Bespoke Client Intake</div>
+        </div>
+      </a>
+
+      <div style="display: flex; gap: 12px;">
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-sand">
+          Log In
+        </a>
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-pine">
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-sec">
+    <div class="container hero-grid">
+      
+      <!-- Left Hero Column -->
+      <div>
+        <div class="organic-pills-row">
+          <span class="org-pill org-clay">ZERO CLIENT PASSWORDS ✦</span>
+          <span class="org-pill">50MB RAW ASSET SPEC</span>
+          <span class="org-pill">30-DAY GDPR PURGE</span>
+        </div>
+
+        <h1 class="hero-h1">
+          A civilized end to chasing clients for <em>raw logos.</em>
+        </h1>
+
+        <p class="hero-lead">
+          One permanent link. Your client drags and drops vector SVGs, brand guidelines, and 50MB photography archives in seconds without creating an account or resetting passwords.
+        </p>
+
+        <div class="hero-cta-cluster">
+          <a href="https://www.usedropbrief.xyz/#" class="btn btn-clay" style="font-size: 15px; padding: 14px 28px; width: fit-content;">
+            Create Free Project Checklist
+          </a>
+          <div class="trust-row">
+            <span>✓ No credit card</span>
+            <span>•</span>
+            <span>✓ No client login</span>
+            <span>•</span>
+            <span>✓ Ireland EU Storage</span>
+          </div>
+        </div>
+
+        <div class="hero-metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val">0 Logins</div>
+            <div class="metric-sub">Clients upload instantly on Safari, Chrome, iOS &amp; Android.</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" style="color: var(--clay);">7.4 Days</div>
+            <div class="metric-sub">Average project lag eliminated per client intake.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Hero Column: Nordic Studio Card -->
+      <div>
+        <div class="sample-form-box">
+          <div class="form-top-bar">
+            <span>STUDIO INTAKE #26-NORDIC</span>
+            <span style="color: var(--clay); font-weight: 600;">● SYNCED LIVE</span>
+          </div>
+
+          <div class="form-header">
+            <div class="url-chip">
+              <span>usedropbrief.xyz/?p=nordic-atelier</span>
+              <a href="https://usedropbrief.xyz/?p=brand-identity" target="_blank" style="color: var(--clay); text-decoration: underline; font-weight: 600;">
+                Open Demo ↗
+              </a>
+            </div>
+            <div class="form-title">Nordic Atelier Brand &amp; Digital</div>
+            <div class="form-subtitle">Client: Astrid Lindholm • Zero Password Intake</div>
+          </div>
+
+          <!-- Progress -->
+          <div class="prog-section">
+            <div class="prog-meta">
+              <span>CHECKLIST PROGRESS</span>
+              <span id="p-text" style="color: var(--clay); font-weight: 600;">75% COMPLETE (3 OF 4)</span>
+            </div>
+            <div class="prog-track">
+              <div id="p-bar" class="prog-fill"></div>
+            </div>
+          </div>
+
+          <!-- Checklist Rows -->
+          <div class="checklist-rows">
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Primary Vector Logo</div>
+                  <div class="c-meta">nordic-primary.svg • 140 KB</div>
+                </div>
+              </div>
+              <span class="c-tag tag-stone">.SVG</span>
+            </div>
+
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Brand Styleguide Book</div>
+                  <div class="c-meta">guidelines-2026.pdf • 4.8 MB</div>
+                </div>
+              </div>
+              <span class="c-tag tag-stone">.PDF</span>
+            </div>
+
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Brand Voice &amp; Manifesto</div>
+                  <div class="c-meta">320 words entered by Astrid</div>
+                </div>
+              </div>
+              <span class="c-tag tag-stone">TEXT</span>
+            </div>
+
+            <div id="interactive-row" class="c-row" style="border-color: var(--clay); background: var(--clay-tint);">
+              <div class="c-left">
+                <div id="check-box-target" class="c-box"></div>
+                <div>
+                  <div class="c-title">High-Res Lookbook Photography</div>
+                  <div id="desc-target" class="c-meta">Click simulation zone below</div>
+                </div>
+              </div>
+              <span id="badge-target" class="c-tag tag-clay">PENDING .ZIP</span>
+            </div>
+
+            <div class="dropzone-action" onclick="simulateUpload()">
+              <div style="font-size: 13px; font-weight: 600; color: var(--clay);">
+                ⚡ CLICK TO SIMULATE CLIENT UPLOAD
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Uploads 46MB raw .ZIP, animates progress to 100%, triggers confetti
+              </div>
+            </div>
+          </div>
+
+          <div class="form-foot">
+            <span id="storage-status">STORAGE: 5.2 MB</span>
+            <span style="color: var(--pine); font-weight: 600;">GDPR ARTICLE 17 ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Audit Receipt -->
+  <section class="audit-sec">
+    <div class="container">
+      <div class="audit-card">
+        <div class="audit-top">
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--clay); font-weight: 700; margin-bottom: 6px;">INCIDENT REPORT #403</div>
+            <h2 style="font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--pine);">The Real Anatomy of Onboarding Delay</h2>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-subtle); text-align: right;">
+            <div>STUDIO AUDIT: CLIENT INTAKE</div>
+            <div>AVERAGE LAG: 7.4 BUSINESS DAYS</div>
+          </div>
+        </div>
+
+        <div class="audit-incidents">
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--clay);">HTTP 403</span>
+            <div>
+              <strong style="color: var(--pine); font-size: 14px;">Corporate Google Drive Lock</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Folder locked to internal @clientcorp.com accounts. Designer waits 3.5 business days for IT admin approval.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--clay); text-align: right; font-weight: 600;">+3.5 DAYS LOST</span>
+          </div>
+
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--clay);">24 KB ARTIFACT</span>
+            <div>
+              <strong style="color: var(--pine); font-size: 14px;">WhatsApp &amp; Slack Image Compression</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Client sends vector logo via chat. Messaging app strips vector curves into an unusable pixelated thumbnail.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--clay); text-align: right; font-weight: 600;">+1.5 DAYS LOST</span>
+          </div>
+
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--clay);">404 EXPIRED</span>
+            <div>
+              <strong style="color: var(--pine); font-size: 14px;">The Dead WeTransfer Link</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Files sent on Thursday; by Tuesday when the studio opens Figma, the 7-day download window has expired.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--clay); text-align: right; font-weight: 600;">+2.4 DAYS LOST</span>
+          </div>
+        </div>
+
+        <div class="audit-total-bar">
+          <div>
+            <div style="font-family: var(--font-serif); font-size: 17px; font-weight: 700; color: var(--pine);">Total Studio Friction: 7.4 Days per client project</div>
+            <div style="font-size: 12px; color: var(--text-muted);">DropBrief eliminates all 3 bottlenecks with one permanent link.</div>
+          </div>
+          <div class="audit-stamp">
+            CLEARED BY DROPBRIEF
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: The 4 Axioms -->
+  <section class="axioms-sec">
+    <div class="container">
+      <div class="axioms-grid">
+        <div class="axiom-tile">
+          <div class="ax-num">AXIOM I</div>
+          <div class="ax-h3">Zero Client Logins</div>
+          <p class="ax-p">If a client must register or remember a password to give you their brand assets, you have already created project delay. Zero login is absolute.</p>
+        </div>
+        <div class="axiom-tile">
+          <div class="ax-num">AXIOM II</div>
+          <div class="ax-h3">50MB Raw Fidelity</div>
+          <p class="ax-p">Vector graphics belong in SVG and AI. Photography belongs in uncompressed master packages. DropBrief guarantees 100% byte fidelity without compression.</p>
+        </div>
+        <div class="axiom-tile">
+          <div class="ax-num">AXIOM III</div>
+          <div class="ax-h3">1-Click Nudges</div>
+          <p class="ax-p">Never send an awkward email asking for files again. Send polite, automated checklist reminders powered by Resend transactional email with one click.</p>
+        </div>
+        <div class="axiom-tile">
+          <div class="ax-num">AXIOM IV</div>
+          <div class="ax-h3">GDPR 30-Day Purge</div>
+          <p class="ax-p">Client assets belong to the assignment. Exactly 30 days after project completion, DropBrief automatically purges all files from EU servers under GDPR Article 17.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Honest Early Adopter Banner -->
+  <section class="container">
+    <div class="early-banner">
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--travertine); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 999px;">
+          EARLY ADOPTER ACCESS ✦ 100% FREE FOREVER
+        </span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--clay); background: var(--clay-tint); border: 1px solid var(--clay); padding: 4px 12px; border-radius: 999px;">
+          +2 SLOTS PER REFERRAL
+        </span>
+      </div>
+
+      <h2 style="font-family: var(--font-serif); font-size: clamp(26px, 3.8vw, 42px); font-weight: 700; color: #fff; margin-bottom: 12px; letter-spacing: -0.02em;">
+        Start with 3 free active project slots.<br><span style="color: #e5dfd5; font-style: italic;">Unlock +2 extra slots</span> for every designer you invite.
+      </h2>
+
+      <p style="font-size: 15px; color: var(--sand); max-width: 680px; margin: 0 auto; line-height: 1.6;">
+        DropBrief is built for independent creatives—100% free with no credit card, no trial expirations, and no subscriptions. Need more active client slots? Simply share your referral link with fellow web designers or freelancers: each colleague who joins automatically unlocks <strong>+2 permanent active project slots</strong> and extended cloud capacity.
+      </p>
+
+      <div class="banner-perks-row">
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--sand); font-weight: 700;">DEFAULT TIER</div>
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 700; color: #fff; margin: 4px 0 2px;">3 Active Slots</div>
+          <div style="font-size: 12px; color: #a4b3aa;">Free forever on signup</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #f29e7e; font-weight: 700;">INVITE BONUS</div>
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 700; color: #fff; margin: 4px 0 2px;">+2 Slots / Peer</div>
+          <div style="font-size: 12px; color: #a4b3aa;">Permanent bonus for both</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--travertine); font-weight: 700;">ASSET LIMIT</div>
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 700; color: #fff; margin: 4px 0 2px;">50 MB / File</div>
+          <div style="font-size: 12px; color: #a4b3aa;">Raw uncompressed uploads</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #e5dfd5; font-weight: 700;">NO SURPRISE FEES</div>
+          <div style="font-family: var(--font-serif); font-size: 19px; font-weight: 700; color: #fff; margin: 4px 0 2px;">0 € / Month</div>
+          <div style="font-size: 12px; color: #a4b3aa;">No credit card required</div>
+        </div>
+      </div>
+
+      <a href="https://www.usedropbrief.xyz/#" class="btn btn-clay" style="font-size: 15px; padding: 14px 32px;">
+        Create Free Project Checklist
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="font-family: var(--font-serif); font-weight: 600; color: var(--pine);">DROPBRIEF • THE BESPOKE CLIENT INTAKE PROTOCOL</div>
+      <div>SUPABASE IRELAND (EU) • 100% COOKIE-FREE • 256-BIT SSL</div>
+    </div>
+  </footer>
+
+  <div id="toast">Notification text</div>
+
+  <script>
+    let isUploaded = false;
+    function simulateUpload() {
+      isUploaded = !isUploaded;
+      const row = document.getElementById('interactive-row');
+      const box = document.getElementById('check-box-target');
+      const desc = document.getElementById('desc-target');
+      const badge = document.getElementById('badge-target');
+      const bar = document.getElementById('p-bar');
+      const txt = document.getElementById('p-text');
+      const status = document.getElementById('storage-status');
+
+      if (isUploaded) {
+        row.style.background = '#ffffff';
+        row.style.borderColor = 'var(--pine)';
+        box.innerText = '✓';
+        box.style.background = 'var(--pine)';
+        box.style.borderColor = 'var(--pine)';
+        box.style.color = '#fff';
+        desc.innerText = 'nordic-lookbook-raw.zip (46.2 MB) • Delivered';
+        badge.innerText = 'DELIVERED';
+        badge.className = 'c-tag tag-stone';
+        badge.style.background = 'var(--pine)';
+        badge.style.color = '#fff';
+        bar.style.width = '100%';
+        bar.style.background = 'var(--pine)';
+        txt.innerText = '100% COMPLETE (4 OF 4)';
+        txt.style.color = 'var(--pine)';
+        status.innerText = 'STORAGE: 51.4 MB (READY)';
+        status.style.color = 'var(--pine)';
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
+        }
+        showToast('⚡ Client upload simulated: 46.2 MB delivered. Project at 100%!');
+      } else {
+        row.style.background = 'var(--clay-tint)';
+        row.style.borderColor = 'var(--clay)';
+        box.innerText = '';
+        box.style.background = '#fff';
+        box.style.borderColor = 'var(--border-sand)';
+        desc.innerText = 'Click simulation zone below';
+        badge.innerText = 'PENDING .ZIP';
+        badge.className = 'c-tag tag-clay';
+        badge.style.background = '';
+        badge.style.color = '';
+        bar.style.width = '75%';
+        bar.style.background = 'var(--clay)';
+        txt.innerText = '75% COMPLETE (3 OF 4)';
+        txt.style.color = 'var(--clay)';
+        status.innerText = 'STORAGE: 5.2 MB';
+        status.style.color = '';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+  </script>
+</body>
+</html>
+

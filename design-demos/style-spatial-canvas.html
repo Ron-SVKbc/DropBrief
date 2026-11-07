@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Spatial Canvas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --bg: #07090E;
+      --canvas-dot: #1E2538;
+      --glass: rgba(18, 24, 38, 0.75);
+      --glass-elevated: rgba(26, 35, 56, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-border-focus: rgba(99, 102, 241, 0.5);
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --indigo: #6366F1;
+      --indigo-glow: rgba(99, 102, 241, 0.35);
+      --cyan: #06B6D4;
+      --emerald: #10B981;
+      --pink: #EC4899;
+      --cursor-client: #10B981;
+      --cursor-studio: #6366F1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(var(--canvas-dot) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+
+    /* Floating Top Glass Bar */
+    .spatial-topbar {
+      max-width: 1220px;
+      margin: 16px auto 0;
+      padding: 12px 20px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .canvas-breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.82rem;
+    }
+    .canvas-logo-mark {
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, var(--indigo), var(--cyan));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .canvas-logo-mark svg { width: 14px; height: 14px; color: #fff; }
+    .crumb-sep { color: rgba(255, 255, 255, 0.3); }
+
+    .zoom-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: var(--text-muted);
+    }
+    .zoom-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 6px var(--emerald);
+    }
+
+    .topbar-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-spatial-ghost {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      transition: color 0.15s;
+    }
+    .btn-spatial-ghost:hover { color: #fff; }
+    .btn-spatial-primary {
+      background: linear-gradient(135deg, var(--indigo), #4F46E5);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      box-shadow: 0 0 16px var(--indigo-glow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Spatial Canvas Workspace */
+    .canvas-workspace {
+      max-width: 1240px;
+      margin: 24px auto 60px;
+      padding: 0 20px;
+      position: relative;
+    }
+
+    /* Simulated Multiplayer Cursor (Figma Style) */
+    .spatial-cursor {
+      position: absolute;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cursor-pointer-icon {
+      width: 16px;
+      height: 16px;
+    }
+    .cursor-badge {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #000;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .cursor-client-tag {
+      top: 240px;
+      right: 22%;
+    }
+    .cursor-client-tag .cursor-badge { background: var(--cursor-client); }
+
+    /* The 2-Frame Artboard Layout */
+    .artboard-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    @media (max-width: 960px) {
+      .artboard-layout { grid-template-columns: 1fr; }
+      .cursor-client-tag { display: none; }
+    }
+
+    /* Frame 01: Value Prop Artboard Frame */
+    .artboard-frame {
+      background: var(--glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    /* Figma Selection Bounding Box Accents */
+    .frame-tag-label {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #A5B4FC;
+      background: #1E2338;
+      border: 1px solid var(--indigo);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .frame-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--indigo);
+      border: 1.5px solid #fff;
+    }
+    .handle-tl { top: -4px; left: -4px; }
+    .handle-tr { top: -4px; right: -4px; }
+    .handle-bl { bottom: -4px; left: -4px; }
+    .handle-br { bottom: -4px; right: -4px; }
+
+    .spatial-h1 {
+      font-size: clamp(2.3rem, 4.2vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+      margin-bottom: 20px;
+    }
+    .gradient-canvas-text {
+      background: linear-gradient(135deg, #FFFFFF 30%, #A5B4FC 70%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .spatial-lead {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .spatial-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .btn-canvas-primary {
+      background: linear-gradient(135deg, var(--indigo), #4338CA);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 13px 26px;
+      border-radius: 8px;
+      text-decoration: none;
+      box-shadow: 0 0 24px var(--indigo-glow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.15s;
+    }
+    .btn-canvas-primary:hover { transform: translateY(-1px); }
+
+    .canvas-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 20px;
+    }
+    .stat-pill-box {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .stat-pill-box strong {
+      display: block;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    /* Frame 02: Interactive Client Drop Artboard */
+    .client-drop-frame {
+      background: var(--glass-elevated);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .client-frame-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .client-frame-header h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .badge-no-auth {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.72rem;
+      background: rgba(16, 185, 129, 0.15);
+      color: #6EE7B7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    /* Checklist */
+    .spatial-items-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .spatial-row {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .spatial-row:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .spatial-row.done {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .spatial-row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .spatial-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1.5px solid var(--glass-border);
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .spatial-row.done .spatial-check {
+      background: var(--emerald);
+      border-color: var(--emerald);
+    }
+    .spatial-check svg {
+      width: 12px;
+      height: 12px;
+      color: #fff;
+      display: none;
+    }
+    .spatial-row.done .spatial-check svg { display: block; }
+    .spatial-row-meta h4 {
+      font-size: 0.94rem;
+      font-weight: 700;
+    }
+    .spatial-row-meta p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .spatial-action-btn {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: #A5B4FC;
+      transition: all 0.15s;
+    }
+    .spatial-row.done .spatial-action-btn {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6EE7B7;
+    }
+
+    /* Real-Time Progress Bar */
+    .spatial-meter-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+    }
+    .meter-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 33%;
+      background: linear-gradient(90deg, var(--indigo), var(--emerald));
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    /* Floating macOS-Style Spatial Dock */
+    .spatial-dock {
+      background: var(--glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+    @media (max-width: 768px) {
+      .spatial-dock { flex-direction: column; text-align: left; }
+    }
+    .dock-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .dock-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .btn-dock-claim {
+      background: #fff;
+      color: #07090E;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: transform 0.15s;
+    }
+    .btn-dock-claim:hover { transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Spatial Topbar -->
+  <nav class="spatial-topbar">
+    <div class="canvas-breadcrumbs">
+      <div class="canvas-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <span>DropBrief</span>
+      <span class="crumb-sep">/</span>
+      <span style="color:var(--text-muted);">Nordic Bakery Artboard</span>
+    </div>
+
+    <div class="zoom-telemetry">
+      <span class="zoom-dot"></span>
+      <span>100% CANVAS // MULTIPLAYER LIVE</span>
+    </div>
+
+    <div class="topbar-right-actions">
+      <a href="https://usedropbrief.xyz/#" class="btn-spatial-ghost">Studio Login</a>
+      <a href="https://usedropbrief.xyz/#" class="btn-spatial-primary">Get Started Free</a>
+    </div>
+  </nav>
+
+  <div class="canvas-workspace">
+    <!-- Simulated Multiplayer Client Cursor -->
+    <div class="spatial-cursor cursor-client-tag" id="client-cursor">
+      <svg class="cursor-pointer-icon" viewBox="0 0 24 24" fill="var(--cursor-client)">
+        <polygon points="0,0 0,20 6,15 11,24 14,22 9,13 16,13"/>
+      </svg>
+      <span class="cursor-badge">Client (Nordic Bakery)</span>
+    </div>
+
+    <!-- 2-Frame Artboard Layout -->
+    <div class="artboard-layout">
+      <!-- Frame 01: Value Prop Frame -->
+      <div class="artboard-frame">
+        <span class="frame-tag-label">FRAME // VALUE_PROP</span>
+        <div class="frame-handle handle-tl"></div>
+        <div class="frame-handle handle-tr"></div>
+        <div class="frame-handle handle-bl"></div>
+        <div class="frame-handle handle-br"></div>
+
+        <h1 class="spatial-h1">
+          Stop hunting assets. <br>
+          <span class="gradient-canvas-text">Drop 1 link & build.</span>
+        </h1>
+
+        <p class="spatial-lead">
+          Clients hate creating accounts for your tools. DropBrief gives you a single collaborative intake canvas where clients drop 50MB raw files without passwords.
+        </p>
+
+        <div class="spatial-actions-row">
+          <a href="https://usedropbrief.xyz/#" class="btn-canvas-primary">Start Free (3 Active Slots) →</a>
+        </div>
+
+        <div class="canvas-stats-strip">
+          <div class="stat-pill-box">
+            <strong>0 PASSWORDS</strong>
+            <span>Zero client registration</span>
+          </div>
+          <div class="stat-pill-box">
+            <strong>50 MB RAW</strong>
+            <span>Direct vector & photo upload</span>
+          </div>
+          <div class="stat-pill-box">
+            <strong>30-DAY PURGE</strong>
+            <span>GDPR auto-destruction</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frame 02: Interactive Client Intake Frame -->
+      <div class="client-drop-frame">
+        <span class="frame-tag-label" style="background:#0F291E; color:#6EE7B7; border-color:var(--emerald);">FRAME // CLIENT_PORTAL</span>
+
+        <div class="client-frame-header">
+          <div>
+            <h3>Nordic Bakery Redesign</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted);">Client view live preview</p>
+          </div>
+          <span class="badge-no-auth">NO SIGNUP NEEDED</span>
+        </div>
+
+        <!-- Interactive Items Stack -->
+        <div class="spatial-items-stack">
+          <!-- Item 1 (Done) -->
+          <div class="spatial-row done" id="sp-1" onclick="toggleSpatial('sp-1')">
+            <div class="spatial-row-left">
+              <div class="spatial-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="spatial-row-meta">
+                <h4>Design Brief & Answers</h4>
+                <p>3 questions answered</p>
+              </div>
+            </div>
+            <span class="spatial-action-btn">DELIVERED ✓</span>
+          </div>
+
+          <!-- Item 2 (Interactive) -->
+          <div class="spatial-row" id="sp-2" onclick="toggleSpatial('sp-2')">
+            <div class="spatial-row-left">
+              <div class="spatial-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="spatial-row-meta">
+                <h4>Master Vector Logo (.SVG)</h4>
+                <p>Transparent AI or SVG (max 50MB)</p>
+              </div>
+            </div>
+            <span class="spatial-action-btn" id="btn-sp-2">+ DROP FILE</span>
+          </div>
+
+          <!-- Item 3 (Interactive) -->
+          <div class="spatial-row" id="sp-3" onclick="toggleSpatial('sp-3')">
+            <div class="spatial-row-left">
+              <div class="spatial-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="spatial-row-meta">
+                <h4>Brand Photography Batch</h4>
+                <p>High-resolution gallery</p>
+              </div>
+            </div>
+            <span class="spatial-action-btn" id="btn-sp-3">+ DROP FILE</span>
+          </div>
+        </div>
+
+        <!-- Progress Meter -->
+        <div class="spatial-meter-box">
+          <div class="meter-header">
+            <span>INTAKE COMPLETION:</span>
+            <span id="spatial-meter-label" style="color:#6EE7B7; font-weight:700;">33% (1 / 3 DELIVERED)</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="spatial-meter-fill" style="width:33%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Dock Referral Box -->
+    <div class="spatial-dock">
+      <div>
+        <div class="dock-title">Early Adopter Pool: 3 Free Forever Slots</div>
+        <p class="dock-sub">We grow purely through organic developer referrals. Start with 3 free active projects. Invite a fellow designer and get <strong>+2 slots permanently</strong>.</p>
+      </div>
+      <a href="https://usedropbrief.xyz/#" class="btn-dock-claim">Claim Free Canvas →</a>
+    </div>
+  </div>
+
+  <script>
+    const spState = {
+      'sp-1': true,
+      'sp-2': false,
+      'sp-3': false
+    };
+
+    function toggleSpatial(id) {
+      spState[id] = !spState[id];
+      const row = document.getElementById(id);
+      const btn = document.getElementById('btn-' + id);
+
+      // Move simulated client cursor to clicked element
+      const cursor = document.getElementById('client-cursor');
+      if (cursor) {
+        const rect = row.getBoundingClientRect();
+        cursor.style.transform = `translate(${rect.left - 40}px, ${rect.top - 120}px)`;
+      }
+
+      if (spState[id]) {
+        row.classList.add('done');
+        if (btn) btn.textContent = 'DELIVERED ✓';
+      } else {
+        row.classList.remove('done');
+        if (btn) btn.textContent = '+ DROP FILE';
+      }
+
+      updateSpatialMeter();
+    }
+
+    function updateSpatialMeter() {
+      const total = Object.keys(spState).length;
+      const count = Object.values(spState).filter(Boolean).length;
+      const pct = Math.round((count / total) * 100);
+
+      document.getElementById('spatial-meter-fill').style.width = pct + '%';
+      const label = document.getElementById('spatial-meter-label');
+      label.textContent = pct + '% (' + count + ' / ' + total + ' DELIVERED)';
+
+      if (count === total) {
+        label.textContent = '100% COMPLETE — READY FOR ZIP EXPORT';
+        label.style.color = 'var(--emerald)';
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

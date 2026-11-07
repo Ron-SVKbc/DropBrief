@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Creator Pop Pastel | Zero-Friction Client Intake</title>
+  <meta name="description" content="Joyful pastel neo-grotesk aesthetic for modern creators, boutique studios, and design agencies.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      /* Pastel Creator Pop Palette */
+      --bg: #f5f3ff; /* Soft Lilac */
+      --canvas: #ffffff;
+      --card-tint: #ede9fe;
+      --ink: #2e1065; /* Deep Violet */
+      --ink-muted: #6b21a8;
+      --ink-body: #4c1d95;
+      --text-subtle: #7c3aed;
+      --violet-brand: #7c3aed;
+      --violet-hover: #6d28d9;
+      --mint: #10b981;
+      --mint-light: #d1fae5;
+      --lemon: #fde047;
+      --lemon-light: #fef9c3;
+      --pink: #f472b6;
+      --pink-light: #fdf2f8;
+      --border-pop: 2px solid #2e1065;
+      --shadow-pop-sm: 3px 3px 0 #2e1065;
+      --shadow-pop: 5px 5px 0 #2e1065;
+      --shadow-pop-lg: 8px 8px 0 #2e1065;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      background-image: radial-gradient(rgba(124, 58, 237, 0.1) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top Strip */
+    .pop-top-bar {
+      border-bottom: var(--border-pop);
+      background: var(--lemon-light);
+      padding: 8px 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .pop-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--mint);
+      border: 1px solid #000;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    /* Header */
+    header {
+      background: var(--canvas);
+      border-bottom: var(--border-pop);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 0;
+    }
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .brand-emoji-box {
+      width: 42px;
+      height: 42px;
+      background: var(--lemon);
+      border: var(--border-pop);
+      box-shadow: var(--shadow-pop-sm);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--violet-brand);
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      min-height: 44px;
+      border: var(--border-pop);
+      box-shadow: var(--shadow-pop-sm);
+    }
+    .btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: var(--shadow-pop);
+    }
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+    .btn-white {
+      background: var(--canvas);
+      color: var(--ink);
+    }
+    .btn-violet {
+      background: var(--violet-brand);
+      color: #fff;
+    }
+    .btn-violet:hover {
+      background: var(--violet-hover);
+    }
+
+    /* Hero Section: Split */
+    .hero-sec {
+      padding: 64px 0 80px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
+    .sticker-pills-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .pop-sticker {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: var(--border-pop);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+    .st-lemon { background: var(--lemon); transform: rotate(-2deg); }
+    .st-mint { background: var(--mint-light); transform: rotate(1.5deg); }
+    .st-pink { background: var(--pink-light); transform: rotate(-1deg); }
+
+    .hero-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(38px, 4.8vw, 62px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+    .hero-h1 span.hl {
+      background: var(--lemon);
+      padding: 0 8px;
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      display: inline-block;
+    }
+    .hero-lead {
+      font-size: 18px;
+      color: var(--ink-body);
+      line-height: 1.6;
+      max-width: 560px;
+      margin-bottom: 32px;
+    }
+    .hero-cta-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .trust-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-subtle);
+      font-weight: 600;
+      flex-wrap: wrap;
+    }
+
+    .hero-metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      border-top: 2px dashed var(--violet-brand);
+      padding-top: 24px;
+    }
+    .metric-card {
+      background: var(--canvas);
+      border: var(--border-pop);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-pop-sm);
+    }
+    .metric-val {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .metric-sub {
+      font-size: 12px;
+      color: var(--ink-body);
+      margin-top: 4px;
+    }
+
+    /* Right Column: Joyful Pastel Form Box */
+    .sample-form-box {
+      background: var(--canvas);
+      border: var(--border-pop);
+      border-radius: 18px;
+      box-shadow: var(--shadow-pop-lg);
+      overflow: hidden;
+      position: sticky;
+      top: 100px;
+    }
+    .form-top-bar {
+      background: var(--card-tint);
+      border-bottom: var(--border-pop);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .form-header {
+      padding: 20px 24px 16px;
+      border-bottom: 2px dashed var(--ink);
+    }
+    .url-chip {
+      background: var(--bg);
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--ink-body);
+      margin-top: 3px;
+    }
+
+    .prog-section {
+      padding: 16px 24px 0;
+    }
+    .prog-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .prog-track {
+      height: 12px;
+      background: var(--card-tint);
+      border: var(--border-pop);
+      border-radius: 999px;
+      overflow: hidden;
+      padding: 1px;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--violet-brand);
+      width: 75%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .checklist-rows {
+      padding: 16px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .c-row {
+      background: var(--bg);
+      border: 1.5px solid var(--ink);
+      border-radius: 10px;
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .c-row.done {
+      background: var(--mint-light);
+      border-color: var(--mint);
+    }
+    .c-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .c-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      background: #fff;
+    }
+    .c-row.done .c-box {
+      background: var(--mint);
+      border-color: var(--ink);
+      color: #fff;
+    }
+    .c-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .c-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+    .c-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--ink);
+    }
+    .tag-mint { background: var(--mint); color: #fff; }
+    .tag-lemon { background: var(--lemon); color: var(--ink); }
+
+    .dropzone-action {
+      border: 2px dashed var(--violet-brand);
+      background: var(--lemon-light);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--ink);
+      transition: all 0.15s;
+    }
+    .dropzone-action:hover {
+      background: var(--lemon);
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-pop-sm);
+    }
+    .form-foot {
+      padding: 12px 24px;
+      background: var(--card-tint);
+      border-top: var(--border-pop);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-body);
+    }
+
+    /* Section 2: Audit Receipt */
+    .audit-sec {
+      padding: 0 0 80px;
+    }
+    .audit-card {
+      background: var(--canvas);
+      border: var(--border-pop);
+      border-radius: 18px;
+      padding: 36px;
+      box-shadow: var(--shadow-pop);
+    }
+    .audit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px dashed var(--ink);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .audit-incidents {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .incident-item {
+      background: var(--bg);
+      border: 1.5px solid var(--ink);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      align-items: center;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .incident-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+    .audit-total-bar {
+      border-top: 2px dashed var(--ink);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .audit-stamp {
+      border: 2px solid var(--ink);
+      color: var(--ink);
+      background: var(--mint-light);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    /* Section 3: The 4 Axioms */
+    .axioms-sec {
+      padding: 0 0 80px;
+    }
+    .axioms-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .axioms-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 580px) {
+      .axioms-grid { grid-template-columns: 1fr; }
+    }
+    .axiom-tile {
+      border: var(--border-pop);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-pop-sm);
+      transition: all 0.2s;
+    }
+    .axiom-tile:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: var(--shadow-pop);
+    }
+    .tile-lemon { background: var(--lemon-light); }
+    .tile-white { background: #fff; }
+    .tile-mint { background: var(--mint-light); }
+    .tile-pink { background: var(--pink-light); }
+
+    .ax-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--violet-brand);
+      font-weight: 800;
+    }
+    .ax-h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+    .ax-p {
+      font-size: 13px;
+      color: var(--ink-body);
+      line-height: 1.6;
+    }
+
+    /* Section 4: Honest Early Adopter Banner */
+    .early-banner {
+      background: var(--ink);
+      color: #fff;
+      border: var(--border-pop);
+      border-radius: 20px;
+      padding: 52px 36px;
+      text-align: center;
+      margin-bottom: 80px;
+      box-shadow: var(--shadow-pop-lg);
+    }
+    .banner-perks-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      max-width: 860px;
+      margin: 28px auto;
+      text-align: left;
+    }
+    .perk-cell {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: var(--border-pop);
+      background: #ffffff;
+      padding: 32px 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-body);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--ink);
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      padding: 12px 24px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Strip -->
+  <div class="pop-top-bar">
+    <div>
+      <span class="pop-dot"></span>
+      <span>DROPBRIEF CREATOR EDITION // 100% FREE FOREVER</span>
+    </div>
+    <div>
+      <span>SUPABASE IRELAND EU • ZERO PASSWORDS • NO TRACKING</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-layout">
+      <a href="#" class="brand-wrap">
+        <div class="brand-emoji-box">⚡</div>
+        <div>
+          <div class="brand-title">DropBrief</div>
+          <div class="brand-sub">Creator Intake System</div>
+        </div>
+      </a>
+
+      <div style="display: flex; gap: 12px;">
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-white">
+          Log In
+        </a>
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-violet">
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-sec">
+    <div class="container hero-grid">
+      
+      <!-- Left Hero Column -->
+      <div>
+        <div class="sticker-pills-row">
+          <span class="pop-sticker st-lemon">NO CLIENT PASSWORDS 🚀</span>
+          <span class="pop-sticker st-mint">50MB RAW FILES ⚡</span>
+          <span class="pop-sticker st-pink">30-DAY AUTO-PURGE</span>
+        </div>
+
+        <h1 class="hero-h1">
+          A civilized end to chasing clients for <span class="hl">raw logos.</span>
+        </h1>
+
+        <p class="hero-lead">
+          One permanent link. Your client drags and drops vector SVGs, brand guidelines, and 50MB photography archives in seconds without creating an account or resetting passwords.
+        </p>
+
+        <div class="hero-cta-cluster">
+          <a href="https://www.usedropbrief.xyz/#" class="btn btn-violet" style="font-size: 15px; padding: 14px 32px; width: fit-content;">
+            Create Free Project Checklist 🚀
+          </a>
+          <div class="trust-row">
+            <span>✓ No credit card</span>
+            <span>•</span>
+            <span>✓ No client login</span>
+            <span>•</span>
+            <span>✓ Ireland EU Storage</span>
+          </div>
+        </div>
+
+        <div class="hero-metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val" style="color: var(--violet-brand);">0 Logins</div>
+            <div class="metric-sub">Clients upload instantly on Safari, Chrome, iOS &amp; Android.</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" style="color: var(--mint);">7.4 Days</div>
+            <div class="metric-sub">Average project lag eliminated per client intake.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Hero Column: Joyful Pastel Form Box -->
+      <div>
+        <div class="sample-form-box">
+          <div class="form-top-bar">
+            <span>PORTAL #26-POP</span>
+            <span style="color: var(--mint);">● SYNCED LIVE</span>
+          </div>
+
+          <div class="form-header">
+            <div class="url-chip">
+              <span>usedropbrief.xyz/?p=nordic-atelier</span>
+              <a href="https://usedropbrief.xyz/?p=brand-identity" target="_blank" style="color: var(--violet-brand); font-weight: 700; text-decoration: underline;">
+                Open Demo ↗
+              </a>
+            </div>
+            <div class="form-title">Nordic Atelier Brand &amp; Digital</div>
+            <div class="form-subtitle">Client: Astrid Lindholm • Zero Password Intake</div>
+          </div>
+
+          <!-- Progress -->
+          <div class="prog-section">
+            <div class="prog-meta">
+              <span>CHECKLIST COMPLETION</span>
+              <span id="p-text" style="color: var(--violet-brand);">75% COMPLETE (3 OF 4)</span>
+            </div>
+            <div class="prog-track">
+              <div id="p-bar" class="prog-fill"></div>
+            </div>
+          </div>
+
+          <!-- Checklist Rows -->
+          <div class="checklist-rows">
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Primary Vector Logo</div>
+                  <div class="c-meta">nordic-primary.svg • 140 KB</div>
+                </div>
+              </div>
+              <span class="c-tag tag-mint">.SVG</span>
+            </div>
+
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Brand Styleguide Book</div>
+                  <div class="c-meta">guidelines-2026.pdf • 4.8 MB</div>
+                </div>
+              </div>
+              <span class="c-tag tag-mint">.PDF</span>
+            </div>
+
+            <div class="c-row done">
+              <div class="c-left">
+                <div class="c-box">✓</div>
+                <div>
+                  <div class="c-title">Brand Voice &amp; Manifesto</div>
+                  <div class="c-meta">320 words entered by Astrid</div>
+                </div>
+              </div>
+              <span class="c-tag tag-mint">TEXT</span>
+            </div>
+
+            <div id="interactive-row" class="c-row" style="border: 2px dashed var(--violet-brand); background: var(--lemon-light);">
+              <div class="c-left">
+                <div id="check-box-target" class="c-box"></div>
+                <div>
+                  <div class="c-title">High-Res Lookbook Photography</div>
+                  <div id="desc-target" class="c-meta">Click simulation zone below</div>
+                </div>
+              </div>
+              <span id="badge-target" class="c-tag tag-lemon">PENDING .ZIP</span>
+            </div>
+
+            <div class="dropzone-action" onclick="simulateUpload()">
+              <div style="font-family: var(--font-display); font-size: 13px; font-weight: 800; color: var(--ink);">
+                ⚡ CLICK TO SIMULATE CLIENT UPLOAD
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-body); margin-top: 2px;">
+                Uploads 46MB raw .ZIP, animates progress to 100%, triggers confetti
+              </div>
+            </div>
+          </div>
+
+          <div class="form-foot">
+            <span id="storage-status">STORAGE: 5.2 MB</span>
+            <span style="color: var(--mint);">REAL-TIME SYNC</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Audit Receipt -->
+  <section class="audit-sec">
+    <div class="container">
+      <div class="audit-card">
+        <div class="audit-top">
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: #dc2626; font-weight: 700; margin-bottom: 6px;">INCIDENT REPORT #403</div>
+            <h2 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--ink);">The Real Anatomy of Onboarding Delay</h2>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-subtle); text-align: right;">
+            <div>STUDIO AUDIT: CLIENT INTAKE</div>
+            <div>AVERAGE LAG: 7.4 BUSINESS DAYS</div>
+          </div>
+        </div>
+
+        <div class="audit-incidents">
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #dc2626;">HTTP 403</span>
+            <div>
+              <strong style="color: var(--ink); font-size: 14px;">Corporate Google Drive Lock</strong>
+              <div style="font-size: 12px; color: var(--ink-body); margin-top: 2px;">Folder locked to internal @clientcorp.com accounts. Designer waits 3.5 business days for IT admin approval.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #dc2626; text-align: right; font-weight: 700;">+3.5 DAYS LOST</span>
+          </div>
+
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #dc2626;">24 KB ARTIFACT</span>
+            <div>
+              <strong style="color: var(--ink); font-size: 14px;">WhatsApp &amp; Slack Image Compression</strong>
+              <div style="font-size: 12px; color: var(--ink-body); margin-top: 2px;">Client sends vector logo via chat. Messaging app strips vector curves into an unusable pixelated thumbnail.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #dc2626; text-align: right; font-weight: 700;">+1.5 DAYS LOST</span>
+          </div>
+
+          <div class="incident-item">
+            <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #dc2626;">404 EXPIRED</span>
+            <div>
+              <strong style="color: var(--ink); font-size: 14px;">The Dead WeTransfer Link</strong>
+              <div style="font-size: 12px; color: var(--ink-body); margin-top: 2px;">Files sent on Thursday; by Tuesday when the studio opens Figma, the 7-day download window has expired.</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: #dc2626; text-align: right; font-weight: 700;">+2.4 DAYS LOST</span>
+          </div>
+        </div>
+
+        <div class="audit-total-bar">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--ink);">Total Studio Friction: 7.4 Days per client project</div>
+            <div style="font-size: 12px; color: var(--ink-body);">DropBrief eliminates all 3 bottlenecks with one permanent link.</div>
+          </div>
+          <div class="audit-stamp">
+            CLEARED BY DROPBRIEF
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: The 4 Axioms -->
+  <section class="axioms-sec">
+    <div class="container">
+      <div class="axioms-grid">
+        <div class="axiom-tile tile-lemon">
+          <div class="ax-num">AXIOM I</div>
+          <div class="ax-h3">Zero Client Logins</div>
+          <p class="ax-p">If a client must register or remember a password to give you their brand assets, you have already created project delay. Zero login is absolute.</p>
+        </div>
+        <div class="axiom-tile tile-white">
+          <div class="ax-num">AXIOM II</div>
+          <div class="ax-h3">50MB Raw Fidelity</div>
+          <p class="ax-p">Vector graphics belong in SVG and AI. Photography belongs in uncompressed master packages. DropBrief guarantees 100% byte fidelity without compression.</p>
+        </div>
+        <div class="axiom-tile tile-mint">
+          <div class="ax-num">AXIOM III</div>
+          <div class="ax-h3">1-Click Nudges</div>
+          <p class="ax-p">Never send an awkward email asking for files again. Send polite, automated checklist reminders powered by Resend transactional email with one click.</p>
+        </div>
+        <div class="axiom-tile tile-pink">
+          <div class="ax-num">AXIOM IV</div>
+          <div class="ax-h3">GDPR 30-Day Purge</div>
+          <p class="ax-p">Client assets belong to the assignment. Exactly 30 days after project completion, DropBrief automatically purges all files from EU servers under GDPR Article 17.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Honest Early Adopter Banner -->
+  <section class="container">
+    <div class="early-banner">
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--lemon); background: rgba(254, 240, 138, 0.15); border: 1.5px solid var(--lemon); padding: 4px 12px; border-radius: 999px;">
+          EARLY ADOPTER ACCESS ✦ 100% FREE FOREVER
+        </span>
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--mint); background: var(--mint-light); border: 1.5px solid var(--mint); padding: 4px 12px; border-radius: 999px; color: #065f46;">
+          +2 SLOTS PER REFERRAL
+        </span>
+      </div>
+
+      <h2 style="font-family: var(--font-display); font-size: clamp(26px, 3.8vw, 42px); font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: -0.03em;">
+        Start with 3 free active project slots.<br><span style="color: var(--lemon);">Unlock +2 extra slots</span> for every designer you invite.
+      </h2>
+
+      <p style="font-size: 15px; color: #cbd5e1; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+        DropBrief is built for independent creatives—100% free with no credit card, no trial expirations, and no subscriptions. Need more active client slots? Simply share your referral link with fellow web designers or freelancers: each colleague who joins automatically unlocks <strong>+2 permanent active project slots</strong> and extended cloud capacity.
+      </p>
+
+      <div class="banner-perks-row">
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--lemon); font-weight: 700;">DEFAULT TIER</div>
+          <div style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 4px 0 2px;">3 Active Slots</div>
+          <div style="font-size: 12px; color: #94a3b8;">Free forever on signup</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #6ee7b7; font-weight: 700;">INVITE BONUS</div>
+          <div style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 4px 0 2px;">+2 Slots / Peer</div>
+          <div style="font-size: 12px; color: #94a3b8;">Permanent bonus for both</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #93c5fd; font-weight: 700;">ASSET LIMIT</div>
+          <div style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 4px 0 2px;">50 MB / File</div>
+          <div style="font-size: 12px; color: #94a3b8;">Raw uncompressed uploads</div>
+        </div>
+        <div class="perk-cell">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: #f472b6; font-weight: 700;">NO SURPRISE FEES</div>
+          <div style="font-family: var(--font-display); font-size: 19px; font-weight: 800; color: #fff; margin: 4px 0 2px;">0 € / Month</div>
+          <div style="font-size: 12px; color: #94a3b8;">No credit card required</div>
+        </div>
+      </div>
+
+      <a href="https://www.usedropbrief.xyz/#" class="btn btn-violet" style="background: var(--lemon); color: var(--ink); border-color: var(--lemon); font-size: 15px; padding: 14px 34px;">
+        Create Free Project Checklist ⚡
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="font-family: var(--font-display); font-weight: 800; color: var(--ink);">DROPBRIEF • THE CREATIVE INTAKE SYSTEM</div>
+      <div>SUPABASE IRELAND (EU) • ZERO COOKIES • 256-BIT SSL</div>
+    </div>
+  </footer>
+
+  <div id="toast">Notification text</div>
+
+  <script>
+    let isUploaded = false;
+    function simulateUpload() {
+      isUploaded = !isUploaded;
+      const row = document.getElementById('interactive-row');
+      const box = document.getElementById('check-box-target');
+      const desc = document.getElementById('desc-target');
+      const badge = document.getElementById('badge-target');
+      const bar = document.getElementById('p-bar');
+      const txt = document.getElementById('p-text');
+      const status = document.getElementById('storage-status');
+
+      if (isUploaded) {
+        row.style.background = 'var(--mint-light)';
+        row.style.borderColor = 'var(--mint)';
+        box.innerText = '✓';
+        box.style.background = 'var(--mint)';
+        box.style.borderColor = 'var(--ink)';
+        box.style.color = '#fff';
+        desc.innerText = 'nordic-lookbook-raw.zip (46.2 MB) • Delivered';
+        badge.innerText = 'DELIVERED';
+        badge.className = 'c-tag tag-mint';
+        bar.style.width = '100%';
+        bar.style.background = 'var(--mint)';
+        txt.innerText = '100% COMPLETE (4 OF 4)';
+        txt.style.color = 'var(--mint)';
+        status.innerText = 'STORAGE: 51.4 MB (READY)';
+        status.style.color = 'var(--mint)';
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
+        }
+        showToast('⚡ Client upload simulated: 46.2 MB delivered. Project at 100%!');
+      } else {
+        row.style.background = 'var(--lemon-light)';
+        row.style.borderColor = 'var(--violet-brand)';
+        box.innerText = '';
+        box.style.background = '#fff';
+        box.style.borderColor = 'var(--ink)';
+        desc.innerText = 'Click simulation zone below';
+        badge.innerText = 'PENDING .ZIP';
+        badge.className = 'c-tag tag-lemon';
+        bar.style.width = '75%';
+        bar.style.background = 'var(--violet-brand)';
+        txt.innerText = '75% COMPLETE (3 OF 4)';
+        txt.style.color = 'var(--violet-brand)';
+        status.innerText = 'STORAGE: 5.2 MB';
+        status.style.color = '';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+  </script>
+</body>
+</html>
+

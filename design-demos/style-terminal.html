@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBrief — Terminal Phosphor CLI | Zero-Friction Client Intake</title>
+  <meta name="description" content="Cyberpunk terminal CLI aesthetic with glowing phosphor green and monospace engineering precision.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      /* Terminal Phosphor Palette */
+      --bg: #08090c;
+      --bg-term: #0d0f14;
+      --bg-panel: rgba(13, 15, 20, 0.9);
+      --phosphor: #00ff88;
+      --phosphor-glow: rgba(0, 255, 136, 0.25);
+      --amber: #ffb000;
+      --amber-glow: rgba(255, 176, 0, 0.25);
+      --cyan: #00e5ff;
+      --red: #ff3366;
+      --border-term: 1px solid rgba(0, 255, 136, 0.3);
+      --border-term-heavy: 2px solid #00ff88;
+      --text-main: #f0fdf4;
+      --text-muted: #8899a6;
+      --text-dim: #4b5563;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      /* CRT scanline texture */
+      background-image: 
+        linear-gradient(rgba(18, 20, 26, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 3px, 6px 100%;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top Strip */
+    .term-top-bar {
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      background: #040507;
+      padding: 8px 24px;
+      font-size: 11px;
+      color: var(--phosphor);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .cursor-blink {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: var(--phosphor);
+      animation: blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Header */
+    header {
+      background: rgba(8, 9, 12, 0.95);
+      border-bottom: 1.5px solid rgba(0, 255, 136, 0.35);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 0;
+    }
+    .header-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .brand-cli-box {
+      width: 38px;
+      height: 38px;
+      border: 1.5px solid var(--phosphor);
+      background: rgba(0, 255, 136, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--phosphor);
+      box-shadow: 0 0 12px var(--phosphor-glow);
+    }
+    .brand-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 10px;
+      color: var(--amber);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 20px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      min-height: 42px;
+      text-transform: uppercase;
+      border: 1px solid var(--phosphor);
+    }
+    .btn-term-outline {
+      background: rgba(0, 255, 136, 0.05);
+      color: var(--phosphor);
+    }
+    .btn-term-outline:hover {
+      background: rgba(0, 255, 136, 0.15);
+      box-shadow: 0 0 16px var(--phosphor-glow);
+    }
+    .btn-phosphor {
+      background: var(--phosphor);
+      color: #000;
+      border-color: var(--phosphor);
+      box-shadow: 0 0 16px var(--phosphor-glow);
+    }
+    .btn-phosphor:hover {
+      background: #33ff9e;
+      box-shadow: 0 0 24px var(--phosphor-glow);
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section: Split */
+    .hero-sec {
+      padding: 64px 0 80px;
+      position: relative;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
+    .term-badges-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .term-chip {
+      font-size: 11px;
+      padding: 3px 8px;
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.06);
+      color: var(--phosphor);
+    }
+    .term-chip-amber {
+      border-color: rgba(255, 176, 0, 0.4);
+      background: rgba(255, 176, 0, 0.08);
+      color: var(--amber);
+    }
+
+    .hero-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 4.8vw, 58px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .hero-h1 span.hl {
+      color: var(--phosphor);
+      text-shadow: 0 0 20px var(--phosphor-glow);
+    }
+    .hero-lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 560px;
+      margin-bottom: 32px;
+    }
+    .hero-cta-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .trust-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+    }
+
+    .hero-term-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      border-top: 1px dashed rgba(0, 255, 136, 0.25);
+      padding-top: 24px;
+    }
+    .term-metric-box {
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 16px;
+    }
+    .term-metric-val {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--phosphor);
+    }
+    .term-metric-lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Right Column: Interactive Terminal Window */
+    .terminal-window {
+      background: var(--bg-term);
+      border: 1.5px solid var(--phosphor);
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.15), 0 20px 50px rgba(0, 0, 0, 0.8);
+      position: sticky;
+      top: 100px;
+    }
+    .term-header-bar {
+      background: #050608;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--phosphor);
+    }
+    .term-header-meta {
+      padding: 18px 24px 14px;
+      border-bottom: 1px dashed rgba(0, 255, 136, 0.2);
+      background: rgba(0, 255, 136, 0.02);
+    }
+    .term-url {
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid rgba(0, 255, 136, 0.25);
+      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      background: #000;
+    }
+    .term-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .term-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Progress */
+    .t-prog-box {
+      padding: 14px 24px 0;
+    }
+    .t-prog-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--phosphor);
+      margin-bottom: 6px;
+    }
+    .t-prog-track {
+      height: 8px;
+      background: #000;
+      border: 1px solid var(--phosphor);
+      overflow: hidden;
+    }
+    .t-prog-fill {
+      height: 100%;
+      background: var(--phosphor);
+      box-shadow: 0 0 10px var(--phosphor);
+      width: 75%;
+      transition: width 0.4s ease;
+    }
+
+    /* Checklist */
+    .t-checklist {
+      padding: 16px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .t-row {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 255, 136, 0.15);
+      padding: 11px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .t-row.done {
+      border-color: rgba(0, 255, 136, 0.4);
+      background: rgba(0, 255, 136, 0.04);
+    }
+    .t-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .t-box {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--phosphor);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--phosphor);
+    }
+    .t-row.done .t-box {
+      background: var(--phosphor);
+      color: #000;
+    }
+    .t-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .t-item-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .t-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border: 1px solid var(--phosphor);
+      color: var(--phosphor);
+    }
+    .t-badge.done {
+      background: rgba(0, 255, 136, 0.15);
+    }
+
+    .t-dropzone {
+      border: 1.5px dashed var(--amber);
+      background: rgba(255, 176, 0, 0.06);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: all 0.2s;
+    }
+    .t-dropzone:hover {
+      background: rgba(255, 176, 0, 0.12);
+      box-shadow: 0 0 16px var(--amber-glow);
+    }
+    .t-foot {
+      background: #040507;
+      border-top: 1px solid rgba(0, 255, 136, 0.25);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Section 2: Audit Diagnostic Stack Trace */
+    .audit-sec {
+      padding: 0 0 80px;
+    }
+    .audit-box {
+      background: var(--bg-term);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      padding: 36px;
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+    }
+    .audit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px dashed rgba(0, 255, 136, 0.25);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .incidents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .incident-row {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 51, 102, 0.3);
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      align-items: center;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .incident-row { grid-template-columns: 1fr; gap: 8px; }
+    }
+    .audit-foot {
+      border-top: 1px dashed rgba(0, 255, 136, 0.25);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .stamp-approved {
+      border: 1px solid var(--phosphor);
+      color: var(--phosphor);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 12px var(--phosphor-glow);
+    }
+
+    /* Section 3: The 4 Axioms */
+    .axioms-sec {
+      padding: 0 0 80px;
+    }
+    .axioms-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .axioms-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 580px) {
+      .axioms-grid { grid-template-columns: 1fr; }
+    }
+    .ax-box {
+      background: var(--bg-term);
+      border: 1px solid rgba(0, 255, 136, 0.25);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .ax-box:hover {
+      border-color: var(--phosphor);
+      box-shadow: 0 0 16px var(--phosphor-glow);
+    }
+    .ax-num {
+      font-size: 12px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+    .ax-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .ax-body {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Section 4: Honest Early Adopter Banner */
+    .early-banner {
+      background: #040507;
+      border: 1.5px solid var(--phosphor);
+      box-shadow: 0 0 30px var(--phosphor-glow);
+      padding: 48px 36px;
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .perks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      max-width: 860px;
+      margin: 28px auto;
+      text-align: left;
+    }
+    .perk-box {
+      border: 1px solid rgba(0, 255, 136, 0.25);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 14px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(0, 255, 136, 0.2);
+      padding: 32px 0;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #040507;
+      color: var(--phosphor);
+      border: 1px solid var(--phosphor);
+      padding: 12px 20px;
+      font-size: 12px;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 0 20px var(--phosphor-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Strip -->
+  <div class="term-top-bar">
+    <div>
+      <span>root@dropbrief-eu:~# ./init_intake.sh --protocol=v5.4</span>
+      <span class="cursor-blink"></span>
+    </div>
+    <div>
+      <span>[GATEWAY: IRELAND_EU] [AUTH: NONE] [COOKIES: 0]</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-layout">
+      <a href="#" class="brand-group">
+        <div class="brand-cli-box">&gt;_</div>
+        <div>
+          <div class="brand-title">DropBrief // CLI</div>
+          <div class="brand-tag">PORTAL_PROTOCOL_STABLE</div>
+        </div>
+      </a>
+
+      <div style="display: flex; gap: 12px;">
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-term-outline">
+          Log In
+        </a>
+        <a href="https://www.usedropbrief.xyz/#" class="btn btn-phosphor">
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-sec">
+    <div class="container hero-grid">
+      
+      <!-- Left Hero Column -->
+      <div>
+        <div class="term-badges-row">
+          <span class="term-chip">[ZERO CLIENT PASSWORDS]</span>
+          <span class="term-chip">[50MB RAW ASSET FIDELITY]</span>
+          <span class="term-chip-amber">[GDPR 30-DAY PURGE]</span>
+        </div>
+
+        <h1 class="hero-h1">
+          A civilized end to chasing clients for <span class="hl">raw logos.</span>
+        </h1>
+
+        <p class="hero-lead">
+          One permanent link. Your client drags and drops vector SVGs, brand guidelines, and 50MB photography archives in seconds without creating an account or resetting passwords.
+        </p>
+
+        <div class="hero-cta-cluster">
+          <a href="https://www.usedropbrief.xyz/#" class="btn btn-phosphor" style="font-size: 13px; padding: 14px 28px; width: fit-content;">
+            &gt; Create Free Project Checklist
+          </a>
+          <div class="trust-strip">
+            <span>[+] Zero Credit Card</span>
+            <span>//</span>
+            <span>[+] Zero Client Auth</span>
+            <span>//</span>
+            <span>[+] EU Ireland Storage</span>
+          </div>
+        </div>
+
+        <div class="hero-term-metrics">
+          <div class="term-metric-box">
+            <div class="term-metric-val">0 AUTH</div>
+            <div class="term-metric-lbl">Direct mobile &amp; desktop upload without passwords.</div>
+          </div>
+          <div class="term-metric-box">
+            <div class="term-metric-val" style="color: var(--amber);">7.4 DAYS</div>
+            <div class="term-metric-lbl">Average onboarding lag eradicated per assignment.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Hero Column: Interactive Terminal Window -->
+      <div>
+        <div class="terminal-window">
+          <div class="term-header-bar">
+            <span>BUFFER: NORDIC_ATELIER.INTAKE</span>
+            <span style="color: var(--phosphor);">[LIVE WEBSOCKET]</span>
+          </div>
+
+          <div class="term-header-meta">
+            <div class="term-url">
+              <span>https://usedropbrief.xyz/?p=nordic-atelier</span>
+              <a href="https://usedropbrief.xyz/?p=brand-identity" target="_blank" style="color: var(--cyan); text-decoration: underline; margin-left: 6px;">
+                Open Demo ↗
+              </a>
+            </div>
+            <div class="term-title">Nordic Atelier Brand &amp; Digital</div>
+            <div class="term-sub">Client: Astrid Lindholm // Single-Link Client View</div>
+          </div>
+
+          <div class="t-prog-box">
+            <div class="t-prog-meta">
+              <span>BUFFER_COMPLETION:</span>
+              <span id="p-text" style="color: var(--phosphor); font-weight: 700;">75% [3/4 ITEMS DELIVERED]</span>
+            </div>
+            <div class="t-prog-track">
+              <div id="p-bar" class="t-prog-fill"></div>
+            </div>
+          </div>
+
+          <div class="t-checklist">
+            <div class="t-row done">
+              <div class="t-left">
+                <div class="t-box">X</div>
+                <div>
+                  <div class="t-item-title">Primary Vector Logo</div>
+                  <div class="t-item-meta">nordic-primary.svg • 140 KB</div>
+                </div>
+              </div>
+              <span class="t-badge done">.SVG</span>
+            </div>
+
+            <div class="t-row done">
+              <div class="t-left">
+                <div class="t-box">X</div>
+                <div>
+                  <div class="t-item-title">Brand Styleguide Book</div>
+                  <div class="t-item-meta">guidelines-2026.pdf • 4.8 MB</div>
+                </div>
+              </div>
+              <span class="t-badge done">.PDF</span>
+            </div>
+
+            <div class="t-row done">
+              <div class="t-left">
+                <div class="t-box">X</div>
+                <div>
+                  <div class="t-item-title">Brand Voice &amp; Manifesto</div>
+                  <div class="t-item-meta">320 words entered by Astrid</div>
+                </div>
+              </div>
+              <span class="t-badge done">TEXT</span>
+            </div>
+
+            <div id="interactive-row" class="t-row" style="border-color: var(--amber); background: rgba(255, 176, 0, 0.04);">
+              <div class="t-left">
+                <div id="check-target" class="t-box"> </div>
+                <div>
+                  <div class="t-item-title">High-Res Lookbook Photography</div>
+                  <div id="desc-target" class="t-item-meta">Click simulation zone below</div>
+                </div>
+              </div>
+              <span id="badge-target" class="t-badge" style="color: var(--amber); border-color: var(--amber);">PENDING .ZIP</span>
+            </div>
+
+            <div class="t-dropzone" onclick="simulateUpload()">
+              <div style="font-size: 12px; font-weight: 700; color: var(--amber);">
+                &gt;&gt; CLICK TO SIMULATE CLIENT UPLOAD
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Uploads 46MB raw .ZIP, fills buffer to 100%, triggers confetti
+              </div>
+            </div>
+          </div>
+
+          <div class="t-foot">
+            <span id="storage-status">STORAGE: 5.2 MB</span>
+            <span style="color: var(--phosphor);">[SSL_256_ACTIVE]</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: Audit Diagnostic Stack Trace -->
+  <section class="audit-sec">
+    <div class="container">
+      <div class="audit-box">
+        <div class="audit-top">
+          <div>
+            <div style="font-size: 11px; color: var(--red); font-weight: 700; margin-bottom: 6px;">[STACK_TRACE_REPORT #403]</div>
+            <h2 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: #fff; text-transform: uppercase;">The Real Anatomy of Onboarding Delay</h2>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); text-align: right;">
+            <div>STUDIO AUDIT: CLIENT INTAKE</div>
+            <div>AVERAGE LAG: 7.4 BUSINESS DAYS</div>
+          </div>
+        </div>
+
+        <div class="incidents-list">
+          <div class="incident-row">
+            <span style="font-size: 12px; font-weight: 700; color: var(--red);">HTTP 403</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">Corporate Google Drive Lock</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Domain access block. Designer waits 3.5 business days for administrator OAuth token clearance.</div>
+            </div>
+            <span style="font-size: 12px; color: var(--red); text-align: right;">+3.5 DAYS</span>
+          </div>
+
+          <div class="incident-row">
+            <span style="font-size: 12px; font-weight: 700; color: var(--red);">24 KB ARTIFACT</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">WhatsApp &amp; Slack Image Compression</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Client transmits logo via chat stream. Vector paths decimated into an unprintable pixelated artifact.</div>
+            </div>
+            <span style="font-size: 12px; color: var(--red); text-align: right;">+1.5 DAYS</span>
+          </div>
+
+          <div class="incident-row">
+            <span style="font-size: 12px; font-weight: 700; color: var(--red);">404 EXPIRED</span>
+            <div>
+              <strong style="color: #fff; font-size: 14px;">The Dead WeTransfer Link</strong>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Asset delivered on Thursday; by Tuesday Figma launch, the 7-day TTL expiration triggers 404.</div>
+            </div>
+            <span style="font-size: 12px; color: var(--red); text-align: right;">+2.4 DAYS</span>
+          </div>
+        </div>
+
+        <div class="audit-foot">
+          <div>
+            <div style="font-size: 14px; font-weight: 700; color: #fff;">Total Studio Friction: 7.4 Days per client project</div>
+            <div style="font-size: 11px; color: var(--text-dim);">DropBrief eliminates all 3 bottlenecks with one permanent link.</div>
+          </div>
+          <div class="stamp-approved">
+            [+] VERIFIED BY DROPBRIEF
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: The 4 Axioms -->
+  <section class="axioms-sec">
+    <div class="container">
+      <div class="axioms-grid">
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 01</div>
+          <div class="ax-title">Zero Client Logins</div>
+          <p class="ax-body">If a client must register or remember a password to deliver brand assets, project delay is inevitable. Zero auth is absolute.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 02</div>
+          <div class="ax-title">50MB Raw Fidelity</div>
+          <p class="ax-body">Vector graphics belong in SVG and AI. Photography belongs in uncompressed master packages. 100% byte fidelity guaranteed.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 03</div>
+          <div class="ax-title">1-Click Nudges</div>
+          <p class="ax-body">Never send an awkward email asking for files again. Send polite, automated checklist reminders powered by Resend transactional email.</p>
+        </div>
+        <div class="ax-box">
+          <div class="ax-num">AXIOM // 04</div>
+          <div class="ax-title">GDPR 30-Day Purge</div>
+          <p class="ax-body">Client assets belong to the assignment. Exactly 30 days after project completion, DropBrief purges all files under GDPR Article 17.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Honest Early Adopter Banner -->
+  <section class="container">
+    <div class="early-banner">
+      <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 16px;">
+        <span style="font-size: 11px; color: var(--phosphor); border: 1px solid var(--phosphor); padding: 4px 10px; background: rgba(0, 255, 136, 0.1);">
+          [EARLY ADOPTER ACCESS // 100% FREE FOREVER]
+        </span>
+        <span style="font-size: 11px; color: var(--amber); border: 1px solid var(--amber); padding: 4px 10px; background: rgba(255, 176, 0, 0.1);">
+          [+2 SLOTS PER REFERRAL]
+        </span>
+      </div>
+
+      <h2 style="font-family: var(--font-display); font-size: clamp(26px, 3.8vw, 42px); font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: -0.03em; text-transform: uppercase;">
+        Start with 3 free active project slots.<br><span style="color: var(--amber);">Unlock +2 extra slots</span> for every designer you invite.
+      </h2>
+
+      <p style="font-size: 14px; color: var(--text-muted); max-width: 680px; margin: 0 auto; line-height: 1.6;">
+        DropBrief is built for independent creatives—100% free with no credit card, no trial expirations, and no subscriptions. Need more active client slots? Simply share your referral link with fellow web designers or freelancers: each colleague who joins automatically unlocks <strong>+2 permanent active project slots</strong> and extended cloud capacity.
+      </p>
+
+      <div class="perks-grid">
+        <div class="perk-box">
+          <div style="font-size: 11px; color: var(--phosphor); font-weight: 700;">DEFAULT TIER</div>
+          <div style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">3 Active Slots</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Free forever on signup</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-size: 11px; color: var(--cyan); font-weight: 700;">INVITE BONUS</div>
+          <div style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">+2 Slots / Peer</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Permanent bonus for both</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-size: 11px; color: var(--amber); font-weight: 700;">ASSET LIMIT</div>
+          <div style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">50 MB / File</div>
+          <div style="font-size: 11px; color: var(--text-dim);">Raw uncompressed uploads</div>
+        </div>
+        <div class="perk-box">
+          <div style="font-size: 11px; color: var(--red); font-weight: 700;">NO SURPRISE FEES</div>
+          <div style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #fff; margin: 4px 0 2px;">0 € / Month</div>
+          <div style="font-size: 11px; color: var(--text-dim);">No credit card required</div>
+        </div>
+      </div>
+
+      <a href="https://www.usedropbrief.xyz/#" class="btn btn-phosphor" style="font-size: 13px; padding: 14px 32px;">
+        &gt; Create Free Project Checklist
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>DROPBRIEF // CLIENT INTAKE PROTOCOL ENGINE</div>
+      <div>HOSTED IN IRELAND (EU) // ZERO COOKIES // 256-BIT SSL</div>
+    </div>
+  </footer>
+
+  <div id="toast">Notification text</div>
+
+  <script>
+    let isUploaded = false;
+    function simulateUpload() {
+      isUploaded = !isUploaded;
+      const row = document.getElementById('interactive-row');
+      const box = document.getElementById('check-target');
+      const desc = document.getElementById('desc-target');
+      const badge = document.getElementById('badge-target');
+      const bar = document.getElementById('p-bar');
+      const txt = document.getElementById('p-text');
+      const status = document.getElementById('storage-status');
+
+      if (isUploaded) {
+        row.style.background = 'rgba(0, 255, 136, 0.08)';
+        row.style.borderColor = 'var(--phosphor)';
+        box.innerText = 'X';
+        box.style.background = 'var(--phosphor)';
+        box.style.color = '#000';
+        desc.innerText = 'nordic-lookbook-raw.zip (46.2 MB) // DELIVERED';
+        badge.innerText = 'DELIVERED';
+        badge.className = 't-badge done';
+        badge.style.color = 'var(--phosphor)';
+        badge.style.borderColor = 'var(--phosphor)';
+        bar.style.width = '100%';
+        txt.innerText = '100% [4/4 ITEMS COMPLETE]';
+        status.innerText = 'STORAGE: 51.4 MB [READY]';
+        status.style.color = 'var(--phosphor)';
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 85, spread: 70, origin: { y: 0.6 } });
+        }
+        showToast('>> 46.2 MB raw package delivered. Buffer at 100%.');
+      } else {
+        row.style.background = 'rgba(255, 176, 0, 0.04)';
+        row.style.borderColor = 'var(--amber)';
+        box.innerText = ' ';
+        box.style.background = '';
+        box.style.color = '';
+        desc.innerText = 'Click simulation zone below';
+        badge.innerText = 'PENDING .ZIP';
+        badge.className = 't-badge';
+        badge.style.color = 'var(--amber)';
+        badge.style.borderColor = 'var(--amber)';
+        bar.style.width = '75%';
+        txt.innerText = '75% [3/4 ITEMS DELIVERED]';
+        status.innerText = 'STORAGE: 5.2 MB';
+        status.style.color = '';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+  </script>
+</body>
+</html>
+

@@ -25,6 +25,7 @@ export default function App() {
   } = useApp();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const isLandingPage = !currentFreelancer && currentView !== 'client-portal' && currentView !== 'project-detail';
 
   // Check URL query parameters and Hash for direct client portal links & referral capture
   useEffect(() => {
@@ -91,8 +92,10 @@ export default function App() {
         Skip to main content
       </a>
 
-      {/* Top Navigation */}
-      <Navbar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
+      {/* Top Navigation (rendered for authenticated freelancers and internal views) */}
+      {!isLandingPage && (
+        <Navbar onOpenCreateModal={() => setIsCreateModalOpen(true)} />
+      )}
 
       {/* Main View Display */}
       <main id="main-content" tabIndex={-1} style={{ flex: 1, display: 'flex', flexDirection: 'column', outline: 'none' }}>
@@ -111,71 +114,73 @@ export default function App() {
         )}
       </main>
 
-      {/* Modern SaaS Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-hairline)',
-        padding: '28px 0 24px',
-        background: '#ffffff',
-        marginTop: 'auto',
-      }}>
-        <div className="container" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          fontSize: '0.825rem',
-          color: 'var(--text-muted)'
+      {/* Modern SaaS Footer (rendered for internal views; landing page has its own Neo-Brutalist footer) */}
+      {!isLandingPage && (
+        <footer style={{
+          borderTop: '1px solid var(--border-hairline)',
+          padding: '28px 0 24px',
+          background: '#ffffff',
+          marginTop: 'auto',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--accent-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff'
-            }}>
-              <FolderSync size={16} aria-hidden="true" />
-            </div>
-            <div>
-              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Client Asset & Brief Collection Micro-SaaS
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="status-dot status-dot-live" aria-hidden="true"></span>
-              <span>All systems operational (Ireland EU)</span>
-            </span>
-
-            <button 
-              type="button"
-              onClick={() => setIsLegalModalOpen(true)}
-              aria-label="GDPR and data privacy information"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                fontSize: '0.825rem',
-                cursor: 'pointer',
+          <div className="container" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            fontSize: '0.825rem',
+            color: 'var(--text-muted)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--accent-gradient)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px'
-              }}
-            >
-              <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
-              GDPR & Security (Cookie-free)
-            </button>
+                justifyContent: 'center',
+                color: '#fff'
+              }}>
+                <FolderSync size={16} aria-hidden="true" />
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>DropBrief</strong> &bull; Client Asset &amp; Brief Collection Micro-SaaS
+              </div>
+            </div>
 
-            <span style={{ color: 'var(--success)', fontWeight: 600 }}>100% Cookie-free</span>
-            <span>256-bit SSL</span>
-            <span>$0 operational stack</span>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="status-dot status-dot-live" aria-hidden="true"></span>
+                <span>All systems operational (Ireland EU)</span>
+              </span>
+
+              <button 
+                type="button"
+                onClick={() => setIsLegalModalOpen(true)}
+                aria-label="GDPR and data privacy information"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.825rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
+                GDPR &amp; Security (Cookie-free)
+              </button>
+
+              <span style={{ color: 'var(--success)', fontWeight: 600 }}>100% Cookie-free</span>
+              <span>256-bit SSL</span>
+              <span>$0 operational stack</span>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       {/* Modals & Overlays */}
       <CreateProjectModal 
