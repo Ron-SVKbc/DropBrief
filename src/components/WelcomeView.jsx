@@ -49,7 +49,26 @@ export default function WelcomeView({ onOpenCreateModal }) {
       {/* Top Strip Legal & Compliance Bar */}
       <div className="top-ticker" role="region" aria-label="Terms of service and legal compliance bar">
         <div className="ticker-left">
-          <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>DOC_SPEC:</span>
+          <button 
+            type="button"
+            onClick={() => openLegalModal('overview')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--yellow)', 
+              fontWeight: 800, 
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+              padding: '0 2px',
+              letterSpacing: 'inherit',
+              display: 'inline-flex',
+              alignItems: 'center'
+            }}
+            title="Open comprehensive EU Legal & Compliance Dossier"
+          >
+            DOC_SPEC:
+          </button>
           <button 
             type="button" 
             className="ticker-link"

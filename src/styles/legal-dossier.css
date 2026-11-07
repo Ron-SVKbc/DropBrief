@@ -1,0 +1,797 @@
+/* ============================================================
+   DropBrief — Legal & Compliance Dossier Modal Styles
+   Pure Neo-Brutalist Studio Edition (Matches Homepage Aesthetic)
+   ============================================================ */
+
+@keyframes legalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes legalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Backdrop */
+.legal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  padding: 16px;
+  overflow-y: auto;
+  animation: legalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dossier Window Container */
+.legal-dossier-window {
+  --paper: #F5F1E8;
+  --paper-card: #FFFFFF;
+  --paper-alt: #FFFDF9;
+  --ink: #111111;
+  --ink-muted: #4B4842;
+  --ink-dim: #736E66;
+  --orange: #FF4400;
+  --orange-tint: #FFF0EB;
+  --yellow: #FFE500;
+  --yellow-tint: #FFFDE6;
+  --cobalt: #1A56DB;
+  --cobalt-tint: #EFF6FF;
+  --emerald: #10B981;
+  --emerald-tint: #ECFDF5;
+  --purple: #7C3AED;
+  --purple-tint: #FAF5FF;
+  --red: #DC2626;
+  --red-tint: #FEF2F2;
+
+  --border-ink: 2.5px solid #111111;
+  --border-heavy: 3px solid #111111;
+  --shadow-xs: 2px 2px 0px #111111;
+  --shadow-sm: 3px 3px 0px #111111;
+  --shadow-md: 5px 5px 0px #111111;
+  --shadow-lg: 8px 8px 0px #111111;
+  --shadow-xl: 10px 10px 0px #111111;
+
+  --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
+
+  width: 100%;
+  max-width: 960px;
+  height: 90vh;
+  max-height: 870px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: var(--border-heavy);
+  box-shadow: var(--shadow-xl);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--font-body);
+  color: var(--ink);
+  box-sizing: border-box;
+  animation: legalScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+/* Header Bar */
+.legal-dossier-header {
+  background: var(--ink);
+  color: #ffffff;
+  padding: 16px 22px;
+  border-bottom: var(--border-heavy);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.legal-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.legal-header-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--yellow);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.legal-header-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--emerald);
+  color: #111111;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid #111111;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legal-header-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.legal-header-sub {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 3px;
+  display: block;
+}
+
+.legal-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--yellow);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Tactile Close Button */
+.btn-dossier-close {
+  background: #ffffff;
+  color: var(--ink);
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--yellow);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.btn-dossier-close:hover {
+  background: var(--yellow);
+  color: var(--ink);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #ffffff;
+}
+
+.btn-dossier-close:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #ffffff;
+}
+
+/* Dossier Folder Tabs Strip */
+.legal-dossier-tabstrip {
+  background: #222222;
+  border-bottom: var(--border-heavy);
+  padding: 8px 16px 0 16px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.legal-dossier-tabstrip::-webkit-scrollbar {
+  display: none;
+}
+
+.legal-tab-btn {
+  background: #333333;
+  color: #cccccc;
+  border: 2px solid #111111;
+  border-bottom: 2px solid #111111;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+  position: relative;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.legal-tab-btn:hover:not(.is-active) {
+  background: #444444;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.legal-tab-btn.is-active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 800;
+  border: var(--border-heavy);
+  border-bottom: 3px solid var(--paper);
+  margin-bottom: -3px;
+  z-index: 10;
+  box-shadow: 0 -2px 0 var(--yellow);
+}
+
+.legal-tab-pill {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 800;
+  border: 1px solid currentColor;
+}
+
+.legal-tab-btn.is-active .legal-tab-pill {
+  background: var(--yellow);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+/* Body & Content */
+.legal-dossier-body {
+  padding: 28px 32px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(17, 17, 17, 0.06) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) var(--paper);
+}
+
+.legal-dossier-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.legal-dossier-body::-webkit-scrollbar-track {
+  background: var(--paper);
+  border-left: 1.5px solid rgba(17, 17, 17, 0.15);
+}
+
+.legal-dossier-body::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border-radius: 4px;
+}
+
+/* Dossier Card System */
+.dossier-card {
+  background: var(--paper-card);
+  border: var(--border-ink);
+  border-radius: 10px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.dossier-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+}
+
+.dossier-card-hero {
+  background: #ffffff;
+  border: var(--border-heavy);
+  box-shadow: var(--shadow-md);
+  padding: 22px 26px;
+}
+
+.dossier-stamp-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dossier-card-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--ink);
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+/* Telemetry Stats Bar */
+.dossier-telemetry-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1.5px dashed rgba(17, 17, 17, 0.2);
+}
+
+.telemetry-chip {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetry-chip-label {
+  font-size: 0.64rem;
+  color: var(--ink-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.telemetry-chip-val {
+  font-size: 0.8rem;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* Grid Layouts */
+.dossier-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.dossier-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.dossier-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+/* Clause Card in TOS */
+.clause-card {
+  background: var(--paper-card);
+  border: var(--border-ink);
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clause-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.clause-title {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+}
+
+.clause-body {
+  font-size: 0.825rem;
+  line-height: 1.62;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+/* Spotlight Guarantee Box */
+.spotlight-guarantee-box {
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border-heavy);
+  box-shadow: var(--shadow-md);
+  border-radius: 10px;
+  padding: 20px 24px;
+  position: relative;
+}
+
+.spotlight-stamp {
+  background: var(--ink);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Sub-processors Table */
+.dossier-table-wrap {
+  border: var(--border-heavy);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+}
+
+.dossier-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.dossier-table th {
+  background: var(--ink);
+  color: #ffffff;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dossier-table th:last-child {
+  border-right: none;
+}
+
+.dossier-table td {
+  padding: 11px 14px;
+  border-bottom: 1.5px solid rgba(17, 17, 17, 0.15);
+  border-right: 1.5px solid rgba(17, 17, 17, 0.1);
+  color: var(--ink);
+}
+
+.dossier-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dossier-table td:last-child {
+  border-right: none;
+}
+
+.dossier-table tr:nth-child(even) {
+  background: var(--paper-alt);
+}
+
+.dossier-table tr:hover {
+  background: var(--yellow-tint);
+}
+
+.table-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* Lifecycle Timeline Cards (30-day Retention) */
+.lifecycle-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.lifecycle-step-card {
+  background: #ffffff;
+  border: var(--border-ink);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.12s ease;
+}
+
+.lifecycle-step-card:hover {
+  transform: translateX(4px);
+}
+
+.lifecycle-node {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* DPA Code Terminal Box */
+.terminal-viewer {
+  border: var(--border-heavy);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: #111111;
+  color: #f1f5f9;
+}
+
+.terminal-header {
+  background: #1e1e1e;
+  border-bottom: 2px solid #111111;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #111;
+}
+
+.terminal-dot-red { background: #ef4444; }
+.terminal-dot-yellow { background: #eab308; }
+.terminal-dot-green { background: #22c55e; }
+
+.terminal-file-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.terminal-content {
+  padding: 18px 22px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+  max-height: 340px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #111111;
+}
+
+/* Contact Department Tiles */
+.contact-tile {
+  background: #ffffff;
+  border: var(--border-ink);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.contact-tile:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.contact-email-link {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+
+.contact-email-link:hover {
+  color: var(--orange);
+}
+
+/* Quick Nav Tiles in Overview */
+.dossier-index-tile {
+  background: #ffffff;
+  border: var(--border-ink);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  text-align: left;
+}
+
+.dossier-index-tile:hover {
+  background: var(--yellow);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Footer Controls */
+.legal-dossier-footer {
+  background: var(--paper);
+  border-top: var(--border-heavy);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.legal-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+.legal-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Neo-Brutalist Buttons */
+.btn-dossier-nav {
+  background: #ffffff;
+  color: var(--ink);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-xs);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-dossier-nav:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-sm);
+  background: var(--paper-alt);
+}
+
+.btn-dossier-primary {
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border-ink);
+  box-shadow: var(--shadow-xs);
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-dossier-primary:hover {
+  background: var(--orange);
+  color: #ffffff;
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-dossier-primary:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .legal-dossier-window {
+    height: 96vh;
+    max-height: 96vh;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .legal-dossier-header {
+    padding: 12px 16px;
+  }
+
+  .legal-header-title {
+    font-size: 1.1rem;
+  }
+
+  .legal-dossier-body {
+    padding: 18px 16px;
+  }
+
+  .dossier-grid-2,
+  .dossier-grid-3,
+  .dossier-grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-dossier-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .legal-footer-actions {
+    justify-content: space-between;
+  }
+}
