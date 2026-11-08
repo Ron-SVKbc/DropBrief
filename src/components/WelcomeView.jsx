@@ -474,7 +474,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
               </span>
             </div>
             <div className="founding-urgent-count">
-              🔥 15 VIP SEATS ONLY • 0 € NAVŽDY
+              🔥 15 VIP SEATS ONLY • 0 € FOR LIFE
             </div>
           </div>
 
@@ -564,7 +564,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 <div className="card-price-row">
                   <span className="card-strikethrough-price">Planned 15 € / mo</span>
                   <span className="card-price-value">0 €</span>
-                  <span className="card-price-period">/ DOŽIVOTNE ZADARMO</span>
+                  <span className="card-price-period">/ FREE FOR LIFE</span>
                 </div>
 
                 <p className="card-desc">
