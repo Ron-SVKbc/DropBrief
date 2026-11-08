@@ -769,6 +769,377 @@
   line-height: 1.5;
 }
 
+/* ============================================================
+   Pricing & VIP Founding Cohort Showcase
+   ============================================================ */
+.neo-brutalist-page .pricing-section {
+  margin-top: 52px;
+  margin-bottom: 52px;
+}
+
+.neo-brutalist-page .pricing-header {
+  margin-bottom: 24px;
+}
+
+.neo-brutalist-page .pricing-kicker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.neo-brutalist-page .pricing-badge {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: var(--ink);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.neo-brutalist-page .pricing-pill-live {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: var(--emerald-tint);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  padding: 4px 10px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.neo-brutalist-page .pricing-pill-live .dot-live {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 6px var(--emerald);
+  display: inline-block;
+}
+
+.neo-brutalist-page .pricing-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.8vw, 2.9rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin-bottom: 12px;
+}
+
+.neo-brutalist-page .pricing-subtitle {
+  font-size: 1.05rem;
+  color: var(--ink-muted);
+  max-width: 760px;
+  line-height: 1.55;
+}
+
+/* Urgent Founding Cohort Callout */
+.neo-brutalist-page .founding-urgent-banner {
+  background: var(--yellow);
+  border: var(--border-heavy);
+  border-radius: 8px;
+  padding: 16px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.neo-brutalist-page .founding-urgent-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.neo-brutalist-page .founding-urgent-stamp {
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.neo-brutalist-page .founding-urgent-text {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.4;
+}
+
+.neo-brutalist-page .founding-urgent-count {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: #fff;
+  border: 1.5px solid #111;
+  padding: 5px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 #111;
+}
+
+/* 2-Column Pricing Cards Grid */
+.neo-brutalist-page .pricing-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+@media (max-width: 860px) {
+  .neo-brutalist-page .pricing-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.neo-brutalist-page .pricing-card {
+  background: #FFFFFF;
+  border: var(--border-heavy);
+  border-radius: 8px;
+  padding: 32px 30px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.neo-brutalist-page .pricing-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Featured VIP PRO Card */
+.neo-brutalist-page .pricing-card.vip-pro {
+  background: var(--card-alt);
+  border: 3.5px solid #111;
+  box-shadow: var(--shadow-lg);
+}
+
+.neo-brutalist-page .vip-floating-stamp {
+  position: absolute;
+  top: -14px;
+  right: 20px;
+  background: var(--orange);
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  padding: 5px 12px;
+  border: 2px solid #111;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 #111;
+  text-transform: uppercase;
+}
+
+.neo-brutalist-page .card-tier-tag {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 6px;
+}
+
+.neo-brutalist-page .pricing-card.vip-pro .card-tier-tag {
+  color: var(--orange);
+}
+
+.neo-brutalist-page .card-tier-title {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.neo-brutalist-page .card-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.neo-brutalist-page .card-strikethrough-price {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  text-decoration: line-through;
+  font-weight: 700;
+}
+
+.neo-brutalist-page .card-price-value {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.neo-brutalist-page .pricing-card.vip-pro .card-price-value {
+  color: var(--orange);
+}
+
+.neo-brutalist-page .card-price-period {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+
+.neo-brutalist-page .card-desc {
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Key Metrics Big Pills */
+.neo-brutalist-page .card-metrics-pill-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.neo-brutalist-page .card-metric-pill {
+  flex: 1;
+  min-width: 120px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  padding: 10px 14px;
+  border-radius: 4px;
+}
+
+.neo-brutalist-page .card-metric-pill .metric-num {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.neo-brutalist-page .card-metric-pill .metric-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+.neo-brutalist-page .pricing-card.vip-pro .card-metric-pill {
+  background: var(--yellow-tint);
+  border: 2px solid var(--ink);
+}
+
+.neo-brutalist-page .pricing-card.vip-pro .card-metric-pill .metric-num {
+  color: var(--ink);
+}
+
+/* Feature Checklists */
+.neo-brutalist-page .card-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 26px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.neo-brutalist-page .card-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.neo-brutalist-page .card-feature-icon {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  color: var(--emerald);
+  flex-shrink: 0;
+}
+
+.neo-brutalist-page .pricing-card.vip-pro .card-feature-icon {
+  color: var(--orange);
+}
+
+/* Card CTA Buttons */
+.neo-brutalist-page .btn-pricing-cta {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: var(--border-ink);
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+.neo-brutalist-page .btn-pricing-cta.starter {
+  background: #FFFFFF;
+  color: var(--ink);
+}
+
+.neo-brutalist-page .btn-pricing-cta.starter:hover {
+  background: var(--paper);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.neo-brutalist-page .btn-pricing-cta.vip-pro {
+  background: var(--ink);
+  color: #FFFFFF;
+}
+
+.neo-brutalist-page .btn-pricing-cta.vip-pro:hover {
+  background: var(--orange);
+  color: #FFFFFF;
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.neo-brutalist-page .card-guarantee-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-dim);
+  text-align: center;
+  margin-top: 10px;
+}
+
 /* High-Impact Referral Showcase (+50MB & +2 Slots Prominent) */
 .neo-brutalist-page .referral-showcase {
   background: var(--yellow);

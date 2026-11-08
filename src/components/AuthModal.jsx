@@ -287,7 +287,7 @@ export default function AuthModal() {
               <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
                 {authModalMode === 'pin_reveal' ? 'Your verified PIN is ready for future logins' :
                  authModalMode === 'verify_register_pin' ? 'Enter the 6-digit code sent to your email' :
-                 authModalMode === 'register' ? 'Free forever &bull; No password setup required' : 
+                 authModalMode === 'register' ? 'Free forever • First 15 receive Lifetime VIP PRO (5 slots & 100MB)' : 
                  authModalMode === 'forgot_pin' ? 'Receive a new 6-digit PIN in your inbox' : 'Enter your name or email with your 6-digit PIN'}
               </p>
             </div>
@@ -615,6 +615,27 @@ export default function AuthModal() {
             {authModalMode === 'register' && (
               <form onSubmit={handleRegisterRequestSubmit} style={{ padding: '24px' }}>
                 
+                {/* Founding VIP Announcement Pill */}
+                <div style={{
+                  background: 'var(--yellow-tint, #FFFDE6)',
+                  border: '1.5px solid #111111',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '9px 12px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '0.8rem',
+                  color: '#111111',
+                  boxShadow: '2px 2px 0 #111111'
+                }}>
+                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⭐</span>
+                  <div style={{ lineHeight: 1.35 }}>
+                    <strong style={{ display: 'block', fontSize: '0.82rem', letterSpacing: '-0.01em' }}>VIP Launch Active (First 15 Designers)</strong>
+                    <span style={{ fontSize: '0.74rem', color: '#4B4842' }}>5 active project slots &amp; 100 MB file limit unlocked free for life.</span>
+                  </div>
+                </div>
+
                 {/* Sign up with Google */}
                 <button
                   type="button"

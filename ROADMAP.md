@@ -1,5 +1,7 @@
 # 🗺️ DropBrief - Strategický Plán, Škálovanie & Infraštruktúra
 
+> **Podrobný cenový a tarifný plán:** Kompletná monetizačná stratégia, tarify a jednotková ekonomika sú detailne spísané v [PRICING_AND_TIERS_PLAN.md](file:///c:/Users/Marko/Desktop/SplitAI/PRICING_AND_TIERS_PLAN.md).
+
 Tento dokument slúži ako živý strategický a technický plán pre vývoj, škálovanie a monetizáciu projektu **DropBrief**. 
 
 Cieľom je začať s **0 € mesačnými nákladmi**, získať prvých používateľov pomocou štedrého bezplatného režimu a začať generovať zisk **ešte predtým**, ako vzniknú akékoľvek výdavky na infraštruktúru.

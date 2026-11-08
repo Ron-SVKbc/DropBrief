@@ -443,7 +443,7 @@ Governing Law: Laws of the Slovak Republic and the European Union.`;
                 <span className="clause-tag">[ SPEC 05 // FAIR USE ]</span>
                 <h4 className="clause-title">5. Service Tiers, Lifetime Referral Slots &amp; Fair Use</h4>
                 <p className="clause-body">
-                  The foundational tier provides 3 active project slots and 50 MB cloud storage free forever. Through our peer referral program, studios receive +2 permanent project slots and +50 MB storage for every referred peer who signs up. DropBrief reserves the right to suspend accounts engaging in automated referral spoofing, synthetic registration botting, or artificial storage hoarding.
+                  The foundational tier provides 2 active project slots (5 active slots for VIP Founding members) and 50 MB per-file cloud storage (100 MB for VIP Founding members) free forever. Through our peer referral program, studios receive +2 permanent project slots and +50 MB storage for every referred peer who signs up. DropBrief reserves the right to suspend accounts engaging in automated referral spoofing, synthetic registration botting, or artificial storage hoarding.
                 </p>
               </div>
 

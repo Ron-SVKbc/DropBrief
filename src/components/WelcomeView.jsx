@@ -137,6 +137,14 @@ export default function WelcomeView({ onOpenCreateModal }) {
         <div className="nav-actions">
           <button 
             type="button"
+            className="ticker-link"
+            onClick={() => document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' })}
+            style={{ color: 'var(--ink)', fontWeight: 800, fontSize: '0.8rem', marginRight: '6px' }}
+          >
+            PRICING &amp; VIP
+          </button>
+          <button 
+            type="button"
             className="btn-nav-login"
             onClick={() => openAuthModal('login')}
             id="nav-btn-login"
@@ -149,7 +157,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
             onClick={() => openAuthModal('register')}
             id="nav-btn-register"
           >
-            START FREE (3 SLOTS)
+            CLAIM VIP PRO (15 SEATS)
           </button>
         </div>
       </nav>
@@ -160,7 +168,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
           {/* Left Column */}
           <div>
             <div className="hero-kicker-badge">
-              <span>⚡ ZERO-FRICTION CLIENT PORTAL</span>
+              <span>⚡ ZERO-FRICTION CLIENT PORTAL &bull; FOUNDING VIP LAUNCH</span>
             </div>
 
             <h1 className="hero-title" id="hero-title">
@@ -179,7 +187,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                 onClick={() => openAuthModal('register')}
                 id="hero-btn-start-free"
               >
-                <span>START FREE (3 SLOTS)</span>
+                <span>START FREE // CLAIM VIP PRO</span>
                 <span aria-hidden="true">→</span>
               </button>
               <button 
@@ -194,10 +202,10 @@ export default function WelcomeView({ onOpenCreateModal }) {
 
             <div className="telemetry-row">
               <div className="telemetry-pill">
-                <span aria-hidden="true">●</span> <span>3 FREE SLOTS FOREVER</span>
+                <span aria-hidden="true">●</span> <span>2-5 ACTIVE SLOTS (15 VIP SPOTS)</span>
               </div>
               <div className="telemetry-pill">
-                <span aria-hidden="true">●</span> <span>50MB FILE LIMIT</span>
+                <span aria-hidden="true">●</span> <span>50MB - 100MB FILE LIMIT</span>
               </div>
               <div className="telemetry-pill">
                 <span aria-hidden="true">●</span> <span>30-DAY GDPR PURGE</span>
@@ -260,7 +268,7 @@ export default function WelcomeView({ onOpenCreateModal }) {
                     </div>
                     <div className="item-meta">
                       <h4>02 // Master Vector Logo (.SVG / .AI)</h4>
-                      <p>FILE SPEC • MAX 50MB TRANSPARENT</p>
+                      <p>FILE SPEC • 50MB FREE / 100MB VIP PRO</p>
                     </div>
                   </div>
                   <span className="stamp-action-btn">
@@ -436,6 +444,197 @@ export default function WelcomeView({ onOpenCreateModal }) {
           </div>
         </section>
 
+        {/* Pricing & VIP Founding Cohort Showcase */}
+        <section className="pricing-section" id="pricing-section" aria-labelledby="pricing-title">
+          <div className="pricing-header">
+            <div className="pricing-kicker-row">
+              <span className="pricing-badge">⚡ ZERO HIDDEN CHARGES // 100% BOOTSTRAPPED</span>
+              <div className="pricing-pill-live">
+                <span className="dot-live" aria-hidden="true"></span>
+                <span>FOUNDING LAUNCH ACTIVE: FIRST 15 CREATIVES</span>
+              </div>
+            </div>
+
+            <h2 className="pricing-title" id="pricing-title">
+              HONEST, DIRECT ACCESS. <br />
+              <span className="highlight-badge">FIRST 15 GET LIFETIME PRO FOR 0 €.</span>
+            </h2>
+
+            <p className="pricing-subtitle">
+              Start free with zero credit card required. As part of our founding launch, the first 15 digital creators to register unlock permanent lifetime VIP PRO privileges — 5 active project slots, 100 MB per-file uploads, and zero fees forever.
+            </p>
+          </div>
+
+          {/* Urgent Founding Cohort Callout Banner */}
+          <div className="founding-urgent-banner" role="region" aria-label="VIP Founding Cohort announcement">
+            <div className="founding-urgent-left">
+              <span className="founding-urgent-stamp">⭐ EXCLUSIVE FOUNDING OFFER</span>
+              <span className="founding-urgent-text">
+                Register now: the first 15 accounts automatically receive <strong>5 active project slots</strong> and <strong>100 MB file upload limit</strong> (double standard size) free for life.
+              </span>
+            </div>
+            <div className="founding-urgent-count">
+              🔥 15 VIP SEATS ONLY • 0 € NAVŽDY
+            </div>
+          </div>
+
+          {/* 2-Column Pricing Cards */}
+          <div className="pricing-cards-grid">
+            
+            {/* Tier 1: Free Starter */}
+            <div className="pricing-card starter">
+              <div>
+                <div className="card-tier-tag">DEFAULT BASELINE</div>
+                <h3 className="card-tier-title">Free Starter</h3>
+
+                <div className="card-price-row">
+                  <span className="card-price-value">0 €</span>
+                  <span className="card-price-period">/ FOREVER &bull; NO CARD REQUIRED</span>
+                </div>
+
+                <p className="card-desc">
+                  Essential friction-free brief and file intake for solo web designers and freelancers.
+                </p>
+
+                {/* Big Metric Pills */}
+                <div className="card-metrics-pill-row">
+                  <div className="card-metric-pill">
+                    <span className="metric-num">2 SLOTS</span>
+                    <span className="metric-lbl">ACTIVE CLIENT PORTALS</span>
+                  </div>
+                  <div className="card-metric-pill">
+                    <span className="metric-num">50 MB</span>
+                    <span className="metric-lbl">MAX FILE SIZE LIMIT</span>
+                  </div>
+                </div>
+
+                {/* Features List */}
+                <ul className="card-features-list">
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>2 active client intake portals</strong> running simultaneously</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>50 MB limit per file</strong> (vectors, uncompressed logos, PDFs, docs)</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>Zero-login client access</strong>: 1 token link, no client passwords</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>30-day automated cloud purge</strong> (GDPR Art. 5 compliant)</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>One-click structured ZIP export</strong> directly to your disk</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">✓</span>
+                    <span><strong>Referral eligible</strong>: +2 slots &amp; +50 MB for every friend invited</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  className="btn-pricing-cta starter"
+                  onClick={() => openAuthModal('register')}
+                  id="pricing-btn-starter"
+                >
+                  <span>START FREE (2 SLOTS)</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+                <div className="card-guarantee-note">
+                  No credit card &bull; Instant 10-second setup &bull; 0 € for life
+                </div>
+              </div>
+            </div>
+
+            {/* Tier 2: Founding VIP PRO */}
+            <div className="pricing-card vip-pro">
+              <span className="vip-floating-stamp">⭐ FIRST 15 DESIGNERS ONLY</span>
+
+              <div>
+                <div className="card-tier-tag">EXCLUSIVE FOUNDING TIER</div>
+                <h3 className="card-tier-title">Founding VIP PRO</h3>
+
+                <div className="card-price-row">
+                  <span className="card-strikethrough-price">Planned 15 € / mo</span>
+                  <span className="card-price-value">0 €</span>
+                  <span className="card-price-period">/ DOŽIVOTNE ZADARMO</span>
+                </div>
+
+                <p className="card-desc">
+                  Expanded capacity for high-volume freelancers and boutique studios. 100% free for life for our first 15 founding creators.
+                </p>
+
+                {/* Big Metric Pills */}
+                <div className="card-metrics-pill-row">
+                  <div className="card-metric-pill">
+                    <span className="metric-num" style={{ color: 'var(--orange)' }}>5 SLOTS</span>
+                    <span className="metric-lbl">2.5× CLIENT CAPACITY</span>
+                  </div>
+                  <div className="card-metric-pill">
+                    <span className="metric-num" style={{ color: 'var(--orange)' }}>100 MB</span>
+                    <span className="metric-lbl">2× FILE UPLOAD LIMIT</span>
+                  </div>
+                </div>
+
+                {/* Features List */}
+                <ul className="card-features-list">
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>5 active client intake portals</strong> running simultaneously (2.5x standard)</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>100 MB max size per file</strong> (RAW photos, big ZIP archives, brand decks)</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>⭐ VIP PRO Workspace badge</strong> displayed in your Studio Dashboard</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>Direct founder hotline</strong> for custom brief fields, templates &amp; requests</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>Priority email reminder dispatch</strong> via transactional Resend API</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>Stackable referral perks</strong>: +2 slots &amp; +50 MB keep piling on top</span>
+                  </li>
+                  <li className="card-feature-item">
+                    <span className="card-feature-icon" aria-hidden="true">⭐</span>
+                    <span><strong>Grandfathered forever</strong>: never pay a subscription fee, ever</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  className="btn-pricing-cta vip-pro"
+                  onClick={() => openAuthModal('register')}
+                  id="pricing-btn-vip-pro"
+                >
+                  <span>CLAIM LIFETIME VIP PRO (0 €)</span>
+                  <span aria-hidden="true">⚡</span>
+                </button>
+                <div className="card-guarantee-note">
+                  Strictly limited to 15 accounts &bull; Locks permanently once filled
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
         {/* High-Impact Referral Showcase (+50MB & +2 Slots Prominent) */}
         <section className="referral-showcase" aria-labelledby="referral-title">
           <div className="ref-header-row">
@@ -498,16 +697,16 @@ export default function WelcomeView({ onOpenCreateModal }) {
             <div className="perk-card orange">
               <div>
                 <div className="perk-highlight-val">+50 MB</div>
-                <div className="perk-tag">LIFETIME CLOUD STORAGE</div>
-                <p>Permanent file size and raw upload capacity increase across all your existing and future client drops.</p>
+                <div className="perk-tag">LIFETIME CLOUD CAPACITY</div>
+                <p>Permanent file size and raw upload capacity increase (+50 MB per invited designer) across all client drops.</p>
               </div>
             </div>
 
             <div className="perk-card dark">
               <div>
                 <div className="perk-highlight-val">0 € / MO</div>
-                <div className="perk-tag">FREE FOREVER FOUNDATION</div>
-                <p>3 active project slots default for every new studio. Zero credit card required, zero trial expirations.</p>
+                <div className="perk-tag">FOUNDING ACCESS</div>
+                <p>2 active slots default (5 slots &amp; 100 MB for first 15 VIPs). Zero credit card required, zero trial expirations.</p>
               </div>
             </div>
           </div>
@@ -516,9 +715,9 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <div className="ref-bottom-bar">
             <div className="math-pill-box">
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800 }}>QUICK MATH:</span>
-              <span className="math-step">Base: 3 slots • 50 MB</span>
-              <span className="math-step">Invite 2 peers: <strong>7 slots • 150 MB</strong></span>
-              <span className="math-step">Invite 5 peers: <strong>13 slots • 300 MB</strong></span>
+              <span className="math-step">Base: 2 slots • 50 MB (or 5 slots • 100 MB VIP PRO)</span>
+              <span className="math-step">Invite 2 peers: <strong>6 slots • 150 MB</strong> (9 slots • 200 MB VIP)</span>
+              <span className="math-step">Invite 5 peers: <strong>12 slots • 300 MB</strong> (15 slots • 350 MB VIP)</span>
             </div>
 
             <button 
@@ -586,6 +785,14 @@ export default function WelcomeView({ onOpenCreateModal }) {
               aria-label="Operator information and contacts"
             >
               <span>🏢</span> Impressum &amp; Contact
+            </button>
+            <button
+              type="button"
+              className="neo-footer-btn"
+              onClick={() => document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' })}
+              aria-label="View pricing and VIP founding tier"
+            >
+              <span>⭐</span> Pricing &amp; VIP
             </button>
             <button
               type="button"
