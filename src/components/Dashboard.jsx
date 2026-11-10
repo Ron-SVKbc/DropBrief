@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCadenceBadge, isTodaySubmitted, getRetentionStatus } from '../utils/cadenceUtils';
-import confetti from 'canvas-confetti';
 import { 
   FolderSync, 
   Copy, 
@@ -27,9 +26,9 @@ import {
   Settings,
   Gift,
   Users,
-  KeyRound,
-  FileText,
-  Paperclip
+  LayoutGrid,
+  List,
+  ArrowUpRight
 } from 'lucide-react';
 import '../styles/dashboard-brutalist.css';
 
@@ -37,6 +36,7 @@ export default function Dashboard({ onOpenCreateModal }) {
   const { 
     projects, 
     deleteProject, 
+    sendSimulatedReminder, 
     openReminderModal, 
     openExportModal, 
     openClientPortal, 
@@ -45,15 +45,14 @@ export default function Dashboard({ onOpenCreateModal }) {
     currentFreelancer, 
     seedDemoProjectForFreelancer, 
     toggleProjectType, 
-    openAccountModal,
-    openLegalModal
+    openAccountModal 
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'completed' | 'ongoing' | 'one-off'
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [copiedSlug, setCopiedSlug] = useState(null);
   const [copiedInvite, setCopiedInvite] = useState(false);
-  const [copiedPin, setCopiedPin] = useState(false);
 
   // Filter projects belonging to this authenticated freelancer
   const myProjects = (projects || []).filter((p) => {
@@ -83,19 +82,9 @@ export default function Dashboard({ onOpenCreateModal }) {
     navigator.clipboard.writeText(referralUrl);
     setCopiedInvite(true);
     if (addToast) {
-      addToast('Studio referral link copied to clipboard!', 'success', 'Referral Link');
+      addToast('Studio referral link copied to clipboard!', 'success', 'Referral');
     }
     setTimeout(() => setCopiedInvite(false), 2500);
-  };
-
-  const copyFreelancerPin = () => {
-    if (!currentFreelancer?.pin) return;
-    navigator.clipboard.writeText(currentFreelancer.pin);
-    setCopiedPin(true);
-    if (addToast) {
-      addToast(`Security PIN (${currentFreelancer.pin}) copied to clipboard!`, 'success', 'PIN Copied');
-    }
-    setTimeout(() => setCopiedPin(false), 2500);
   };
 
   // Search & Filter Logic
@@ -143,7 +132,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     if (addToast) {
-      addToast('Client token link copied! Paste directly into WhatsApp or email.', 'success', 'Link Copied');
+      addToast('Client link copied! Paste into WhatsApp or email.', 'success', 'Link Copied');
     }
     setTimeout(() => setCopiedSlug(null), 2500);
   };
@@ -153,79 +142,33 @@ export default function Dashboard({ onOpenCreateModal }) {
   };
 
   return (
-    <div className="nb-dashboard-page" role="region" aria-label="Freelancer Studio Dashboard">
-
-      {/* ── 0. Top Dispatch Telemetry Masthead ────────────────── */}
-      <div className="dash-top-ticker" role="region" aria-label="Studio Dispatch Status Bar">
-        <div className="dash-ticker-left">
-          <span className="status-dot-pulse" aria-hidden="true" />
-          <span>SYS_ENGINE: LIVE (EU IRELAND)</span>
-          <span className="dash-ticker-sep" aria-hidden="true">•</span>
-          <span>DISPATCH_OPERATOR: <strong style={{ color: 'var(--yellow)' }}>@{currentFreelancer?.nick || 'STUDIO'}</strong></span>
-          <span className="dash-ticker-sep" aria-hidden="true">•</span>
-          {isVipPro ? (
-            <span className="dash-ticker-tag-pro">⭐ VIP FOUNDING PRO</span>
-          ) : (
-            <span className="dash-ticker-tag">STARTER TIER</span>
-          )}
-          <span className="dash-ticker-sep" aria-hidden="true">•</span>
-          <span style={{ color: 'var(--emerald)' }}>256-BIT SSL</span>
-        </div>
-
-        <div className="dash-ticker-right">
-          <span style={{ color: activeProjectsCount >= maxProjects ? 'var(--orange)' : 'var(--paper)' }}>
-            SLOTS: <strong>{activeProjectsCount}/{maxProjects} ACTIVE</strong>
-          </span>
-          <span className="dash-ticker-sep" aria-hidden="true">•</span>
-          <button 
-            type="button" 
-            className="dash-ticker-link"
-            onClick={() => openLegalModal && openLegalModal('retention')}
-            title="Read 30-day automated storage purge policy (GDPR Art. 5)"
-          >
-            30-DAY RETENTION (GDPR)
-          </button>
-          <span className="dash-ticker-sep" aria-hidden="true">•</span>
-          {currentFreelancer?.pin && (
-            <button
-              type="button"
-              className="dash-ticker-pill-btn"
-              onClick={copyFreelancerPin}
-              title="Click to copy your personal security PIN"
-            >
-              <KeyRound size={11} aria-hidden="true" />
-              <span>{copiedPin ? 'PIN COPIED! ✓' : `PIN: ${currentFreelancer.pin}`}</span>
-            </button>
-          )}
-          <button
-            type="button"
-            className="dash-ticker-pill-btn"
-            onClick={openAccountModal}
-            title="Open comprehensive account & GDPR settings"
-          >
-            <span>ACCOUNT SPEC ↗</span>
-          </button>
-        </div>
-      </div>
+    <div className="nb-dashboard-page" role="region" aria-label="Studio Dispatch Dashboard">
 
       <div className="dash-container">
 
-        {/* ── 1. Studio Header & Primary Action Deck ────────────── */}
-        <div className="dash-header-section">
+        {/* ── Studio Header & Primary Action Deck ──────────────── */}
+        <header className="dash-header-section">
           <div>
             <div className="dash-kicker-badge">
               <Sparkles size={13} aria-hidden="true" />
-              <span>⚡ ZERO-FRICTION CLIENT DISPATCH DESK • LIVE TELEMETRY</span>
+              <span>STUDIO OPERATING DESK // DISPATCH COCKPIT</span>
             </div>
 
             <h1 className="dash-title">
-              CLIENT ASSET DOCKETS
-              <span className="highlight-badge">REAL-TIME INTAKE</span>
+              WORKSPACE DOCKETS
             </h1>
 
-            <p className="dash-subtitle">
-              Tactile studio overview of active client intake portals. Clients upload vector logos, raw photography, copy, and documents through their private single-token link with zero passwords and zero setup friction.
-            </p>
+            <div className="dash-subtitle">
+              <span>Client intake portals for</span>
+              <strong style={{ color: 'var(--ink)' }}>@{currentFreelancer?.nick || 'studio'}</strong>
+              <span aria-hidden="true">•</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <span className="status-live-dot" aria-hidden="true" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', fontWeight: 700 }}>
+                  IRELAND EU (AES-256)
+                </span>
+              </span>
+            </div>
           </div>
 
           <div className="dash-header-actions">
@@ -239,16 +182,6 @@ export default function Dashboard({ onOpenCreateModal }) {
               <Plus size={18} aria-hidden="true" />
               <span>+ NEW DOCKET</span>
             </button>
-
-            <button
-              type="button"
-              onClick={() => openClientPortal('demo-preview')}
-              className="btn-tactile-secondary"
-              title="Experience what your client sees — live interactive test (no passwords or registration required)"
-            >
-              <Eye size={15} aria-hidden="true" />
-              <span>CLIENT SANDBOX ↗</span>
-            </button>
             
             <button
               id="btn-dashboard-account-settings"
@@ -258,226 +191,169 @@ export default function Dashboard({ onOpenCreateModal }) {
               title="Account settings, security PIN, and GDPR data erasure"
               aria-label="Account and GDPR settings"
             >
-              <Settings size={15} aria-hidden="true" />
+              <Settings size={16} aria-hidden="true" />
               <span>ACCOUNT &amp; GDPR</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* ── 2. Operational Metrics Bento HUD ─────────────────── */}
-        <div className="dash-bento-grid">
+        {/* ── Studio Command HUD Grid ─────────────────────────── */}
+        <section className="dash-hud-grid" aria-label="Studio HUD Metrics">
 
-          {/* Metric 1 — Total Active Projects */}
-          <div className="metric-docket-box">
-            <div className="metric-box-top">
-              <span className="metric-box-label">TRACKED DOCKETS</span>
-              <div className="metric-icon-stamp" style={{ background: 'var(--yellow)' }}>
-                <Layers size={17} color="var(--ink)" aria-hidden="true" />
+          {/* Tile 1: Capacity & Slots */}
+          <div className="hud-card">
+            <div className="hud-card-top">
+              <span className="hud-label">DOCKET CAPACITY</span>
+              <div className="hud-icon-stamp" style={{ background: 'var(--yellow)' }}>
+                <Layers size={15} color="var(--ink)" aria-hidden="true" />
               </div>
-            </div>
-            <div className="metric-big-number">{totalProjects}</div>
-            <div className="metric-box-sub">{activeProjectsCount} active · {completedProjects} completed</div>
-          </div>
-
-          {/* Metric 2 — Pending Deliverables */}
-          <div 
-            className="metric-docket-box" 
-            style={{ 
-              background: totalMissingItems > 0 ? 'var(--card)' : 'var(--card-alt)',
-              borderColor: totalMissingItems > 0 ? 'var(--ink)' : 'rgba(17, 17, 17, 0.4)'
-            }}
-          >
-            <div className="metric-box-top">
-              <span className="metric-box-label">PENDING ASSETS</span>
-              <div 
-                className="metric-icon-stamp" 
-                style={{ 
-                  background: totalMissingItems > 0 ? 'var(--orange)' : 'var(--emerald)' 
-                }}
-              >
-                {totalMissingItems > 0 ? (
-                  <Clock size={17} color="#FFFFFF" aria-hidden="true" />
-                ) : (
-                  <CheckCircle2 size={17} color="#FFFFFF" aria-hidden="true" />
-                )}
-              </div>
-            </div>
-            <div 
-              className="metric-big-number" 
-              style={{ color: totalMissingItems > 0 ? 'var(--orange)' : '#065F46' }}
-            >
-              {totalMissingItems}
-            </div>
-            <div className="metric-box-sub">
-              {totalMissingItems > 0 ? 'Awaiting client submission' : 'All deliverables received! ✓'}
-            </div>
-          </div>
-
-          {/* Metric 3 — Ready for Kickoff */}
-          <div className="metric-docket-box">
-            <div className="metric-box-top">
-              <span className="metric-box-label">100% COMPLETE</span>
-              <div className="metric-icon-stamp" style={{ background: 'var(--emerald)' }}>
-                <CheckCircle2 size={17} color="#FFFFFF" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="metric-big-number" style={{ color: '#065F46' }}>
-              {completedProjects}
-            </div>
-            <div className="metric-box-sub">{completionRate}% total completion rate</div>
-          </div>
-
-          {/* Metric 4 — Hours Saved */}
-          <div className="metric-docket-box" style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
-            <div className="metric-box-top">
-              <span className="metric-box-label" style={{ color: 'var(--paper)', opacity: 0.8 }}>TIME RECLAIMED</span>
-              <div className="metric-icon-stamp" style={{ background: 'var(--yellow)', border: '1.5px solid var(--paper)' }}>
-                <TrendingUp size={17} color="var(--ink)" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="metric-big-number" style={{ color: 'var(--yellow)' }}>
-              ~{estimatedHoursSaved}h
-            </div>
-            <div className="metric-box-sub" style={{ color: 'var(--paper)', opacity: 0.8 }}>
-              Zero email chasing · 0 expired links
-            </div>
-          </div>
-
-        </div>
-
-        {/* ── 3. Studio License & Referral Dispatch Terminal ──── */}
-        <div id="referral-tier-card" className="dash-license-terminal">
-          
-          <div className="terminal-header-strip">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>DISPATCH_LICENSE:</span>
-              <span style={{ color: 'var(--ink)', fontWeight: 800 }}>STUDIO WORKSPACE ALLOCATION</span>
             </div>
             <div>
-              <span>GDPR ART. 5 RETENTION: 30-DAY AUTO PURGE</span>
-            </div>
-          </div>
-
-          <div className="terminal-body-grid">
-            
-            {/* Left Column: Plan, Usage & Referral Incentive */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                {isVipPro ? (
-                  <span className="terminal-tier-pill terminal-tier-pro">
-                    ⭐ VIP FOUNDING PRO
-                  </span>
-                ) : (
-                  <span className="terminal-tier-pill terminal-tier-free">
-                    STARTER FREE TIER
-                  </span>
-                )}
-
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 800 }}>
-                  {activeProjectsCount} / {maxProjects} DOCKET SLOTS USED ({usagePercentage}%)
-                </span>
+              <div className="hud-big-value">
+                <span>{activeProjectsCount}</span>
+                <span style={{ fontSize: '1.1rem', color: 'var(--ink-dim)', fontWeight: 700 }}>/ {maxProjects}</span>
               </div>
-
-              {/* Physical Indented Slot Track */}
+              <p className="hud-meta-text">
+                {isVipPro ? '⭐ VIP Founding Pro (100MB)' : 'Starter Tier (50MB)'} &bull; {completedProjects} archived
+              </p>
+            </div>
+            <div className="hud-meter-wrap">
               <div 
-                className="slot-track-nb"
-                role="progressbar"
-                aria-valuenow={activeProjectsCount}
-                aria-valuemin={0}
+                className="hud-slot-track" 
+                role="progressbar" 
+                aria-valuenow={activeProjectsCount} 
+                aria-valuemin={0} 
                 aria-valuemax={maxProjects}
-                aria-label="Active docket slot usage"
+                aria-label="Active docket slot utilization"
               >
                 <div 
-                  className={`slot-fill-nb ${activeProjectsCount >= maxProjects ? 'full' : ''}`}
+                  className={`hud-slot-fill ${activeProjectsCount >= maxProjects ? 'full' : activeProjectsCount >= maxProjects - 1 ? 'warning' : ''}`}
                   style={{ width: `${usagePercentage}%` }}
                 />
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px' }}>
-                <Gift size={16} color="var(--orange)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-                <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-                  <strong>Invite a fellow web designer:</strong> Unlock <strong>+2 project slots</strong> &amp; <strong>+50MB storage limit</strong> for every designer who signs up with your link.
-                </p>
-              </div>
             </div>
-
-            {/* Right Column: 1-Click Referral Link Box */}
-            <div className="referral-box-nb">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ 
-                  fontFamily: 'var(--font-mono)', 
-                  fontSize: '0.74rem', 
-                  fontWeight: 800, 
-                  letterSpacing: '0.04em', 
-                  color: 'var(--ink)' 
-                }}>
-                  YOUR REFERRAL LINK
-                </span>
-
-                <span style={{ 
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.75rem', 
-                  fontWeight: 800, 
-                  color: referralCount > 0 ? '#065F46' : 'var(--ink-dim)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <Users size={13} aria-hidden="true" />
-                  Referred: {referralCount} (+{bonusSlots} slots unlocked)
-                </span>
-              </div>
-
-              <div className="ref-input-group">
-                <input 
-                  type="text"
-                  readOnly
-                  value={referralUrl}
-                  aria-label="Your personal referral link"
-                  onClick={(e) => e.target.select()}
-                  className="ref-input-nb"
-                />
-                <button
-                  id="btn-copy-invite-link"
-                  type="button"
-                  onClick={copyInviteLink}
-                  className="btn-tactile-sm"
-                  style={{ background: 'var(--yellow)', color: 'var(--ink)', whiteSpace: 'nowrap' }}
-                >
-                  {copiedInvite ? (
-                    <>
-                      <Check size={14} aria-hidden="true" />
-                      <span>COPIED! ✓</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} aria-hidden="true" />
-                      <span>COPY LINK</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
           </div>
 
-        </div>
+          {/* Tile 2: Action Required / Pending Assets */}
+          <div className="hud-card hud-card-highlight">
+            <div className="hud-card-top">
+              <span className="hud-label">PENDING CLIENT ASSETS</span>
+              <div 
+                className="hud-icon-stamp" 
+                style={{ 
+                  background: totalMissingItems > 0 ? 'var(--orange)' : 'var(--paper)',
+                  color: totalMissingItems > 0 ? '#FFFFFF' : 'var(--ink)'
+                }}
+              >
+                <Clock size={15} aria-hidden="true" />
+              </div>
+            </div>
+            <div>
+              <div className="hud-big-value" style={{ color: totalMissingItems > 0 ? 'var(--orange)' : 'var(--ink)' }}>
+                {totalMissingItems}
+              </div>
+              <p className="hud-meta-text">
+                {totalMissingItems > 0 
+                  ? `Across ${pendingProjects} active client intake dockets` 
+                  : 'Zero pending assets • Everything submitted'}
+              </p>
+            </div>
+            <div style={{ marginTop: '10px', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: 'var(--ink-dim)', fontWeight: 700 }}>
+              1-CLICK RESEND EMAIL REMINDERS
+            </div>
+          </div>
 
-        {/* ── 4. Filter & Search Command Console ──────────────── */}
-        <div className="dash-filter-console">
+          {/* Tile 3: Ready for Kickoff */}
+          <div className="hud-card">
+            <div className="hud-card-top">
+              <span className="hud-label">100% READY // KICKOFF</span>
+              <div className="hud-icon-stamp" style={{ background: 'var(--emerald)', color: '#FFFFFF' }}>
+                <CheckCircle2 size={15} aria-hidden="true" />
+              </div>
+            </div>
+            <div>
+              <div className="hud-big-value" style={{ color: '#065F46' }}>
+                {completedProjects}
+              </div>
+              <p className="hud-meta-text">
+                {completionRate}% overall fulfillment rate &bull; ~{estimatedHoursSaved}h saved
+              </p>
+            </div>
+            <div style={{ marginTop: '10px', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: 'var(--emerald)', fontWeight: 800 }}>
+              ✓ BATCH ZIP EXPORT READY
+            </div>
+          </div>
+
+          {/* Tile 4: Studio Referral Station */}
+          <div className="hud-card" style={{ background: 'var(--yellow-tint)' }}>
+            <div className="hud-card-top">
+              <span className="hud-label" style={{ color: 'var(--ink)' }}>INVITE PEERS (+2 SLOTS)</span>
+              <div className="hud-icon-stamp" style={{ background: 'var(--ink)', color: 'var(--yellow)' }}>
+                <Gift size={15} aria-hidden="true" />
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900 }}>
+                  {referralCount}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
+                  REFERRED (+{bonusSlots} SLOTS)
+                </span>
+              </div>
+              <p className="hud-meta-text" style={{ fontSize: '0.78rem' }}>
+                Share with fellow designers to unlock extra slots &amp; storage:
+              </p>
+            </div>
+            <div className="hud-ref-row">
+              <input 
+                type="text"
+                readOnly
+                value={referralUrl}
+                aria-label="Your personal referral link"
+                onClick={(e) => e.target.select()}
+                className="hud-ref-input"
+              />
+              <button
+                id="btn-copy-invite-link"
+                type="button"
+                onClick={copyInviteLink}
+                className="btn-tactile-sm"
+                style={{ background: 'var(--yellow)', color: 'var(--ink)', padding: '5px 8px' }}
+                title="Copy referral invitation link"
+              >
+                {copiedInvite ? (
+                  <>
+                    <Check size={13} aria-hidden="true" />
+                    <span>COPIED!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={13} aria-hidden="true" />
+                    <span>COPY</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        {/* ── Filter & Search Command Console ─────────────────── */}
+        <section className="dash-filter-console" aria-label="Dockets Filter and Search Console">
           
           {/* Architectural Search Input */}
           <div className="dash-search-wrap">
             <Search 
-              size={16} 
+              size={15} 
               aria-hidden="true" 
-              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-dim)', pointerEvents: 'none' }} 
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-dim)', pointerEvents: 'none' }} 
             />
             <input
               id="search-projects-input"
               type="text"
               className="dash-search-input"
-              placeholder="Filter dockets by title, client or email..."
+              placeholder="Search by title, client, email..."
               aria-label="Filter dockets by title, client or email"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -489,7 +365,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                 aria-label="Clear search query"
                 style={{ 
                   position: 'absolute', 
-                  right: '12px', 
+                  right: '10px', 
                   top: '50%', 
                   transform: 'translateY(-50%)', 
                   background: 'none', 
@@ -500,19 +376,19 @@ export default function Dashboard({ onOpenCreateModal }) {
                   padding: '4px'
                 }}
               >
-                <X size={15} aria-hidden="true" />
+                <X size={14} aria-hidden="true" />
               </button>
             )}
           </div>
 
-          {/* Segmented Tactile Filter Buttons */}
+          {/* Segmented Filter Buttons */}
           <div className="dash-segmented-filters" role="group" aria-label="Filter dockets by status and type">
             <button
               type="button"
               onClick={() => setFilterStatus('all')}
               className={`dash-filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
             >
-              <span>ALL DOCKETS</span>
+              <span>ALL</span>
               <span className="filter-count-badge">{totalProjects}</span>
             </button>
 
@@ -559,9 +435,33 @@ export default function Dashboard({ onOpenCreateModal }) {
             </button>
           </div>
 
-        </div>
+          {/* View Mode Toggle Switcher */}
+          <div className="dash-view-toggle" role="radiogroup" aria-label="Select layout view">
+            <button
+              type="button"
+              onClick={() => setViewMode('cards')}
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              aria-label="Dossier cards view"
+              title="Dossier cards view"
+            >
+              <LayoutGrid size={13} aria-hidden="true" />
+              <span>CARDS</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              aria-label="Manifest table view"
+              title="Manifest table view"
+            >
+              <List size={13} aria-hidden="true" />
+              <span>TABLE</span>
+            </button>
+          </div>
 
-        {/* ── 5. Project Production Dockets Stack ─────────────── */}
+        </section>
+
+        {/* ── Main Production Dockets List / Grid ─────────────── */}
         {filteredProjects.length === 0 ? (
           
           /* Empty State — Blueprint Drawing Board */
@@ -576,8 +476,8 @@ export default function Dashboard({ onOpenCreateModal }) {
 
             <p className="empty-blueprint-desc">
               {searchTerm 
-                ? 'Try adjusting your search query or clear the active status filter to inspect all dockets.' 
-                : 'Create your first asset collection docket. Your client receives a unique zero-login link with zero passwords and zero setup friction.'}
+                ? 'Try adjusting your search query or clear the active status filter to inspect all client dockets.' 
+                : 'Create your first client asset collection docket. Your client receives a unique zero-login link with zero passwords and zero setup friction.'}
             </p>
 
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -606,10 +506,212 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
 
+        ) : viewMode === 'table' ? (
+
+          /* ── Table / Manifest View ────────────────────────── */
+          <div className="dash-manifest-wrap" role="region" aria-label="Client Dockets Table Manifest">
+            <table className="dash-manifest-table">
+              <thead>
+                <tr>
+                  <th>DOCKET ID</th>
+                  <th>PROJECT &amp; CLIENT</th>
+                  <th>TYPE</th>
+                  <th>FULFILLMENT</th>
+                  <th>STATUS</th>
+                  <th>DEADLINE</th>
+                  <th style={{ textAlign: 'right' }}>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProjects.map((proj) => {
+                  const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
+                  const totalCount = (proj.items || []).length;
+                  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                  const isCompleted = proj.status === 'completed';
+                  const isLinkCopied = copiedSlug === proj.slug;
+                  const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
+                  const serialCode = (proj.id || 'proj-000').slice(-5).toUpperCase();
+                  const retention = getRetentionStatus(proj);
+
+                  return (
+                    <tr key={proj.id} id={`project-card-${proj.id}`}>
+                      {/* Docket ID */}
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 800 }}>
+                        <span style={{ color: 'var(--orange)' }}>#</span>DKT-{serialCode}
+                      </td>
+
+                      {/* Project & Client */}
+                      <td>
+                        <div 
+                          onClick={() => openProjectDetail(proj.slug)}
+                          style={{ fontWeight: 800, color: 'var(--ink)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          title="Open studio asset inspector"
+                        >
+                          <span>{proj.title}</span>
+                          <ArrowUpRight size={13} color="var(--ink-dim)" />
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: '2px' }}>
+                          {proj.clientName} &bull; {proj.clientEmail}
+                        </div>
+                      </td>
+
+                      {/* Engagement Type */}
+                      <td>
+                        <button
+                          type="button"
+                          id={`btn-toggle-type-${proj.id}`}
+                          onClick={() => toggleProjectType(proj.id)}
+                          className={`badge-stamp badge-stamp-clickable ${isOngoing ? 'badge-stamp-purple' : 'badge-stamp-blue'}`}
+                          title="Click to toggle engagement type"
+                        >
+                          {isOngoing ? (
+                            <>
+                              <RefreshCw size={10} aria-hidden="true" />
+                              <span>{formatCadenceBadge(proj.cadenceDays || 1)} RETAINER</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap size={10} aria-hidden="true" />
+                              <span>ONE-OFF</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
+
+                      {/* Fulfillment */}
+                      <td style={{ minWidth: '130px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', fontWeight: 800, marginBottom: '4px' }}>
+                          <span>{completedCount}/{totalCount}</span>
+                          <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)' }}>{progressPercent}%</span>
+                        </div>
+                        <div className="docket-track-meter">
+                          <div 
+                            className={`docket-fill-meter ${!isCompleted ? 'pending' : ''}`}
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td>
+                        {isOngoing ? (
+                          isTodaySubmitted(proj) ? (
+                            <span className="badge-stamp badge-stamp-emerald">
+                              <CheckCircle2 size={10} aria-hidden="true" />
+                              <span>DELIVERED TODAY</span>
+                            </span>
+                          ) : (
+                            <span className="badge-stamp badge-stamp-yellow">
+                              <Clock size={10} aria-hidden="true" />
+                              <span>PENDING TODAY</span>
+                            </span>
+                          )
+                        ) : isCompleted ? (
+                          <span className="badge-stamp badge-stamp-emerald">
+                            <CheckCircle2 size={10} aria-hidden="true" />
+                            <span>100% READY</span>
+                          </span>
+                        ) : (
+                          <span className="badge-stamp badge-stamp-orange">
+                            <Clock size={10} aria-hidden="true" />
+                            <span>AWAITING ASSETS</span>
+                          </span>
+                        )}
+
+                        {retention && isCompleted && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span className={`badge-stamp ${retention.isPurged ? 'badge-stamp-red' : 'badge-stamp-emerald'}`}>
+                              <ShieldCheck size={9} aria-hidden="true" />
+                              <span>{retention.badgeText}</span>
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Deadline */}
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--ink)' }}>
+                        {proj.deadline || 'No deadline'}
+                      </td>
+
+                      {/* Inline Actions */}
+                      <td>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                          <button
+                            id={`btn-copy-link-${proj.id}`}
+                            type="button"
+                            onClick={() => copyClientLink(proj.slug)}
+                            className="btn-tactile-sm"
+                            style={{ 
+                              background: isLinkCopied ? '#DCFCE7' : 'var(--yellow)',
+                              color: isLinkCopied ? '#15803D' : 'var(--ink)',
+                              padding: '5px 8px'
+                            }}
+                            title="Copy client portal link"
+                          >
+                            {isLinkCopied ? <Check size={13} /> : <Copy size={13} />}
+                          </button>
+
+                          {!isCompleted && (
+                            <button
+                              id={`btn-remind-${proj.id}`}
+                              type="button"
+                              onClick={() => openReminderModal(proj.id)}
+                              className="btn-tactile-sm"
+                              style={{ background: 'var(--yellow)', color: 'var(--ink)', padding: '5px 8px' }}
+                              title="Send reminder to client via Resend"
+                            >
+                              <Send size={13} />
+                            </button>
+                          )}
+
+                          <button
+                            id={`btn-open-detail-${proj.id}`}
+                            type="button"
+                            onClick={() => openProjectDetail(proj.slug)}
+                            className="btn-tactile-dark"
+                            style={{ padding: '5px 8px' }}
+                            title="Inspect assets"
+                          >
+                            <Eye size={13} />
+                          </button>
+
+                          <button
+                            id={`btn-download-${proj.id}`}
+                            type="button"
+                            onClick={() => handleDownloadAll(proj)}
+                            className="btn-tactile-sm"
+                            style={{ background: '#FFFFFF', color: 'var(--ink)', padding: '5px 8px' }}
+                            title="Export all assets as ZIP"
+                          >
+                            <Download size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete docket "${proj.title}"?`)) {
+                                deleteProject(proj.id);
+                              }
+                            }}
+                            className="btn-tactile-sm"
+                            style={{ background: '#FFFFFF', color: 'var(--red)', padding: '5px 7px' }}
+                            title="Delete docket"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
         ) : (
 
-          /* Dockets List — Matching the Physical Landing Page Ticket */
-          <div className="dash-dockets-stack">
+          /* ── Dossier Cards Grid (2-Columns on wide screen) ── */
+          <div className="dash-dockets-grid">
             {filteredProjects.map((proj) => {
               const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
               const totalCount = (proj.items || []).length;
@@ -617,21 +719,20 @@ export default function Dashboard({ onOpenCreateModal }) {
               const isCompleted = proj.status === 'completed';
               const isLinkCopied = copiedSlug === proj.slug;
               const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
-
-              // Unique serial code simulation matching the landing page ticket
               const serialCode = (proj.id || 'proj-000').slice(-5).toUpperCase();
+              const retention = getRetentionStatus(proj);
 
               return (
-                <div 
+                <article 
                   key={proj.id} 
                   className="project-docket-card"
                   id={`project-card-${proj.id}`}
+                  aria-label={`Docket for ${proj.title}`}
                 >
                   
                   {/* 1. Perforated Docket Header Strip */}
                   <div className="docket-perforated-strip">
                     <div className="docket-serial-stamp">
-                      <span className="docket-barcode-mock">||| |||| || ||||| ||||</span>
                       <span style={{ color: 'var(--orange)', fontWeight: 900 }}>#</span>
                       <span>DKT-{serialCode}</span>
                       <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
@@ -653,7 +754,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                           className="badge-stamp badge-stamp-purple badge-stamp-clickable"
                           title="Recurring deliverables – click to toggle engagement type"
                         >
-                          <RefreshCw size={11} aria-hidden="true" />
+                          <RefreshCw size={10} aria-hidden="true" />
                           <span>{formatCadenceBadge(proj.cadenceDays || 1)} RETAINER</span>
                         </button>
                       ) : (
@@ -668,7 +769,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                           className="badge-stamp badge-stamp-blue badge-stamp-clickable"
                           title="One-off project – click to toggle engagement type"
                         >
-                          <Zap size={11} aria-hidden="true" />
+                          <Zap size={10} aria-hidden="true" />
                           <span>ONE-OFF BRIEF</span>
                         </button>
                       )}
@@ -677,43 +778,37 @@ export default function Dashboard({ onOpenCreateModal }) {
                       {isOngoing ? (
                         isTodaySubmitted(proj) ? (
                           <span className="badge-stamp badge-stamp-emerald">
-                            <CheckCircle2 size={11} aria-hidden="true" />
+                            <CheckCircle2 size={10} aria-hidden="true" />
                             <span>DELIVERED TODAY</span>
                           </span>
                         ) : (
                           <span className="badge-stamp badge-stamp-yellow">
-                            <Clock size={11} aria-hidden="true" />
+                            <Clock size={10} aria-hidden="true" />
                             <span>PENDING TODAY</span>
                           </span>
                         )
+                      ) : isCompleted ? (
+                        <span className="badge-stamp badge-stamp-emerald">
+                          <CheckCircle2 size={10} aria-hidden="true" />
+                          <span>100% READY // KICKOFF</span>
+                        </span>
                       ) : (
-                        isCompleted ? (
-                          <span className="badge-stamp badge-stamp-emerald">
-                            <CheckCircle2 size={11} aria-hidden="true" />
-                            <span>100% COMPLETE // KICKOFF</span>
-                          </span>
-                        ) : (
-                          <span className="badge-stamp badge-stamp-orange">
-                            <Clock size={11} aria-hidden="true" />
-                            <span>WAITING FOR CLIENT</span>
-                          </span>
-                        )
+                        <span className="badge-stamp badge-stamp-orange">
+                          <Clock size={10} aria-hidden="true" />
+                          <span>WAITING FOR CLIENT</span>
+                        </span>
                       )}
 
                       {/* Automated GDPR Retention Purge Status */}
-                      {(() => {
-                        const retention = getRetentionStatus(proj);
-                        if (!retention || proj.status !== 'completed') return null;
-                        return (
-                          <span 
-                            className={`badge-stamp ${retention.isPurged ? 'badge-stamp-red' : 'badge-stamp-emerald'}`}
-                            title="Automated 30-day retention cloud purge (GDPR Art. 5)"
-                          >
-                            <ShieldCheck size={11} aria-hidden="true" />
-                            <span>{retention.badgeText}</span>
-                          </span>
-                        );
-                      })()}
+                      {retention && isCompleted && (
+                        <span 
+                          className={`badge-stamp ${retention.isPurged ? 'badge-stamp-red' : 'badge-stamp-emerald'}`}
+                          title="Automated 30-day retention cloud purge (GDPR Art. 5)"
+                        >
+                          <ShieldCheck size={10} aria-hidden="true" />
+                          <span>{retention.badgeText}</span>
+                        </span>
+                      )}
 
                     </div>
                   </div>
@@ -721,44 +816,39 @@ export default function Dashboard({ onOpenCreateModal }) {
                   {/* 2. Docket Content Body */}
                   <div className="docket-content-body">
                     
-                    {/* Project & Client Identity Row */}
+                    {/* Project & Client Identity */}
                     <div className="docket-meta-row">
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1, minWidth: 0 }}>
-                        
-                        {/* Client Avatar Stamp */}
-                        <div className="docket-client-avatar" aria-hidden="true">
-                          {proj.clientName ? proj.clientName.charAt(0).toUpperCase() : 'C'}
-                        </div>
+                      <div className="docket-client-avatar" aria-hidden="true">
+                        {proj.clientName ? proj.clientName.charAt(0).toUpperCase() : 'C'}
+                      </div>
 
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <h2 
-                            className="docket-title"
-                            onClick={() => openProjectDetail(proj.slug)}
-                            title="Click to open full project overview and file inspector"
-                          >
-                            {proj.title}
-                          </h2>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h2 
+                          className="docket-title"
+                          onClick={() => openProjectDetail(proj.slug)}
+                          title="Click to open full project overview and file inspector"
+                        >
+                          {proj.title}
+                        </h2>
 
-                          <div className="docket-client-details">
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                              <User size={13} aria-hidden="true" />
-                              <strong style={{ color: 'var(--ink)' }}>{proj.clientName}</strong>
-                              <span>({proj.clientEmail})</span>
+                        <div className="docket-client-details">
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <User size={13} aria-hidden="true" />
+                            <strong style={{ color: 'var(--ink)' }}>{proj.clientName}</strong>
+                            <span>({proj.clientEmail})</span>
+                          </span>
+
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={13} aria-hidden="true" />
+                            <span>DEADLINE: <strong style={{ color: 'var(--ink)' }}>{proj.deadline}</strong></span>
+                          </span>
+
+                          {proj.lastReminderSent && (
+                            <span style={{ color: 'var(--orange)', fontWeight: 700 }}>
+                              LAST NUDGE: {proj.lastReminderSent}
                             </span>
-
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                              <Calendar size={13} aria-hidden="true" />
-                              <span>DEADLINE: <strong style={{ color: 'var(--ink)' }}>{proj.deadline}</strong></span>
-                            </span>
-
-                            {proj.lastReminderSent && (
-                              <span style={{ color: 'var(--orange)', fontWeight: 700 }}>
-                                LAST NUDGE: {proj.lastReminderSent}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
-
                       </div>
                     </div>
 
@@ -766,10 +856,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                     <div className="docket-progress-section">
                       <div className="docket-progress-labels">
                         <span>
-                          ASSET FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                          FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
                         </span>
-                        <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)', fontSize: '0.85rem' }}>
-                          {progressPercent}% FULFILLED
+                        <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)' }}>
+                          {progressPercent}%
                         </span>
                       </div>
 
@@ -813,12 +903,6 @@ export default function Dashboard({ onOpenCreateModal }) {
                             }}>
                               {item.title}
                             </span>
-
-                            {item.type === 'file' ? (
-                              <Paperclip size={12} color="var(--ink-dim)" style={{ flexShrink: 0 }} aria-hidden="true" />
-                            ) : (
-                              <FileText size={12} color="var(--ink-dim)" style={{ flexShrink: 0 }} aria-hidden="true" />
-                            )}
 
                             {fileCount > 1 && (
                               <span className="file-count-badge-nb">
@@ -881,7 +965,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                         {isLinkCopied ? (
                           <>
                             <Check size={14} aria-hidden="true" />
-                            <span>COPIED! ✓</span>
+                            <span>COPIED!</span>
                           </>
                         ) : (
                           <>
@@ -900,7 +984,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                         className="btn-tactile-dark"
                         title="Open studio asset inspector and full asset downloads"
                       >
-                        <Eye size={14} aria-hidden="true" />
+                        <Eye size={13} aria-hidden="true" />
                         <span>OVERVIEW</span>
                       </button>
 
@@ -931,131 +1015,32 @@ export default function Dashboard({ onOpenCreateModal }) {
                         style={{ background: '#FFFFFF', color: 'var(--red)', padding: '6px 8px' }}
                         title="Delete project docket"
                       >
-                        <Trash2 size={14} aria-hidden="true" />
+                        <Trash2 size={13} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
 
-                </div>
+                </article>
               );
             })}
           </div>
 
         )}
 
-        {/* ── 6. Studio Axioms / Zero-Friction Rules ──────────── */}
-        <div className="dash-axioms-section">
-          <div className="axioms-header-box">
-            <div className="dash-kicker-badge" style={{ margin: '0 auto 10px' }}>
-              <span>ZERO-FRICTION STUDIO STANDARD</span>
-            </div>
-            <h3 className="axioms-heading">
-              HOW DROPBRIEF ELIMINATES CLIENT DELAYS
-            </h3>
-            <p style={{ fontSize: '0.92rem', color: 'var(--ink-muted)', margin: 0 }}>
-              Three engineering principles that guarantee clients submit briefs in hours instead of weeks.
-            </p>
+        {/* ── Studio Telemetry Strip Footer ─────────────────────── */}
+        <footer className="dash-studio-footer" role="contentinfo">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--orange)', fontWeight: 900 }}>⚡</span>
+            <span>DROPBRIEF STUDIO DESK</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span>ZERO PASSWORDS &bull; ZERO CLIENT LOGINS</span>
           </div>
-
-          <div className="axioms-cards-row">
-            
-            <div className="axiom-card-box">
-              <div>
-                <span className="axiom-tag-num">AXIOM 01</span>
-                <h4 className="axiom-title">Zero Passwords &amp; No Signups</h4>
-                <p className="axiom-text">
-                  Clients click your private link and upload immediately. No forgotten accounts, no 2FA fatigue, and no permission hurdles.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--emerald)', fontWeight: 800 }}>
-                <Check size={14} /> 100% Zero Login Friction
-              </div>
-            </div>
-
-            <div className="axiom-card-box">
-              <div>
-                <span className="axiom-tag-num" style={{ background: 'var(--orange)' }}>AXIOM 02</span>
-                <h4 className="axiom-title">Automated Polite Follow-Ups</h4>
-                <p className="axiom-text">
-                  DropBrief tracks missing deliverables and sends gentle 1-click reminders so you never have to send awkward manual follow-ups.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--orange)', fontWeight: 800 }}>
-                <Send size={14} /> Built-in Resend Email Dispatch
-              </div>
-            </div>
-
-            <div className="axiom-card-box">
-              <div>
-                <span className="axiom-tag-num" style={{ background: 'var(--cobalt)' }}>AXIOM 03</span>
-                <h4 className="axiom-title">GDPR Art. 5 Auto Purge</h4>
-                <p className="axiom-text">
-                  Deliverables are hosted on encrypted EU servers (Frankfurt) and purged 30 days after completion to protect confidentiality.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--cobalt)', fontWeight: 800 }}>
-                <ShieldCheck size={14} /> Bank-Grade AES-256 Storage
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── 7. Studio Dispatch Footer ──────────────────────── */}
-        <footer className="neo-dashboard-footer" aria-label="Studio dashboard footer">
-          <div>
-            <strong>DROPBRIEF ⚡</strong> &bull; Client Intake &amp; Asset Docket System &bull; <span style={{ color: 'var(--emerald)', fontWeight: 800 }}>SYS_ENGINE: LIVE (EU IRELAND)</span>
-          </div>
-
-          <div className="neo-dash-footer-links">
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('tos')}
-              aria-label="Terms of service"
-            >
-              Terms of Service
-            </button>
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('privacy')}
-              aria-label="GDPR compliance and privacy policy"
-            >
-              Privacy &amp; GDPR
-            </button>
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('cookies')}
-              aria-label="Cookie-free declaration"
-            >
-              100% Cookie-free
-            </button>
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('retention')}
-              aria-label="30-day retention and purge policy"
-            >
-              30-Day Purge
-            </button>
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('dpa')}
-              aria-label="Data processing agreement"
-            >
-              DPA (Art. 28)
-            </button>
-            <button
-              type="button"
-              className="neo-dash-footer-btn"
-              onClick={() => openLegalModal && openLegalModal('impressum')}
-              aria-label="Operator information and contacts"
-            >
-              Impressum &amp; Contact
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span>ENCRYPTED AES-256</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span>IRELAND EU STORAGE</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span style={{ color: 'var(--emerald)' }}>GDPR ART. 5 (30-DAY PURGE)</span>
           </div>
         </footer>
 
