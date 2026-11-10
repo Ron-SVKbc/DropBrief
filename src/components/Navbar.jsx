@@ -586,12 +586,20 @@ export default function Navbar({ onOpenCreateModal }) {
                   </button>
                 ) : null}
 
-                <Settings 
-                  size={14} 
-                  color="#111111" 
-                  style={{ marginLeft: '4px', opacity: 0.8 }} 
-                  aria-hidden="true" 
-                />
+                <span 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    borderLeft: '1.5px solid #111111',
+                    paddingLeft: '6px',
+                    marginLeft: '2px',
+                    color: '#111111'
+                  }}
+                  title="Account Settings & GDPR"
+                >
+                  <Settings size={14} aria-hidden="true" />
+                </span>
               </div>
 
               {/* New project button */}
