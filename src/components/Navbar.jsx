@@ -609,7 +609,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 }}
               >
                 <Plus size={15} aria-hidden="true" />
-                <span>+ NEW DOCKET</span>
+                <span>NEW DOCKET</span>
               </button>
 
               {/* Account Settings / Profile */}

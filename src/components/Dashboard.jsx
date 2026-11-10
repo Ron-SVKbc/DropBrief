@@ -215,7 +215,7 @@ export default function Dashboard({ onOpenCreateModal }) {
               aria-label="Create new client asset intake docket"
             >
               <Plus size={18} aria-hidden="true" />
-              <span>+ NEW DOCKET</span>
+              <span>NEW DOCKET</span>
             </button>
             
             <button
@@ -597,7 +597,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                 className="btn-tactile-primary"
               >
                 <Plus size={16} aria-hidden="true" />
-                <span>+ CREATE FIRST DOCKET</span>
+                <span>CREATE FIRST DOCKET</span>
               </button>
 
               {!searchTerm && (
