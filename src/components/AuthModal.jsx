@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import confetti from 'canvas-confetti';
+import '../styles/auth-modal.css';
 import { 
   X, 
   KeyRound, 
@@ -221,74 +222,47 @@ export default function AuthModal() {
 
   return (
     <div 
-      className="modal-overlay"
-      style={{ zIndex: 115 }}
+      className="auth-modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeAuthModal();
       }}
     >
       <div 
-        className="auth-modal-card animate-fade-in"
+        className="auth-modal-window"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        style={{
-          width: '100%',
-          maxWidth: '480px',
-          background: '#ffffff',
-          border: '1px solid var(--border-medium)',
-          boxShadow: '0 24px 50px -12px rgba(15, 23, 42, 0.18)',
-          borderRadius: 'var(--radius-xl)',
-          position: 'relative',
-          overflow: 'hidden',
-          overscrollBehavior: 'contain'
-        }}
       >
-        {/* Modal Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-hairline)',
-          background: '#ffffff'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-primary-bg)',
-              color: 'var(--accent-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <KeyRound size={18} aria-hidden="true" />
+        {/* Modal Header Bar */}
+        <div className="auth-header-bar">
+          <div className="auth-header-left">
+            <div className="auth-header-icon-box">
+              <KeyRound size={20} strokeWidth={2.5} aria-hidden="true" />
             </div>
             <div>
-              <h3 
-                id="auth-modal-title" 
-                style={{ 
-                  fontSize: '1.1rem', 
-                  fontWeight: 800, 
-                  margin: 0, 
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.02em',
-                  textWrap: 'balance'
-                }}
-              >
+              <div className="auth-header-meta">
+                <span className="auth-header-kicker">
+                  {authModalMode === 'pin_reveal' ? 'SYS // ONBOARDING_SUCCESS' :
+                   authModalMode === 'verify_register_pin' ? 'SYS // OTP_CHALLENGE' :
+                   authModalMode === 'register' ? 'SYS // VIP_REGISTRATION' :
+                   authModalMode === 'forgot_pin' ? 'SYS // PIN_RECOVERY' : 'SYS // FREELANCER_LOGIN'}
+                </span>
+                <span className="auth-header-badge">
+                  <ShieldCheck size={11} strokeWidth={2.5} aria-hidden="true" />
+                  <span>256-BIT ENCRYPTED</span>
+                </span>
+              </div>
+              <h3 id="auth-modal-title" className="auth-header-title">
                 {authModalMode === 'pin_reveal' ? 'Your account is ready' : 
                  authModalMode === 'verify_register_pin' ? 'Verify your email' :
                  authModalMode === 'register' ? 'Create freelancer account' : 
                  authModalMode === 'forgot_pin' ? 'Reset PIN code' : 'Log in to dashboard'}
               </h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
+              <p className="auth-header-sub">
                 {authModalMode === 'pin_reveal' ? 'Your verified PIN is ready for future logins' :
                  authModalMode === 'verify_register_pin' ? 'Enter the 6-digit code sent to your email' :
-                 authModalMode === 'register' ? 'Free forever • First 15 receive Lifetime VIP PRO (5 slots & 100MB)' : 
-                 authModalMode === 'forgot_pin' ? 'Receive a new 6-digit PIN in your inbox' : 'Enter your name or email with your 6-digit PIN'}
+                 authModalMode === 'register' ? 'Free forever • First 15 receive Lifetime VIP PRO' : 
+                 authModalMode === 'forgot_pin' ? 'Receive a new 6-digit PIN in your inbox' : 'Zero passwords — log in with username and 6-digit PIN'}
               </p>
             </div>
           </div>
@@ -297,60 +271,61 @@ export default function AuthModal() {
             id="btn-close-auth-modal"
             onClick={closeAuthModal}
             aria-label="Close authentication dialog"
-            className="btn btn-secondary btn-sm"
-            style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
+            className="auth-btn-close"
+            title="Close dialog (Esc)"
           >
-            <X size={16} aria-hidden="true" />
+            <X size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
 
         {/* PIN REVEAL STATE (Success Screen) */}
         {authModalMode === 'pin_reveal' && authRegisteredData && (
-          <div style={{ padding: '28px 24px', textAlign: 'center' }}>
+          <div className="auth-body-content" style={{ textAlign: 'center' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              background: 'var(--success-bg)',
-              color: 'var(--success)',
+              width: '56px',
+              height: '56px',
+              borderRadius: '8px',
+              background: 'var(--yellow)',
+              color: 'var(--ink)',
+              border: '2px solid #111111',
+              boxShadow: '3px 3px 0px #111111',
               marginBottom: '16px'
             }}>
-              <Sparkles size={26} aria-hidden="true" />
+              <Sparkles size={28} strokeWidth={2.5} aria-hidden="true" />
             </div>
 
-            <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-primary)' }}>
+            <h4 style={{ 
+              fontFamily: 'var(--font-display)', 
+              fontSize: '1.45rem', 
+              fontWeight: 900, 
+              marginBottom: '6px', 
+              color: 'var(--ink)',
+              letterSpacing: '-0.02em'
+            }}>
               Welcome to DropBrief, {authRegisteredData.nick}!
             </h4>
-            <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.86rem', color: 'var(--ink-muted)', marginBottom: '20px', lineHeight: 1.5 }}>
               Your account is active. This 6-digit numeric PIN is your permanent password:
             </p>
 
-            {/* Clean PIN Display Box */}
-            <div style={{
-              background: '#0f172a',
-              border: '1px solid var(--border-medium)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '24px 20px',
-              marginBottom: '20px',
-              position: 'relative'
-            }}>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '8px', letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase' }}>
+            {/* Brutalist Dark Punchcard Display Box */}
+            <div className="auth-pin-reveal-box">
+              <span style={{ 
+                fontSize: '0.72rem', 
+                color: 'var(--yellow)', 
+                display: 'block', 
+                marginBottom: '8px', 
+                letterSpacing: '0.08em', 
+                fontWeight: 800, 
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-mono)'
+              }}>
                 Your Permanent Access PIN
               </span>
-              <div 
-                className="tabular-nums"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '2.5rem',
-                  fontWeight: 800,
-                  letterSpacing: '10px',
-                  color: '#ffffff',
-                  marginBottom: '14px'
-                }}
-              >
+              <div className="auth-pin-digits tabular-nums">
                 {authRegisteredData.pin}
               </div>
 
@@ -359,28 +334,15 @@ export default function AuthModal() {
                 type="button"
                 onClick={() => handleCopyPin(authRegisteredData.pin)}
                 aria-label="Copy PIN code to clipboard"
-                className={`btn btn-sm btn-pill ${copiedPin ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ margin: '0 auto', fontSize: '0.82rem', padding: '6px 18px', gap: '6px' }}
+                className={`auth-copy-btn ${copiedPin ? 'copied' : ''}`}
               >
-                {copiedPin ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                {copiedPin ? <Check size={14} strokeWidth={2.5} aria-hidden="true" /> : <Copy size={14} strokeWidth={2.5} aria-hidden="true" />}
                 <span>{copiedPin ? 'Copied' : 'Copy PIN'}</span>
               </button>
             </div>
 
-            <div style={{
-              background: 'var(--bg-base)',
-              border: '1px solid var(--border-hairline)',
-              borderRadius: 'var(--radius-md)',
-              padding: '12px 14px',
-              fontSize: '0.8rem',
-              color: 'var(--text-secondary)',
-              textAlign: 'left',
-              display: 'flex',
-              gap: '10px',
-              alignItems: 'flex-start',
-              marginBottom: '22px'
-            }}>
-              <ShieldCheck size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+            <div className="auth-info-card">
+              <ShieldCheck size={18} color="var(--emerald)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
               <div>
                 We also delivered this PIN to <strong>{authRegisteredData.email}</strong>. Use your name or email together with this PIN for all future logins.
               </div>
@@ -390,11 +352,10 @@ export default function AuthModal() {
               id="btn-enter-dashboard"
               type="button"
               onClick={closeAuthModal}
-              className="btn btn-primary btn-lg btn-pill"
-              style={{ width: '100%', justifyContent: 'center' }}
+              className="auth-btn-primary"
             >
               <span>Enter Dashboard</span>
-              <ArrowRight size={16} aria-hidden="true" />
+              <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />
             </button>
           </div>
         )}
@@ -402,31 +363,27 @@ export default function AuthModal() {
         {/* REGULAR FORMS (LOGIN / REGISTER / VERIFY_REGISTER_PIN / FORGOT_PIN) */}
         {authModalMode !== 'pin_reveal' && (
           <div>
-            {/* Minimal Segmented Tab Switcher */}
+            {/* Tactile Segmented Tab Switcher */}
             {authModalMode !== 'forgot_pin' && authModalMode !== 'verify_register_pin' && (
-              <div style={{
-                display: 'flex',
-                background: '#f8fafc',
-                padding: '4px',
-                borderBottom: '1px solid var(--border-hairline)',
-                gap: '4px'
-              }}>
+              <div className="auth-tabs-row" role="tablist" aria-label="Authentication mode selection">
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={authModalMode === 'login'}
                   onClick={() => { setAuthModalMode('login'); setErrorMessage(''); setForgotSuccess(''); }}
-                  className={`btn btn-sm btn-pill ${authModalMode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '7px 12px', fontSize: '0.82rem' }}
+                  className={`auth-tab-btn ${authModalMode === 'login' ? 'active' : ''}`}
                 >
-                  <LogIn size={14} aria-hidden="true" />
+                  <LogIn size={15} strokeWidth={2.2} aria-hidden="true" />
                   <span>Log In</span>
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={authModalMode === 'register'}
                   onClick={() => { setAuthModalMode('register'); setErrorMessage(''); setForgotSuccess(''); }}
-                  className={`btn btn-sm btn-pill ${authModalMode === 'register' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: 1, border: 'none', justifyContent: 'center', padding: '7px 12px', fontSize: '0.82rem' }}
+                  className={`auth-tab-btn ${authModalMode === 'register' ? 'active' : ''}`}
                 >
-                  <UserPlus size={14} aria-hidden="true" />
+                  <UserPlus size={15} strokeWidth={2.2} aria-hidden="true" />
                   <span>Sign Up Free</span>
                 </button>
               </div>
@@ -434,29 +391,15 @@ export default function AuthModal() {
 
             {/* Error Banner */}
             {errorMessage && (
-              <div 
-                role="alert"
-                style={{
-                  margin: '16px 24px 0',
-                  padding: '10px 14px',
-                  background: 'var(--danger-bg)',
-                  border: '1px solid var(--danger-border)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--danger-text)',
-                  fontSize: '0.825rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <AlertCircle size={15} color="var(--danger)" style={{ flexShrink: 0 }} aria-hidden="true" />
+              <div role="alert" className="auth-error-banner">
+                <AlertCircle size={17} color="var(--red)" style={{ flexShrink: 0 }} aria-hidden="true" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* FORM 1: LOGIN */}
             {authModalMode === 'login' && (
-              <form onSubmit={handleLoginSubmit} style={{ padding: '24px' }}>
+              <form onSubmit={handleLoginSubmit} className="auth-body-content">
                 
                 {/* Continue with Google */}
                 <button
@@ -465,25 +408,9 @@ export default function AuthModal() {
                   onClick={handleGoogleAuth}
                   disabled={isGoogleLoading || isSubmitting}
                   aria-label="Continue with Google"
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    padding: '10px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-medium)',
-                    background: '#ffffff',
-                    color: 'var(--text-primary)',
-                    fontWeight: 600,
-                    fontSize: '0.88rem',
-                    cursor: isGoogleLoading ? 'wait' : 'pointer',
-                    boxShadow: 'var(--shadow-xs)',
-                    marginBottom: '16px'
-                  }}
+                  className="auth-btn-google"
                 >
-                  <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -493,22 +420,20 @@ export default function AuthModal() {
                 </button>
 
                 {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border-hairline)' }} />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                    or enter PIN
-                  </span>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border-hairline)' }} />
+                <div className="auth-divider">
+                  <div className="auth-divider-line" />
+                  <span className="auth-divider-tag">or enter PIN</span>
+                  <div className="auth-divider-line" />
                 </div>
 
-                <div style={{ marginBottom: '16px' }}>
-                  <label htmlFor="login-nick-input" style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
+                <div className="auth-form-group">
+                  <label htmlFor="login-nick-input" className="auth-form-label">
                     Username or Email
                   </label>
                   <input
                     id="login-nick-input"
                     type="text"
-                    className="input"
+                    className="auth-form-input"
                     placeholder="e.g. AlexDesign or alex@design.com…"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
@@ -519,25 +444,24 @@ export default function AuthModal() {
                   />
                 </div>
 
-                <div style={{ marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <label htmlFor="login-pin-input" style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                      6-digit numeric PIN
-                    </label>
+                <div className="auth-form-group" style={{ marginBottom: '8px' }}>
+                  <div className="auth-form-label">
+                    <label htmlFor="login-pin-input">6-digit numeric PIN</label>
                     <button
                       type="button"
                       onClick={() => setShowPin(!showPin)}
                       aria-label={showPin ? 'Hide PIN code' : 'Show PIN code'}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px', padding: 0 }}
+                      className="auth-btn-secondary"
+                      style={{ padding: '2px 8px', fontSize: '0.72rem', gap: '4px' }}
                     >
-                      {showPin ? <EyeOff size={13} aria-hidden="true" /> : <Eye size={13} aria-hidden="true" />}
+                      {showPin ? <EyeOff size={12} strokeWidth={2.2} aria-hidden="true" /> : <Eye size={12} strokeWidth={2.2} aria-hidden="true" />}
                       <span>{showPin ? 'Hide' : 'Show'}</span>
                     </button>
                   </div>
                   <input
                     id="login-pin-input"
                     type={showPin ? 'text' : 'password'}
-                    className="input tabular-nums"
+                    className="auth-form-input pin-input tabular-nums"
                     placeholder="••••••"
                     maxLength={6}
                     pattern="[0-9]*"
@@ -547,17 +471,11 @@ export default function AuthModal() {
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
                     required
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '1.25rem',
-                      letterSpacing: '6px',
-                      textAlign: 'center'
-                    }}
                   />
                 </div>
 
                 {/* Forgot PIN Link */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '18px' }}>
                   <button
                     type="button"
                     id="btn-forgot-pin"
@@ -567,14 +485,8 @@ export default function AuthModal() {
                       setForgotSuccess('');
                       setForgotEmail(nick.includes('@') ? nick : email || '');
                     }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--accent-primary)',
-                      fontSize: '0.78rem',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
+                    className="auth-legal-link"
+                    style={{ fontSize: '0.78rem' }}
                   >
                     Forgot your PIN code?
                   </button>
@@ -584,18 +496,17 @@ export default function AuthModal() {
                   id="btn-login-submit"
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary btn-lg btn-pill"
-                  style={{ width: '100%', justifyContent: 'center' }}
+                  className="auth-btn-primary"
                 >
-                  {isSubmitting ? 'Verifying…' : 'Log In to Dashboard'}
+                  {isSubmitting ? 'Verifying…' : 'Log In to Dashboard →'}
                 </button>
 
-                <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                <div className="auth-footer-legal">
                   Protected by 256-bit encryption &bull;{' '}
                   <button
                     type="button"
                     onClick={() => openLegalModal('privacy')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                    className="auth-legal-link"
                   >
                     GDPR Privacy
                   </button>
@@ -603,7 +514,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     onClick={() => openLegalModal('tos')}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                    className="auth-legal-link"
                   >
                     Terms
                   </button>
@@ -613,26 +524,18 @@ export default function AuthModal() {
 
             {/* FORM 2: REGISTER (Step 1 - Name & Email) */}
             {authModalMode === 'register' && (
-              <form onSubmit={handleRegisterRequestSubmit} style={{ padding: '24px' }}>
+              <form onSubmit={handleRegisterRequestSubmit} className="auth-body-content">
                 
                 {/* Founding VIP Announcement Pill */}
-                <div style={{
-                  background: 'var(--yellow-tint, #FFFDE6)',
-                  border: '1.5px solid #111111',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '9px 12px',
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontSize: '0.8rem',
-                  color: '#111111',
-                  boxShadow: '2px 2px 0 #111111'
-                }}>
-                  <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⭐</span>
+                <div className="auth-vip-card">
+                  <div className="auth-vip-star">★</div>
                   <div style={{ lineHeight: 1.35 }}>
-                    <strong style={{ display: 'block', fontSize: '0.82rem', letterSpacing: '-0.01em' }}>VIP Launch Active (First 15 Designers)</strong>
-                    <span style={{ fontSize: '0.74rem', color: '#4B4842' }}>5 active project slots &amp; 100 MB file limit unlocked free for life.</span>
+                    <strong style={{ display: 'block', fontSize: '0.82rem', letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+                      VIP Launch Active (First 15 Designers)
+                    </strong>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--ink-muted)' }}>
+                      5 active project slots &amp; 100 MB file limit unlocked free for life.
+                    </span>
                   </div>
                 </div>
 
@@ -643,25 +546,9 @@ export default function AuthModal() {
                   onClick={handleGoogleAuth}
                   disabled={isGoogleLoading || isSubmitting}
                   aria-label="Sign up with Google"
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    padding: '10px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-medium)',
-                    background: '#ffffff',
-                    color: 'var(--text-primary)',
-                    fontWeight: 600,
-                    fontSize: '0.88rem',
-                    cursor: isGoogleLoading ? 'wait' : 'pointer',
-                    boxShadow: 'var(--shadow-xs)',
-                    marginBottom: '16px'
-                  }}
+                  className="auth-btn-google"
                 >
-                  <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -671,40 +558,27 @@ export default function AuthModal() {
                 </button>
 
                 {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border-hairline)' }} />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                    or create with email &amp; PIN
-                  </span>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border-hairline)' }} />
+                <div className="auth-divider">
+                  <div className="auth-divider-line" />
+                  <span className="auth-divider-tag">or create with email &amp; PIN</span>
+                  <div className="auth-divider-line" />
                 </div>
 
                 {referralRef && (
-                  <div style={{
-                    background: 'var(--accent-primary-bg)',
-                    border: '1px solid rgba(37, 99, 235, 0.2)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '8px 12px',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.8rem',
-                    color: 'var(--text-secondary)'
-                  }}>
-                    <Sparkles size={14} color="var(--accent-primary)" aria-hidden="true" />
+                  <div className="auth-referral-pill">
+                    <Sparkles size={15} color="var(--yellow)" aria-hidden="true" />
                     <span>Referred by <strong>{referralRef}</strong> — bonus applied!</span>
                   </div>
                 )}
 
-                <div style={{ marginBottom: '16px' }}>
-                  <label htmlFor="register-nick-input" style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                    Your Name or Studio Name <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                <div className="auth-form-group">
+                  <label htmlFor="register-nick-input" className="auth-form-label">
+                    <span>Your Name or Studio Name <span style={{ color: 'var(--orange)' }}>*</span></span>
                   </label>
                   <input
                     id="register-nick-input"
                     type="text"
-                    className="input"
+                    className="auth-form-input"
                     placeholder="e.g. Alex Studio…"
                     value={nick}
                     onChange={(e) => setNick(e.target.value)}
@@ -712,19 +586,19 @@ export default function AuthModal() {
                     autoFocus
                     autoComplete="name"
                   />
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginTop: '3px' }}>
+                  <span className="auth-input-helper">
                     Shown to your clients in the portal header.
                   </span>
                 </div>
 
-                <div style={{ marginBottom: '18px' }}>
-                  <label htmlFor="register-email-input" style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                    Your email address <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                <div className="auth-form-group" style={{ marginBottom: '20px' }}>
+                  <label htmlFor="register-email-input" className="auth-form-label">
+                    <span>Your email address <span style={{ color: 'var(--orange)' }}>*</span></span>
                   </label>
                   <input
                     id="register-email-input"
                     type="email"
-                    className="input"
+                    className="auth-form-input"
                     placeholder="you@email.com…"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -732,7 +606,7 @@ export default function AuthModal() {
                     autoComplete="email"
                     spellCheck={false}
                   />
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginTop: '3px' }}>
+                  <span className="auth-input-helper">
                     We'll email a 6-digit verification code. No spam, ever.
                   </span>
                 </div>
@@ -741,18 +615,17 @@ export default function AuthModal() {
                   id="btn-register-request-submit"
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary btn-lg btn-pill"
-                  style={{ width: '100%', justifyContent: 'center' }}
+                  className="auth-btn-primary"
                 >
                   {isSubmitting ? 'Sending code…' : 'Send Verification PIN →'}
                 </button>
 
-                <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                <div className="auth-footer-legal">
                   By signing up, you agree to DropBrief's{' '}
                   <button
                     type="button"
                     onClick={() => openLegalModal('tos')}
-                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit', fontWeight: 600 }}
+                    className="auth-legal-link"
                   >
                     Terms of Service
                   </button>
@@ -760,7 +633,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     onClick={() => openLegalModal('privacy')}
-                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit', fontWeight: 600 }}
+                    className="auth-legal-link"
                   >
                     Privacy Policy (GDPR)
                   </button>
@@ -771,24 +644,15 @@ export default function AuthModal() {
 
             {/* FORM 2B: VERIFY REGISTER PIN (Step 2 - PIN entry with 5m limit) */}
             {authModalMode === 'verify_register_pin' && (
-              <form onSubmit={handleVerifyPinSubmit} style={{ padding: '24px' }}>
+              <form onSubmit={handleVerifyPinSubmit} className="auth-body-content">
                 
                 {/* Email Confirmation Badge */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  borderRadius: 'var(--radius-md)',
-                  marginBottom: '16px'
-                }}>
+                <div className="auth-email-badge">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                    <Mail size={15} color="var(--accent-primary)" style={{ flexShrink: 0 }} aria-hidden="true" />
+                    <Mail size={16} color="var(--orange)" style={{ flexShrink: 0 }} aria-hidden="true" />
                     <div style={{ minWidth: 0 }}>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Code sent to:</span>
-                      <strong style={{ fontSize: '0.825rem', color: 'var(--text-primary)' }} className="truncate">
+                      <span style={{ fontSize: '0.7rem', color: 'var(--ink-dim)', display: 'block', fontFamily: 'var(--font-mono)' }}>CODE SENT TO:</span>
+                      <strong style={{ fontSize: '0.84rem', color: 'var(--ink)' }} className="truncate">
                         {pendingRegistration?.email || email}
                       </strong>
                     </div>
@@ -799,31 +663,21 @@ export default function AuthModal() {
                       setAuthModalMode('register');
                       setErrorMessage('');
                     }}
-                    className="btn btn-secondary btn-sm"
-                    style={{ fontSize: '0.74rem', padding: '3px 8px', gap: '4px' }}
+                    className="auth-btn-secondary"
+                    style={{ fontSize: '0.74rem', padding: '4px 8px', gap: '4px' }}
                     title="Change email address"
                   >
-                    <Edit2 size={11} aria-hidden="true" />
+                    <Edit2 size={12} strokeWidth={2.2} aria-hidden="true" />
                     <span>Edit</span>
                   </button>
                 </div>
 
                 {/* 5-minute Countdown Banner */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '8px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  background: timeLeft > 0 ? 'var(--bg-base)' : 'var(--danger-bg)',
-                  border: timeLeft > 0 ? '1px solid var(--border-hairline)' : '1px solid var(--danger-border)',
-                  marginBottom: '18px'
-                }}>
-                  <Clock size={14} color={timeLeft > 0 ? 'var(--accent-primary)' : 'var(--danger)'} aria-hidden="true" />
-                  <span style={{ fontSize: '0.825rem', fontWeight: 600, color: timeLeft > 0 ? 'var(--text-secondary)' : 'var(--danger-text)' }}>
+                <div className={`auth-countdown-pill ${timeLeft > 0 ? 'active' : 'expired'}`}>
+                  <Clock size={15} strokeWidth={2.5} aria-hidden="true" />
+                  <span>
                     {timeLeft > 0 ? (
-                      <>Code expires in: <strong className="tabular-nums" style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>{formatTime(timeLeft)}</strong></>
+                      <>Code expires in: <strong className="tabular-nums">{formatTime(timeLeft)}</strong></>
                     ) : (
                       'Code has expired. Please request a new one.'
                     )}
@@ -831,14 +685,14 @@ export default function AuthModal() {
                 </div>
 
                 {/* 6-digit PIN Input */}
-                <div style={{ marginBottom: '18px' }}>
-                  <label htmlFor="verify-pin-input" style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textAlign: 'center' }}>
+                <div className="auth-form-group" style={{ marginBottom: '18px' }}>
+                  <label htmlFor="verify-pin-input" className="auth-form-label" style={{ justifyContent: 'center' }}>
                     Enter 6-digit PIN from your email
                   </label>
                   <input
                     id="verify-pin-input"
                     type="text"
-                    className="input tabular-nums"
+                    className="auth-form-input pin-input tabular-nums"
                     placeholder="••••••"
                     maxLength={6}
                     pattern="[0-9]*"
@@ -849,16 +703,8 @@ export default function AuthModal() {
                     onChange={(e) => setVerifyPin(e.target.value.replace(/[^0-9]/g, ''))}
                     required
                     autoFocus
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '1.6rem',
-                      letterSpacing: '8px',
-                      textAlign: 'center',
-                      fontWeight: 800,
-                      padding: '12px'
-                    }}
                   />
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px', textAlign: 'center' }}>
+                  <span className="auth-input-helper" style={{ textAlign: 'center' }}>
                     This code becomes your permanent access PIN.
                   </span>
                 </div>
@@ -867,14 +713,15 @@ export default function AuthModal() {
                 {pendingRegistration?.devPin && (
                   <div style={{
                     marginBottom: '14px',
-                    padding: '6px 10px',
-                    background: 'rgba(234, 179, 8, 0.12)',
-                    border: '1px dashed #d97706',
-                    borderRadius: 'var(--radius-sm)',
+                    padding: '8px 10px',
+                    background: 'var(--yellow-tint)',
+                    border: '2px dashed #111111',
+                    borderRadius: '6px',
                     fontSize: '0.78rem',
-                    color: 'var(--warning-text)',
-                    fontWeight: 600,
-                    textAlign: 'center'
+                    color: 'var(--ink)',
+                    fontWeight: 800,
+                    textAlign: 'center',
+                    fontFamily: 'var(--font-mono)'
                   }}>
                     Dev Mode: Your PIN is <strong>{pendingRegistration.devPin}</strong>
                   </div>
@@ -884,8 +731,8 @@ export default function AuthModal() {
                   id="btn-verify-pin-submit"
                   type="submit"
                   disabled={isSubmitting || verifyPin.length !== 6 || timeLeft === 0}
-                  className="btn btn-primary btn-lg btn-pill"
-                  style={{ width: '100%', justifyContent: 'center', marginBottom: '14px' }}
+                  className="auth-btn-primary"
+                  style={{ marginBottom: '14px' }}
                 >
                   {isSubmitting ? 'Verifying…' : 'Verify PIN & Create Account →'}
                 </button>
@@ -898,19 +745,10 @@ export default function AuthModal() {
                       setAuthModalMode('register');
                       setErrorMessage('');
                     }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.78rem',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: 0
-                    }}
+                    className="auth-btn-secondary"
+                    style={{ fontSize: '0.78rem', padding: '6px 10px', gap: '4px' }}
                   >
-                    <ArrowLeft size={13} aria-hidden="true" />
+                    <ArrowLeft size={13} strokeWidth={2.2} aria-hidden="true" />
                     <span>Change details</span>
                   </button>
 
@@ -918,19 +756,10 @@ export default function AuthModal() {
                     type="button"
                     onClick={handleResendPin}
                     disabled={resendCooldown > 0 || isResending}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--accent-primary)',
-                      fontSize: '0.78rem',
-                      cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: 0
-                    }}
+                    className="auth-btn-secondary"
+                    style={{ fontSize: '0.78rem', padding: '6px 10px', gap: '4px' }}
                   >
-                    <RefreshCw size={11} className={isResending ? 'spin' : ''} aria-hidden="true" />
+                    <RefreshCw size={12} strokeWidth={2.2} className={isResending ? 'spin' : ''} aria-hidden="true" />
                     <span>{resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend code'}</span>
                   </button>
                 </div>
@@ -940,27 +769,28 @@ export default function AuthModal() {
 
             {/* FORM 3: FORGOT PIN */}
             {authModalMode === 'forgot_pin' && (
-              <form onSubmit={handleForgotPinSubmit} style={{ padding: '24px' }}>
-                <p style={{ fontSize: '0.825rem', color: 'var(--text-tertiary)', marginBottom: '16px', lineHeight: 1.5 }}>
+              <form onSubmit={handleForgotPinSubmit} className="auth-body-content">
+                <p style={{ fontSize: '0.84rem', color: 'var(--ink-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
                   Enter your registered email address. We'll generate a secure new 6-digit PIN and send it to your inbox immediately.
                 </p>
 
                 {forgotSuccess ? (
                   <div style={{
                     padding: '20px 16px',
-                    background: 'var(--success-bg)',
-                    border: '1px solid var(--success-border)',
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--success-text)',
+                    background: 'var(--emerald-tint)',
+                    border: '2px solid var(--emerald)',
+                    borderRadius: '6px',
+                    color: 'var(--ink)',
                     fontSize: '0.85rem',
                     textAlign: 'center',
-                    marginBottom: '16px'
+                    marginBottom: '16px',
+                    boxShadow: '3px 3px 0px var(--emerald)'
                   }}>
-                    <Check size={28} color="var(--success)" style={{ margin: '0 auto 8px', display: 'block' }} aria-hidden="true" />
-                    <strong style={{ display: 'block', fontSize: '0.95rem', marginBottom: '4px', color: 'var(--text-primary)' }}>
+                    <Check size={28} color="var(--emerald)" strokeWidth={2.5} style={{ margin: '0 auto 8px', display: 'block' }} aria-hidden="true" />
+                    <strong style={{ display: 'block', fontSize: '1rem', marginBottom: '4px', color: 'var(--ink)', fontFamily: 'var(--font-display)', fontWeight: 900 }}>
                       PIN sent to your email
                     </strong>
-                    <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
                       {forgotSuccess}
                     </p>
                     <button
@@ -970,22 +800,22 @@ export default function AuthModal() {
                         setForgotSuccess('');
                         setErrorMessage('');
                       }}
-                      className="btn btn-primary btn-md btn-pill"
+                      className="auth-btn-primary"
                       style={{ margin: '0 auto' }}
                     >
-                      Go to Log In
+                      Go to Log In →
                     </button>
                   </div>
                 ) : (
                   <>
-                    <div style={{ marginBottom: '18px' }}>
-                      <label htmlFor="forgot-email-input" style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                        Your registered email <span style={{ color: 'var(--accent-primary)' }}>*</span>
+                    <div className="auth-form-group" style={{ marginBottom: '18px' }}>
+                      <label htmlFor="forgot-email-input" className="auth-form-label">
+                        <span>Your registered email <span style={{ color: 'var(--orange)' }}>*</span></span>
                       </label>
                       <input
                         id="forgot-email-input"
                         type="email"
-                        className="input"
+                        className="auth-form-input"
                         placeholder="you@email.com…"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
@@ -1000,10 +830,10 @@ export default function AuthModal() {
                       id="btn-forgot-submit"
                       type="submit"
                       disabled={isSubmitting}
-                      className="btn btn-primary btn-lg btn-pill"
-                      style={{ width: '100%', justifyContent: 'center', marginBottom: '14px' }}
+                      className="auth-btn-primary"
+                      style={{ marginBottom: '14px' }}
                     >
-                      {isSubmitting ? 'Generating PIN…' : 'Send New PIN to Email'}
+                      {isSubmitting ? 'Generating PIN…' : 'Send New PIN to Email →'}
                     </button>
 
                     <div style={{ textAlign: 'center' }}>
@@ -1014,19 +844,10 @@ export default function AuthModal() {
                           setErrorMessage('');
                           setForgotSuccess('');
                         }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--text-muted)',
-                          fontSize: '0.78rem',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: 0
-                        }}
+                        className="auth-btn-secondary"
+                        style={{ fontSize: '0.78rem', padding: '6px 12px', gap: '4px' }}
                       >
-                        <ArrowLeft size={13} aria-hidden="true" />
+                        <ArrowLeft size={13} strokeWidth={2.2} aria-hidden="true" />
                         <span>Back to Log In</span>
                       </button>
                     </div>
