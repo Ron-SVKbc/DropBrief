@@ -123,6 +123,41 @@ export default function Dashboard({ onOpenCreateModal }) {
   const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
   const estimatedHoursSaved = totalProjects * 4;
 
+  // Deadline Horizon & Timeline Calculations
+  const todayDateObj = new Date();
+  todayDateObj.setHours(0, 0, 0, 0);
+
+  const upcomingProjects = myProjects
+    .filter((p) => p.status !== 'completed' && p.deadline)
+    .map((p) => {
+      const d = new Date(p.deadline);
+      const isDateValid = !isNaN(d.getTime());
+      d.setHours(0, 0, 0, 0);
+      const diffDays = isDateValid
+        ? Math.round((d.getTime() - todayDateObj.getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      
+      // Calculate 30-day timeline percentage (0% = today or overdue, 100% = 30 days)
+      const percent = Math.max(0, Math.min(100, Math.round((diffDays / 30) * 100)));
+
+      return {
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        clientName: p.clientName,
+        deadline: p.deadline,
+        diffDays,
+        percent,
+        isOverdue: diffDays < 0,
+        isToday: diffDays === 0,
+        isUrgent: diffDays > 0 && diffDays <= 3
+      };
+    })
+    .sort((a, b) => a.diffDays - b.diffDays);
+
+  const nearestProject = upcomingProjects[0] || null;
+  const todayFormatted = todayDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
   const copyClientLink = (slug) => {
     const origin = window.location.origin;
     const baseUrl = origin.includes('localhost') || origin.includes('127.0.0.1')
@@ -263,24 +298,98 @@ export default function Dashboard({ onOpenCreateModal }) {
             </div>
           </div>
 
-          {/* Tile 3: Ready for Kickoff */}
-          <div className="hud-card">
+          {/* Tile 3: Production Timeline Horizon */}
+          <div className="hud-card hud-timeline-card">
             <div className="hud-card-top">
-              <span className="hud-label">100% READY // KICKOFF</span>
-              <div className="hud-icon-stamp" style={{ background: 'var(--emerald)', color: '#FFFFFF' }}>
-                <CheckCircle2 size={15} aria-hidden="true" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="hud-label">DEADLINE HORIZON</span>
+                <span className="status-live-dot" title="Live clock anchor" />
+              </div>
+              <div className="hud-icon-stamp" style={{ background: 'var(--amber-light)', color: 'var(--amber-dark)' }}>
+                <Calendar size={15} aria-hidden="true" />
               </div>
             </div>
-            <div>
-              <div className="hud-big-value" style={{ color: '#065F46' }}>
-                {completedProjects}
+
+            {/* Visual Timeline Horizon Rail */}
+            <div className="timeline-horizon-track-wrap">
+              <div className="timeline-track-rail">
+                {/* Now Marker */}
+                <div className="timeline-marker-now" title={`Today: ${todayFormatted}`}>
+                  <span className="now-dot" />
+                  <span className="now-label">TODAY</span>
+                </div>
+
+                {/* Plotted Milestone Nodes */}
+                {upcomingProjects.slice(0, 3).map((p) => {
+                  const nodeColor = p.isOverdue ? 'var(--red)' : p.isUrgent ? 'var(--orange)' : 'var(--emerald)';
+                  return (
+                    <div 
+                      key={p.id}
+                      className="timeline-project-node"
+                      style={{ left: `${p.percent}%` }}
+                      title={`${p.title} (${p.diffDays < 0 ? `${Math.abs(p.diffDays)}d overdue` : p.diffDays === 0 ? 'Due today' : `Due in ${p.diffDays}d`})`}
+                      onClick={() => openProjectDetail(p.slug)}
+                    >
+                      <div className="timeline-node-pin" style={{ background: nodeColor }} />
+                      <div className="timeline-node-callout">
+                        {p.diffDays < 0 ? `-${Math.abs(p.diffDays)}d` : p.diffDays === 0 ? 'Today' : `+${p.diffDays}d`}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <p className="hud-meta-text">
-                {completionRate}% overall fulfillment rate &bull; ~{estimatedHoursSaved}h saved
-              </p>
+
+              {/* Axis Ticks */}
+              <div className="timeline-axis-labels">
+                <span>{todayFormatted}</span>
+                <span>+7d</span>
+                <span>+14d</span>
+                <span>+30d</span>
+              </div>
             </div>
-            <div style={{ marginTop: '10px', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: 'var(--emerald)', fontWeight: 800 }}>
-              ✓ BATCH ZIP EXPORT READY
+
+            {/* Nearest Deadline Summary / Feed */}
+            <div className="timeline-summary-dock">
+              {nearestProject ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                      NEXT DELIVERY:
+                    </div>
+                    <div 
+                      onClick={() => openProjectDetail(nearestProject.slug)}
+                      style={{ 
+                        fontSize: '0.84rem', 
+                        fontWeight: 800, 
+                        color: 'var(--ink-primary)', 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        cursor: 'pointer'
+                      }}
+                      title={nearestProject.title}
+                    >
+                      {nearestProject.title}
+                    </div>
+                  </div>
+
+                  <span 
+                    className={`badge-stamp ${nearestProject.isOverdue ? 'badge-stamp-red' : nearestProject.isUrgent ? 'badge-stamp-orange' : 'badge-stamp-yellow'}`}
+                    style={{ fontSize: '0.68rem', padding: '2px 6px' }}
+                  >
+                    {nearestProject.isOverdue 
+                      ? `OVERDUE ${Math.abs(nearestProject.diffDays)}D` 
+                      : nearestProject.isToday 
+                      ? 'DUE TODAY' 
+                      : `IN ${nearestProject.diffDays}D`}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--emerald-dark)', fontSize: '0.8rem', fontWeight: 700 }}>
+                  <CheckCircle2 size={13} color="var(--emerald)" />
+                  <span>Horizon clear &bull; 0 upcoming deadlines</span>
+                </div>
+              )}
             </div>
           </div>
 

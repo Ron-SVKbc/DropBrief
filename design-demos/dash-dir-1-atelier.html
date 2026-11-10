@@ -421,13 +421,43 @@
         <div class="hud-sub">Clients have opened portal today</div>
       </div>
 
-      <div class="hud-box" style="border-left: 4px solid var(--emerald);">
+      <!-- Box 3: Deadline Horizon Timeline -->
+      <div class="hud-box" style="border-left: 4px solid var(--emerald); padding: 14px 18px;">
         <div class="hud-box-top">
-          <span class="hud-box-label">100% READY // KICKOFF</span>
-          <span class="badge badge-emerald">READY</span>
+          <span class="hud-box-label">DEADLINE HORIZON</span>
+          <span style="font-family: var(--font-mono); font-size: 0.7rem; font-weight: 800; color: var(--emerald-dark)">● LIVE ANCHOR</span>
         </div>
-        <div class="hud-val" style="color: var(--emerald-dark)">1 <span style="font-size: 1.1rem; font-weight: 600">docket</span></div>
-        <div class="hud-sub">All assets delivered &bull; ZIP export ready</div>
+        
+        <!-- Timeline Horizon Rail -->
+        <div style="margin: 10px 0 6px;">
+          <div style="width: 100%; height: 6px; background: #E5E7EB; border-radius: 3px; position: relative; margin: 16px 0 8px;">
+            <div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center;">
+              <span style="width: 10px; height: 10px; background: var(--ink); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--ink);"></span>
+              <span style="position: absolute; top: -16px; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 800; color: var(--ink);">TODAY</span>
+            </div>
+
+            <!-- Milestone Node 1 (in 14d) -->
+            <div style="position: absolute; left: 47%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+              <span style="width: 10px; height: 10px; background: var(--amber); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></span>
+              <span style="position: absolute; top: -16px; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 800; background: #fff; padding: 0 3px; border-radius: 2px; border: 1px solid var(--border-subtle); white-space: nowrap;">+14d</span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-muted); font-weight: 700;">
+            <span>Now (Nov 10)</span>
+            <span>+7d</span>
+            <span>+14d</span>
+            <span>+30d</span>
+          </div>
+        </div>
+
+        <div style="background: var(--card-alt); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 0.68rem; color: var(--ink-muted); font-weight: 700; text-transform: uppercase;">NEXT: Nordic Bakery</div>
+            <div style="font-size: 0.78rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nov 24, 2026</div>
+          </div>
+          <span class="badge badge-amber" style="font-size: 0.65rem;">IN 14 DAYS</span>
+        </div>
       </div>
 
       <div class="hud-box" style="background: #FFFDF5; border-color: #FDE68A;">
@@ -572,3 +602,4 @@
 
 </body>
 </html>
+
