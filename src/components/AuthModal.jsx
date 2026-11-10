@@ -220,6 +220,11 @@ export default function AuthModal() {
     setTimeout(() => setCopiedPin(false), 3000);
   };
 
+  const handleOpenLegal = (tab = 'overview') => {
+    closeAuthModal();
+    openLegalModal(tab);
+  };
+
   return (
     <div 
       className="auth-modal-overlay"
@@ -502,10 +507,18 @@ export default function AuthModal() {
                 </button>
 
                 <div className="auth-footer-legal">
-                  Protected by 256-bit encryption &bull;{' '}
                   <button
                     type="button"
-                    onClick={() => openLegalModal('privacy')}
+                    onClick={() => handleOpenLegal('overview')}
+                    className="auth-legal-link"
+                    style={{ fontWeight: 600 }}
+                  >
+                    Protected by 256-bit encryption
+                  </button>
+                  {' '}&bull;{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenLegal('privacy')}
                     className="auth-legal-link"
                   >
                     GDPR Privacy
@@ -513,7 +526,7 @@ export default function AuthModal() {
                   {' '}&bull;{' '}
                   <button
                     type="button"
-                    onClick={() => openLegalModal('tos')}
+                    onClick={() => handleOpenLegal('tos')}
                     className="auth-legal-link"
                   >
                     Terms
@@ -624,7 +637,7 @@ export default function AuthModal() {
                   By signing up, you agree to DropBrief's{' '}
                   <button
                     type="button"
-                    onClick={() => openLegalModal('tos')}
+                    onClick={() => handleOpenLegal('tos')}
                     className="auth-legal-link"
                   >
                     Terms of Service
@@ -632,7 +645,7 @@ export default function AuthModal() {
                   {' '}and acknowledge our{' '}
                   <button
                     type="button"
-                    onClick={() => openLegalModal('privacy')}
+                    onClick={() => handleOpenLegal('privacy')}
                     className="auth-legal-link"
                   >
                     Privacy Policy (GDPR)
