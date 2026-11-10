@@ -30,11 +30,13 @@ import {
   RefreshCw, 
   Eye, 
   Settings,
-  ArrowRight,
   Gift,
   Users,
-  Share2
+  Inbox,
+  FileCode,
+  HardDrive
 } from 'lucide-react';
+import '../styles/dashboard-brutalist.css';
 
 export default function Dashboard({ onOpenCreateModal }) {
   const { 
@@ -53,10 +55,12 @@ export default function Dashboard({ onOpenCreateModal }) {
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'completed' | 'ongoing' | 'one-off'
   const [copiedSlug, setCopiedSlug] = useState(null);
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
-  const myProjects = projects.filter((p) => {
+  // Filter projects belonging to this authenticated freelancer
+  const myProjects = (projects || []).filter((p) => {
     if (!currentFreelancer) return false;
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
@@ -65,8 +69,6 @@ export default function Dashboard({ onOpenCreateModal }) {
     if (currentFreelancer.id === 'fl-demo-marko' && (p.id === 'proj-alfa' || p.id === 'proj-dental')) return true;
     return false;
   });
-
-  const [copiedInvite, setCopiedInvite] = useState(false);
 
   // Tier & Referral data with defensive fallbacks
   const tier = currentFreelancer?.tier || 'free';
@@ -84,11 +86,13 @@ export default function Dashboard({ onOpenCreateModal }) {
   const copyInviteLink = () => {
     navigator.clipboard.writeText(referralUrl);
     setCopiedInvite(true);
-    addToast('Invite link copied to clipboard!', 'success', 'Referral');
+    if (addToast) {
+      addToast('Studio referral link copied to clipboard!', 'success', 'Referral');
+    }
     setTimeout(() => setCopiedInvite(false), 2500);
   };
 
-
+  // Search & Filter Logic
   const filteredProjects = myProjects.filter((p) => {
     const term = searchTerm.toLowerCase().trim();
     const isOneOffSearch = ['one-off', 'oneoff', 'single', 'jednorazove', 'jednorázové'].some((kw) => term.includes(kw));
@@ -97,23 +101,32 @@ export default function Dashboard({ onOpenCreateModal }) {
 
     const matchesSearch = 
       p.title.toLowerCase().includes(term) ||
-      p.clientName.toLowerCase().includes(term) ||
-      p.clientEmail.toLowerCase().includes(term) ||
+      (p.clientName && p.clientName.toLowerCase().includes(term)) ||
+      (p.clientEmail && p.clientEmail.toLowerCase().includes(term)) ||
       (p.projectType && p.projectType.toLowerCase().includes(term)) ||
       matchesType;
     
-    if (filterStatus === 'pending') return matchesSearch && p.status !== 'completed';
-    if (filterStatus === 'completed') return matchesSearch && p.status === 'completed';
-    return matchesSearch;
+    if (!matchesSearch) return false;
+
+    if (filterStatus === 'pending') return p.status !== 'completed';
+    if (filterStatus === 'completed') return p.status === 'completed';
+    if (filterStatus === 'ongoing') return p.projectType === 'ongoing' || p.project_type === 'ongoing';
+    if (filterStatus === 'one-off') return p.projectType !== 'ongoing' && p.project_type !== 'ongoing';
+    return true;
   });
 
+  // Metrics
   const totalProjects = myProjects.length;
   const completedProjects = myProjects.filter((p) => p.status === 'completed').length;
   const pendingProjects = totalProjects - completedProjects;
+  const ongoingProjects = myProjects.filter((p) => p.projectType === 'ongoing' || p.project_type === 'ongoing').length;
+  const oneOffProjects = totalProjects - ongoingProjects;
+
   const totalMissingItems = myProjects.reduce((acc, p) => {
-    return acc + p.items.filter((i) => !i.isCompleted).length;
+    return acc + (p.items || []).filter((i) => !i.isCompleted).length;
   }, 0);
   const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+  const estimatedHoursSaved = totalProjects * 4;
 
   const copyClientLink = (slug) => {
     const origin = window.location.origin;
@@ -123,7 +136,9 @@ export default function Dashboard({ onOpenCreateModal }) {
     const url = `${baseUrl}/?p=${slug}`;
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
-    addToast('Unique client portal link copied to clipboard!', 'success', 'Link Copied');
+    if (addToast) {
+      addToast('Client link copied! Paste into WhatsApp or email.', 'success', 'Link Copied');
+    }
     setTimeout(() => setCopiedSlug(null), 2500);
   };
 
@@ -131,863 +146,802 @@ export default function Dashboard({ onOpenCreateModal }) {
     openExportModal(proj.id || proj);
   };
 
+  const todayFormatted = new Date().toLocaleDateString('en-GB', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric' 
+  }).toUpperCase();
+
   return (
-    <div className="container" style={{ padding: 'clamp(20px, 3.5vw, 36px) clamp(14px, 2.5vw, 28px) 80px', flex: 1 }}>
+    <div className="nb-dashboard-page" role="region" aria-label="Freelancer Studio Dashboard">
 
-      {/* ── Page Header ───────────────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        flexWrap: 'wrap',
-        gap: '20px',
-        marginBottom: '32px'
-      }}>
-        <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span className="badge badge-accent" style={{ padding: '4px 11px', gap: '6px' }}>
-              <Sparkles size={12} aria-hidden="true" />
-              <span style={{ fontWeight: 700 }}>{currentFreelancer?.nick || 'Freelancer'}</span>
+      {/* ── Top Studio Telemetry Bar ────────────────────────────── */}
+      <div className="dash-top-ticker" role="region" aria-label="Studio Dispatch Telemetry">
+        <div className="dash-ticker-left">
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <span className="status-dot-pulse" aria-hidden="true" />
+            <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>DISPATCH_LIVE:</span>
+            <span>OP: @{currentFreelancer?.nick || 'Freelancer'}</span>
+          </div>
+
+          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
+
+          {isVipPro ? (
+            <span className="dash-ticker-tag-pro">
+              ⭐ VIP PRO STUDIO
             </span>
-            <span className="badge badge-neutral" style={{ padding: '4px 9px' }}>
-              {isVipPro ? '⭐ VIP PRO Workspace' : 'Starter Workspace'}
+          ) : (
+            <span className="dash-ticker-tag">
+              STARTER STUDIO
             </span>
-          </div>
-
-          <h1 style={{ 
-            fontSize: 'clamp(1.8rem, 3.2vw, 2.35rem)', 
-            fontWeight: 800, 
-            letterSpacing: '-0.035em', 
-            marginBottom: '6px',
-            color: 'var(--text-primary)',
-            lineHeight: 1.18
-          }}>
-            My Projects
-          </h1>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', maxWidth: '580px', lineHeight: 1.55 }}>
-            Overview of active client collections. Clients upload via their private link with zero login friction.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <button 
-            id="btn-create-project-main"
-            onClick={onOpenCreateModal} 
-            className="btn btn-primary btn-lg btn-pill"
-            style={{ boxShadow: 'var(--glow-accent)', alignSelf: 'flex-start', padding: '12px 24px', fontSize: '0.95rem' }}
-          >
-            <Plus size={18} aria-hidden="true" />
-            <span>New Project</span>
-          </button>
-          
-          <button
-            id="btn-dashboard-account-settings"
-            onClick={openAccountModal}
-            className="btn btn-secondary btn-lg btn-pill"
-            title="Account settings, security and GDPR deletion"
-            style={{ alignSelf: 'flex-start', padding: '12px 20px', fontSize: '0.92rem' }}
-          >
-            <Settings size={16} aria-hidden="true" />
-            <span>Account & GDPR</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Bento Metrics Grid ────────────────────────────────── */}
-      <div className="bento-grid bento-grid-4 stagger-children" style={{ marginBottom: '32px' }}>
-
-        {/* Metric 1 — Total Active Projects */}
-        <div className="glass-card" style={{ padding: '22px', borderRadius: 'var(--radius-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <span className="metric-label">Active Projects</span>
-            <div style={{
-              width: '38px', height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-primary-bg)',
-              color: 'var(--accent-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid rgba(37, 99, 235, 0.2)',
-              flexShrink: 0
-            }}>
-              <Layers size={18} aria-hidden="true" />
-            </div>
-          </div>
-          <div className="metric-value">{totalProjects}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>Total tracked collections</div>
-        </div>
-
-        {/* Metric 2 — Pending Items */}
-        <div className="glass-card" style={{ padding: '22px', borderRadius: 'var(--radius-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <span className="metric-label">Pending Items</span>
-            <div style={{
-              width: '38px', height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--warning-bg)',
-              color: 'var(--warning)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid var(--warning-border)',
-              flexShrink: 0
-            }}>
-              <Clock size={18} aria-hidden="true" />
-            </div>
-          </div>
-          <div className="metric-value" style={{ color: 'var(--warning-text)' }}>{totalMissingItems}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>Awaiting client submission</div>
-        </div>
-
-        {/* Metric 3 — Completed Briefs */}
-        <div className="glass-card" style={{ padding: '22px', borderRadius: 'var(--radius-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <span className="metric-label">Completed Briefs</span>
-            <div style={{
-              width: '38px', height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--success-bg)',
-              color: 'var(--success)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid var(--success-border)',
-              flexShrink: 0
-            }}>
-              <CheckCircle2 size={18} aria-hidden="true" />
-            </div>
-          </div>
-          <div className="metric-value" style={{ color: 'var(--success-text)' }}>{completedProjects}</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>100% ready for kickoff</div>
-        </div>
-
-        {/* Metric 4 — Completion Rate */}
-        <div className="glass-card" style={{ padding: '22px', borderRadius: 'var(--radius-xl)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <span className="metric-label">Completion Rate</span>
-            <div style={{
-              width: '38px', height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-cta-bg)',
-              color: 'var(--accent-cta)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid rgba(234, 88, 12, 0.2)',
-              flexShrink: 0
-            }}>
-              <TrendingUp size={18} aria-hidden="true" />
-            </div>
-          </div>
-          <div className="metric-value" style={{ color: 'var(--accent-cta)' }}>{completionRate}%</div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '6px' }}>~{totalProjects * 4} hours saved</div>
-        </div>
-
-      </div>
-
-      {/* ── Referral & Tier Card ──────────────────────────────── */}
-      <div 
-        id="referral-tier-card"
-        style={{
-          background: '#ffffff',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'clamp(20px, 3vw, 28px)',
-          marginBottom: '32px',
-          boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '24px',
-          alignItems: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Left Column: Tier Badge, Usage & Reward Incentive */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {isVipPro ? (
-              <span 
-                className="badge" 
-                style={{
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  color: '#92400e',
-                  border: '1px solid #fcd34d',
-                  fontWeight: 800,
-                  padding: '5px 12px',
-                  fontSize: '0.825rem',
-                  letterSpacing: '0.01em',
-                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.15)'
-                }}
-              >
-                ⭐ VIP Founding PRO
-              </span>
-            ) : (
-              <span 
-                className="badge badge-neutral" 
-                style={{
-                  fontWeight: 700,
-                  padding: '5px 12px',
-                  fontSize: '0.825rem',
-                  color: 'var(--text-secondary)'
-                }}
-              >
-                Free Plan
-              </span>
-            )}
-
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {activeProjectsCount} / {maxProjects} active slots used
-            </span>
-          </div>
-
-          {/* Slot Progress Bar */}
-          <div style={{ width: '100%', maxWidth: '420px' }}>
-            <div 
-              style={{
-                height: '8px',
-                background: 'var(--bg-base)',
-                borderRadius: '999px',
-                overflow: 'hidden',
-                border: '1px solid var(--border-hairline)'
-              }}
-              role="progressbar"
-              aria-valuenow={activeProjectsCount}
-              aria-valuemin={0}
-              aria-valuemax={maxProjects}
-              aria-label="Project slot progress"
-            >
-              <div 
-                style={{
-                  height: '100%',
-                  width: `${usagePercentage}%`,
-                  background: activeProjectsCount >= maxProjects 
-                    ? 'var(--accent-cta)' 
-                    : 'linear-gradient(90deg, var(--accent-primary) 0%, #7c3aed 100%)',
-                  borderRadius: '999px',
-                  transition: 'width 0.4s ease'
-                }} 
-              />
-            </div>
-          </div>
-
-          {/* Reward Incentive Copy */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '2px' }}>
-            <Gift size={16} color="var(--accent-cta)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Invite a fellow web designer: you get +2 project slots & +50 MB storage for every designer who signs up.
-            </span>
-          </div>
-        </div>
-
-        {/* Right Column: Referral Link Generator, 1-Click Copy & Stat Counter */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '12px',
-          background: 'var(--bg-base)',
-          padding: '16px 18px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-hairline)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <span style={{ 
-              fontSize: '0.78rem', 
-              fontWeight: 700, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.05em', 
-              color: 'var(--text-tertiary)' 
-            }}>
-              Your Referral Link
-            </span>
-
-            {/* Stat Counter */}
-            <span style={{ 
-              fontSize: '0.8rem', 
-              fontWeight: 700, 
-              color: referralCount > 0 ? 'var(--success)' : 'var(--text-muted)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}>
-              <Users size={14} aria-hidden="true" />
-              Designers referred: {referralCount} (+{bonusSlots} bonus slots unlocked)
-            </span>
-          </div>
-
-          {/* 1-Click Copy Link Box */}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <input 
-              type="text"
-              readOnly
-              value={referralUrl}
-              aria-label="Your personal referral link"
-              onClick={(e) => e.target.select()}
-              style={{
-                flex: 1,
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.8rem',
-                padding: '8px 12px',
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text-primary)',
-                outline: 'none',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            />
-            <button
-              id="btn-copy-invite-link"
-              type="button"
-              onClick={copyInviteLink}
-              className="btn btn-primary btn-sm btn-pill"
-              style={{ 
-                whiteSpace: 'nowrap', 
-                gap: '6px', 
-                padding: '8px 16px',
-                fontSize: '0.825rem',
-                fontWeight: 700,
-                boxShadow: 'var(--glow-accent)'
-              }}
-            >
-              {copiedInvite ? (
-                <>
-                  <Check size={14} aria-hidden="true" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={14} aria-hidden="true" />
-                  <span>Copy Invite Link</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Filter & Search Toolbar ───────────────────────────── */}
-      <div className="filter-row" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px',
-        marginBottom: '24px'
-      }}>
-        {/* Search Input */}
-        <div style={{ position: 'relative', minWidth: '280px', flex: '1 1 320px', maxWidth: '440px' }}>
-          <Search size={16} aria-hidden="true" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
-          <input
-            id="search-projects-input"
-            type="text"
-            className="input"
-            placeholder="Search projects, clients or emails..."
-            aria-label="Search projects, clients or emails"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ 
-              paddingLeft: '38px', 
-              paddingRight: searchTerm ? '38px' : '14px', 
-              fontSize: 'var(--text-sm)',
-              borderRadius: 'var(--radius-full)'
-            }}
-          />
-          {searchTerm && (
-            <button 
-              type="button" 
-              onClick={() => setSearchTerm('')} 
-              aria-label="Clear search"
-              style={{ 
-                position: 'absolute', 
-                right: '12px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                background: 'none', 
-                border: 'none', 
-                color: 'var(--text-tertiary)', 
-                cursor: 'pointer', 
-                display: 'flex',
-                padding: '4px'
-              }}
-            >
-              <X size={15} aria-hidden="true" />
-            </button>
           )}
+
+          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
+          <span style={{ color: '#D4D0C5' }}>NODE: FRANKFURT-EU (GDPR ART. 5 ACTIVE)</span>
         </div>
 
-        {/* Status Filters */}
-        <div className="segmented-control" role="group" aria-label="Filter projects by status">
-          <button
-            onClick={() => setFilterStatus('all')}
-            aria-pressed={filterStatus === 'all'}
-            className={`btn btn-sm btn-pill ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
-          >
-            All &bull; {totalProjects}
-          </button>
-          <button
-            onClick={() => setFilterStatus('pending')}
-            aria-pressed={filterStatus === 'pending'}
-            className={`btn btn-sm btn-pill ${filterStatus === 'pending' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
-          >
-            Pending &bull; {pendingProjects}
-          </button>
-          <button
-            onClick={() => setFilterStatus('completed')}
-            aria-pressed={filterStatus === 'completed'}
-            className={`btn btn-sm btn-pill ${filterStatus === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ border: 'none', padding: '6px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, letterSpacing: '0.02em' }}
-          >
-            Completed &bull; {completedProjects}
-          </button>
+        <div className="dash-ticker-right">
+          <span>STAMP: {todayFormatted}</span>
+          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
+          <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>
+            {activeProjectsCount}/{maxProjects} SLOTS COMMITTED
+          </span>
         </div>
       </div>
 
-      {/* ── Projects List ─────────────────────────────────────── */}
-      {filteredProjects.length === 0 ? (
-        <div className="glass-card empty-state" style={{ padding: '68px 24px', borderRadius: 'var(--radius-xl)' }}>
-          <div style={{
-            width: '64px', height: '64px',
-            borderRadius: 'var(--radius-lg)',
-            background: 'var(--bg-glass)',
-            border: '1px solid var(--border-subtle)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '6px',
-            boxShadow: 'var(--shadow-inner-highlight)'
-          }}>
-            <FolderSync size={28} style={{ color: 'var(--accent-primary-light)' }} />
-          </div>
+      <div className="dash-container">
+
+        {/* ── Studio Header & Primary Action Deck ──────────────── */}
+        <div className="dash-header-section">
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-              {searchTerm ? 'No matching projects found' : `No projects yet, ${currentFreelancer?.nick || ''}`}
-            </h3>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', maxWidth: '460px', lineHeight: 1.6 }}>
-              {searchTerm 
-                ? 'Try adjusting your search query or clear the active filter.' 
-                : 'Create your first asset collection and send the zero-friction link to your client.'}
+            <div className="dash-kicker-badge">
+              <Sparkles size={13} aria-hidden="true" />
+              <span>STUDIO DISPATCH BOARD // DOCKETS</span>
+            </div>
+
+            <h1 className="dash-title">
+              CLIENT ASSET DOCKETS
+            </h1>
+
+            <p className="dash-subtitle">
+              Tactile overview of active client intake portals. Clients upload logos, copy, and assets through their private link with zero passwords and zero friction.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button id="btn-empty-create" onClick={onOpenCreateModal} className="btn btn-primary btn-sm btn-pill">
-              <Plus size={16} /> Create Project
+
+          <div className="dash-header-actions">
+            <button 
+              id="btn-create-project-main"
+              type="button"
+              onClick={onOpenCreateModal} 
+              className="btn-tactile-primary"
+              aria-label="Create new client asset intake docket"
+            >
+              <Plus size={18} aria-hidden="true" />
+              <span>+ NEW DOCKET</span>
             </button>
-            {!searchTerm && (
-              <button 
-                id="btn-empty-seed-demo"
-                onClick={seedDemoProjectForFreelancer} 
-                className="btn btn-secondary btn-sm btn-pill"
-                title="Seed sample test project to explore"
+            
+            <button
+              id="btn-dashboard-account-settings"
+              type="button"
+              onClick={openAccountModal}
+              className="btn-tactile-secondary"
+              title="Account settings, security PIN, and GDPR data erasure"
+              aria-label="Account and GDPR settings"
+            >
+              <Settings size={16} aria-hidden="true" />
+              <span>ACCOUNT &amp; GDPR</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Metrics Bento HUD ─────────────────────────────────── */}
+        <div className="dash-bento-grid">
+
+          {/* Metric 1 — Total Active Projects */}
+          <div className="metric-docket-box">
+            <div className="metric-box-top">
+              <span className="metric-box-label">TRACKED DOCKETS</span>
+              <div className="metric-icon-stamp" style={{ background: 'var(--yellow)' }}>
+                <Layers size={16} color="var(--ink)" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="metric-big-number">{totalProjects}</div>
+            <div className="metric-box-sub">{activeProjectsCount} active · {completedProjects} completed</div>
+          </div>
+
+          {/* Metric 2 — Pending Deliverables */}
+          <div className="metric-docket-box" style={{ background: totalMissingItems > 0 ? 'var(--card)' : 'var(--card-alt)' }}>
+            <div className="metric-box-top">
+              <span className="metric-box-label">PENDING ASSETS</span>
+              <div className="metric-icon-stamp" style={{ background: totalMissingItems > 0 ? 'var(--orange)' : '#E5E2D8' }}>
+                <Clock size={16} color={totalMissingItems > 0 ? '#FFFFFF' : 'var(--ink)'} aria-hidden="true" />
+              </div>
+            </div>
+            <div className="metric-big-number" style={{ color: totalMissingItems > 0 ? 'var(--orange)' : 'var(--ink)' }}>
+              {totalMissingItems}
+            </div>
+            <div className="metric-box-sub">Awaiting client submission</div>
+          </div>
+
+          {/* Metric 3 — Ready for Kickoff */}
+          <div className="metric-docket-box">
+            <div className="metric-box-top">
+              <span className="metric-box-label">100% COMPLETE</span>
+              <div className="metric-icon-stamp" style={{ background: 'var(--emerald)' }}>
+                <CheckCircle2 size={16} color="#FFFFFF" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="metric-big-number" style={{ color: '#065F46' }}>
+              {completedProjects}
+            </div>
+            <div className="metric-box-sub">{completionRate}% total completion rate</div>
+          </div>
+
+          {/* Metric 4 — Hours Saved */}
+          <div className="metric-docket-box">
+            <div className="metric-box-top">
+              <span className="metric-box-label">TIME RECLAIMED</span>
+              <div className="metric-icon-stamp" style={{ background: 'var(--ink)' }}>
+                <TrendingUp size={16} color="var(--yellow)" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="metric-big-number">
+              ~{estimatedHoursSaved}h
+            </div>
+            <div className="metric-box-sub">Zero email chasing · 0 expired links</div>
+          </div>
+
+        </div>
+
+        {/* ── Studio License & Referral Dispatch Terminal ──────── */}
+        <div id="referral-tier-card" className="dash-license-terminal">
+          
+          <div className="terminal-header-strip">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>DISPATCH_LICENSE:</span>
+              <span style={{ color: 'var(--ink)', fontWeight: 800 }}>STUDIO WORKSPACE ALLOCATION</span>
+            </div>
+            <div>
+              <span>GDPR ART. 5 RETENTION: 30-DAY AUTO PURGE</span>
+            </div>
+          </div>
+
+          <div className="terminal-body-grid">
+            
+            {/* Left Column: Plan, Usage & Referral Incentive */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                {isVipPro ? (
+                  <span className="terminal-tier-pill terminal-tier-pro">
+                    ⭐ VIP FOUNDING PRO
+                  </span>
+                ) : (
+                  <span className="terminal-tier-pill terminal-tier-free">
+                    STARTER FREE TIER
+                  </span>
+                )}
+
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 800 }}>
+                  {activeProjectsCount} / {maxProjects} DOCKET SLOTS USED ({usagePercentage}%)
+                </span>
+              </div>
+
+              {/* Physical Indented Slot Track */}
+              <div 
+                className="slot-track-nb"
+                role="progressbar"
+                aria-valuenow={activeProjectsCount}
+                aria-valuemin={0}
+                aria-valuemax={maxProjects}
+                aria-label="Active docket slot usage"
               >
-                <Sparkles size={14} color="var(--accent-primary)" /> Sample Project
+                <div 
+                  className={`slot-fill-nb ${activeProjectsCount >= maxProjects ? 'full' : ''}`}
+                  style={{ width: `${usagePercentage}%` }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '8px' }}>
+                <Gift size={16} color="var(--orange)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+                <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
+                  <strong>Invite a fellow web designer:</strong> You unlock <strong>+2 project slots</strong> &amp; <strong>+50MB storage</strong> for every designer who signs up with your link.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: 1-Click Referral Link Box */}
+            <div className="referral-box-nb">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ 
+                  fontFamily: 'var(--font-mono)', 
+                  fontSize: '0.74rem', 
+                  fontWeight: 800, 
+                  letterSpacing: '0.04em', 
+                  color: 'var(--ink)' 
+                }}>
+                  YOUR REFERRAL LINK
+                </span>
+
+                <span style={{ 
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.75rem', 
+                  fontWeight: 800, 
+                  color: referralCount > 0 ? '#065F46' : 'var(--ink-dim)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Users size={13} aria-hidden="true" />
+                  Referred: {referralCount} (+{bonusSlots} slots unlocked)
+                </span>
+              </div>
+
+              <div className="ref-input-group">
+                <input 
+                  type="text"
+                  readOnly
+                  value={referralUrl}
+                  aria-label="Your personal referral link"
+                  onClick={(e) => e.target.select()}
+                  className="ref-input-nb"
+                />
+                <button
+                  id="btn-copy-invite-link"
+                  type="button"
+                  onClick={copyInviteLink}
+                  className="btn-tactile-sm"
+                  style={{ background: 'var(--yellow)', color: 'var(--ink)', whiteSpace: 'nowrap' }}
+                >
+                  {copiedInvite ? (
+                    <>
+                      <Check size={14} aria-hidden="true" />
+                      <span>COPIED!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} aria-hidden="true" />
+                      <span>COPY LINK</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ── Filter & Search Command Console ─────────────────── */}
+        <div className="dash-filter-console">
+          
+          {/* Architectural Search Input */}
+          <div className="dash-search-wrap">
+            <Search 
+              size={16} 
+              aria-hidden="true" 
+              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-dim)', pointerEvents: 'none' }} 
+            />
+            <input
+              id="search-projects-input"
+              type="text"
+              className="dash-search-input"
+              placeholder="Filter dockets by title, client or email..."
+              aria-label="Filter dockets by title, client or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                type="button" 
+                onClick={() => setSearchTerm('')} 
+                aria-label="Clear search query"
+                style={{ 
+                  position: 'absolute', 
+                  right: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--ink-dim)', 
+                  cursor: 'pointer', 
+                  display: 'flex',
+                  padding: '4px'
+                }}
+              >
+                <X size={15} aria-hidden="true" />
               </button>
             )}
           </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredProjects.map((proj) => {
-            const completedCount = proj.items.filter((i) => i.isCompleted).length;
-            const totalCount = proj.items.length;
-            const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-            const isCompleted = proj.status === 'completed';
-            const isLinkCopied = copiedSlug === proj.slug;
 
-            return (
-              <div 
-                key={proj.id} 
-                className="glass-card glass-card-interactive" 
-                onClick={() => openProjectDetail(proj.slug)}
-                style={{
-                  padding: '24px 26px',
-                  borderRadius: 'var(--radius-xl)',
-                  borderLeft: `4px solid ${isCompleted ? 'var(--success)' : 'var(--accent-primary)'}`,
-                  boxShadow: 'var(--shadow-card)',
-                  cursor: 'pointer'
-                }}
+          {/* Segmented Tactile Filter Buttons */}
+          <div className="dash-segmented-filters" role="group" aria-label="Filter dockets by status and type">
+            <button
+              type="button"
+              onClick={() => setFilterStatus('all')}
+              className={`dash-filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
+            >
+              <span>ALL DOCKETS</span>
+              <span className="filter-count-badge">{totalProjects}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterStatus('pending')}
+              className={`dash-filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
+            >
+              <Clock size={12} color={filterStatus === 'pending' ? '#FFE500' : 'var(--orange)'} aria-hidden="true" />
+              <span>AWAITING ASSETS</span>
+              <span className="filter-count-badge">{pendingProjects}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterStatus('completed')}
+              className={`dash-filter-btn ${filterStatus === 'completed' ? 'active' : ''}`}
+            >
+              <CheckCircle2 size={12} color={filterStatus === 'completed' ? '#FFE500' : 'var(--emerald)'} aria-hidden="true" />
+              <span>100% READY</span>
+              <span className="filter-count-badge">{completedProjects}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterStatus('ongoing')}
+              className={`dash-filter-btn ${filterStatus === 'ongoing' ? 'active' : ''}`}
+              title="Recurring monthly or weekly retainer dockets"
+            >
+              <RefreshCw size={11} aria-hidden="true" />
+              <span>RETAINER</span>
+              <span className="filter-count-badge">{ongoingProjects}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterStatus('one-off')}
+              className={`dash-filter-btn ${filterStatus === 'one-off' ? 'active' : ''}`}
+              title="One-off client briefs"
+            >
+              <Zap size={11} aria-hidden="true" />
+              <span>ONE-OFF</span>
+              <span className="filter-count-badge">{oneOffProjects}</span>
+            </button>
+          </div>
+
+        </div>
+
+        {/* ── Project Production Dockets Stack ────────────────── */}
+        {filteredProjects.length === 0 ? (
+          
+          /* Empty State — Blueprint Drawing Board */
+          <div className="dash-empty-blueprint">
+            <div className="empty-blueprint-icon">
+              <FolderSync size={32} color="var(--ink)" aria-hidden="true" />
+            </div>
+
+            <h3 className="empty-blueprint-title">
+              {searchTerm ? 'NO MATCHING DOCKETS FOUND' : `NO ACTIVE DOCKETS IN QUEUE, @${currentFreelancer?.nick || ''}`}
+            </h3>
+
+            <p className="empty-blueprint-desc">
+              {searchTerm 
+                ? 'Try adjusting your search query or clear the active status filter to inspect all dockets.' 
+                : 'Create your first asset collection docket. Your client receives a unique zero-login link with zero passwords and zero setup friction.'}
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button 
+                id="btn-empty-create" 
+                type="button"
+                onClick={onOpenCreateModal} 
+                className="btn-tactile-primary"
               >
-                {/* Project Header Row */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  flexWrap: 'wrap',
-                  gap: '14px',
-                  marginBottom: '18px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1, minWidth: 0 }}>
-                    
-                    {/* Client Initials Avatar */}
-                    <div style={{
-                      width: '42px', height: '42px',
-                      borderRadius: 'var(--radius-md)',
-                      background: isCompleted ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'var(--gradient-brand)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 800, fontSize: '0.9rem', color: '#fff',
-                      boxShadow: isCompleted ? '0 2px 8px rgba(5, 150, 105, 0.3)' : '0 2px 8px rgba(37, 99, 235, 0.3)',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      {proj.clientName ? proj.clientName.charAt(0).toUpperCase() : 'C'}
+                <Plus size={16} aria-hidden="true" />
+                <span>+ CREATE FIRST DOCKET</span>
+              </button>
+
+              {!searchTerm && (
+                <button 
+                  id="btn-empty-seed-demo"
+                  type="button"
+                  onClick={seedDemoProjectForFreelancer} 
+                  className="btn-tactile-secondary"
+                  title="Seed sample test project to explore"
+                >
+                  <Sparkles size={14} color="var(--orange)" aria-hidden="true" />
+                  <span>LOAD SAMPLE DOCKET</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+        ) : (
+
+          /* Dockets List */
+          <div className="dash-dockets-stack">
+            {filteredProjects.map((proj) => {
+              const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
+              const totalCount = (proj.items || []).length;
+              const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+              const isCompleted = proj.status === 'completed';
+              const isLinkCopied = copiedSlug === proj.slug;
+              const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
+
+              // Unique serial code simulation
+              const serialCode = (proj.id || 'proj-000').slice(-5).toUpperCase();
+
+              return (
+                <div 
+                  key={proj.id} 
+                  className="project-docket-card"
+                  id={`project-card-${proj.id}`}
+                >
+                  
+                  {/* 1. Perforated Docket Header Strip */}
+                  <div className="docket-perforated-strip">
+                    <div className="docket-serial-stamp">
+                      <span style={{ color: 'var(--orange)', fontWeight: 900 }}>#</span>
+                      <span>DKT-{serialCode}</span>
+                      <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+                      <span style={{ color: 'var(--ink-muted)' }}>CADENCE: {proj.reminderFrequency || 3}D</span>
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                        <h2 
+                    <div className="docket-header-tags">
+                      
+                      {/* Engagement Type Switcher */}
+                      {isOngoing ? (
+                        <button 
+                          type="button"
+                          id={`btn-toggle-type-${proj.id}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            openProjectDetail(proj.slug);
+                            toggleProjectType(proj.id);
                           }}
-                          style={{ fontSize: '1.18rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em', cursor: 'pointer' }}
+                          aria-label={`Change engagement type for ${proj.title}`}
+                          className="badge-stamp badge-stamp-purple badge-stamp-clickable"
+                          title="Recurring deliverables – click to toggle engagement type"
                         >
-                          {proj.title}
-                        </h2>
+                          <RefreshCw size={11} aria-hidden="true" />
+                          <span>{formatCadenceBadge(proj.cadenceDays || 1)} RETAINER</span>
+                        </button>
+                      ) : (
+                        <button 
+                          type="button"
+                          id={`btn-toggle-type-${proj.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleProjectType(proj.id);
+                          }}
+                          aria-label={`Change engagement type for ${proj.title}`}
+                          className="badge-stamp badge-stamp-blue badge-stamp-clickable"
+                          title="One-off project – click to toggle engagement type"
+                        >
+                          <Zap size={11} aria-hidden="true" />
+                          <span>ONE-OFF BRIEF</span>
+                        </button>
+                      )}
 
-                        {/* Engagement Type Badge */}
-                        {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
-                          <button 
-                            type="button"
-                            id={`btn-toggle-type-${proj.id}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleProjectType(proj.id);
-                            }}
-                            aria-label={`Change engagement type for ${proj.title}`}
-                            className="badge" 
-                            style={{ 
-                              background: 'rgba(168, 85, 247, 0.16)', 
-                              color: '#d8b4fe', 
-                              border: '1px solid rgba(168, 85, 247, 0.35)',
-                              gap: '5px',
-                              fontWeight: 700,
-                              fontSize: '0.74rem',
-                              padding: '3px 10px',
-                              cursor: 'pointer'
-                            }}
-                            title="Recurring deliverables – click to change engagement type"
-                          >
-                            <RefreshCw size={11} aria-hidden="true" /> {formatCadenceBadge(proj.cadenceDays || 1)}
-                          </button>
-                        ) : (
-                          <button 
-                            type="button"
-                            id={`btn-toggle-type-${proj.id}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleProjectType(proj.id);
-                            }}
-                            aria-label={`Change engagement type for ${proj.title}`}
-                            className="badge" 
-                            style={{ 
-                              background: 'rgba(56, 189, 248, 0.16)', 
-                              color: '#7dd3fc', 
-                              border: '1px solid rgba(56, 189, 248, 0.35)',
-                              gap: '5px',
-                              fontWeight: 700,
-                              fontSize: '0.74rem',
-                              padding: '3px 10px',
-                              cursor: 'pointer'
-                            }}
-                            title="One-off project – click to toggle engagement type"
-                          >
-                            <Zap size={11} aria-hidden="true" /> One-off
-                          </button>
-                        )}
-
-                        {/* Status Badge */}
-                        {(proj.projectType === 'ongoing' || proj.project_type === 'ongoing') ? (
-                          isTodaySubmitted(proj) ? (
-                            <span className="badge badge-success">
-                              <CheckCircle2 size={12} /> Delivered today
-                            </span>
-                          ) : (
-                            <span className="badge badge-warning">
-                              <Clock size={12} /> Pending for today
-                            </span>
-                          )
-                        ) : (
-                          isCompleted ? (
-                            <span className="badge badge-success">
-                              <CheckCircle2 size={12} /> Completed
-                            </span>
-                          ) : (
-                            <span className="badge badge-warning">
-                              <Clock size={12} /> Waiting for client
-                            </span>
-                          )
-                        )}
-
-                        <span className="badge badge-neutral" style={{ gap: '5px' }}>
-                          <BellRing size={11} /> {proj.reminderFrequency}d
-                        </span>
-
-                        {(() => {
-                          const retention = getRetentionStatus(proj);
-                          if (!retention || proj.status !== 'completed') return null;
-                          return (
-                            <span 
-                              className="badge" 
-                              style={{ 
-                                gap: '5px',
-                                background: retention.isPurged ? 'rgba(239, 68, 68, 0.16)' : 'rgba(16, 185, 129, 0.12)',
-                                color: retention.isPurged ? '#fca5a5' : 'var(--success-light)',
-                                border: retention.isPurged ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--success-border)',
-                                fontSize: '0.72rem',
-                                padding: '2px 8px'
-                              }}
-                              title="Automated 30-day retention purge (GDPR Art. 5)"
-                            >
-                              <ShieldCheck size={11} /> {retention.badgeText}
-                            </span>
-                          );
-                        })()}
-                      </div>
-
-                      {/* Meta Information Strip */}
-                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <User size={14} />
-                          <strong style={{ color: 'var(--text-primary)' }}>{proj.clientName}</strong>
-                          <span style={{ color: 'var(--text-secondary)' }}>({proj.clientEmail})</span>
-                        </span>
-                        
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Calendar size={14} />
-                          <span>Deadline: <strong style={{ color: 'var(--text-primary)' }}>{proj.deadline}</strong></span>
-                        </span>
-
-                        {proj.lastReminderSent && (
-                          <span style={{ color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
-                            Last reminder: {proj.lastReminderSent}
+                      {/* Status Stamp */}
+                      {isOngoing ? (
+                        isTodaySubmitted(proj) ? (
+                          <span className="badge-stamp badge-stamp-emerald">
+                            <CheckCircle2 size={11} aria-hidden="true" />
+                            <span>DELIVERED TODAY</span>
                           </span>
-                        )}
-                      </div>
+                        ) : (
+                          <span className="badge-stamp badge-stamp-yellow">
+                            <Clock size={11} aria-hidden="true" />
+                            <span>PENDING TODAY</span>
+                          </span>
+                        )
+                      ) : (
+                        isCompleted ? (
+                          <span className="badge-stamp badge-stamp-emerald">
+                            <CheckCircle2 size={11} aria-hidden="true" />
+                            <span>100% COMPLETE // KICKOFF</span>
+                          </span>
+                        ) : (
+                          <span className="badge-stamp badge-stamp-orange">
+                            <Clock size={11} aria-hidden="true" />
+                            <span>WAITING FOR CLIENT</span>
+                          </span>
+                        )
+                      )}
+
+                      {/* Automated GDPR Retention Purge Status */}
+                      {(() => {
+                        const retention = getRetentionStatus(proj);
+                        if (!retention || proj.status !== 'completed') return null;
+                        return (
+                          <span 
+                            className={`badge-stamp ${retention.isPurged ? 'badge-stamp-red' : 'badge-stamp-emerald'}`}
+                            title="Automated 30-day retention cloud purge (GDPR Art. 5)"
+                          >
+                            <ShieldCheck size={11} aria-hidden="true" />
+                            <span>{retention.badgeText}</span>
+                          </span>
+                        );
+                      })()}
+
                     </div>
                   </div>
 
-                  {/* Header Action Buttons */}
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
-                    <button
-                      id={`btn-copy-link-${proj.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyClientLink(proj.slug);
-                      }}
-                      aria-label={`Copy client link for ${proj.title}`}
-                      className="btn btn-secondary btn-sm btn-pill"
-                      title="Copy private link for client"
-                    >
-                      {isLinkCopied ? <Check size={14} color="var(--success)" aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-                      <span>{isLinkCopied ? 'Copied!' : 'Copy Link'}</span>
-                    </button>
+                  {/* 2. Docket Content Body */}
+                  <div className="docket-content-body">
+                    
+                    {/* Project & Client Identity Row */}
+                    <div className="docket-meta-row">
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1, minWidth: 0 }}>
+                        
+                        {/* Client Avatar Stamp */}
+                        <div className="docket-client-avatar" aria-hidden="true">
+                          {proj.clientName ? proj.clientName.charAt(0).toUpperCase() : 'C'}
+                        </div>
 
-                    <button
-                      id={`btn-open-detail-${proj.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openProjectDetail(proj.slug);
-                      }}
-                      aria-label={`Open overview for ${proj.title}`}
-                      className="btn btn-primary btn-sm btn-pill"
-                      title="Open project overview and asset management"
-                      style={{ gap: '6px' }}
-                    >
-                      <Eye size={14} aria-hidden="true" />
-                      <span>Overview</span>
-                    </button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h2 
+                            className="docket-title"
+                            onClick={() => openProjectDetail(proj.slug)}
+                            title="Click to open full project overview and file inspector"
+                          >
+                            {proj.title}
+                          </h2>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`Are you sure you want to delete project "${proj.title}"?`)) {
-                          deleteProject(proj.id);
-                        }
-                      }}
-                      aria-label={`Delete project ${proj.title}`}
-                      className="btn btn-secondary btn-sm"
-                      style={{ color: 'var(--danger-light)', padding: '7px 9px', borderRadius: 'var(--radius-full)' }}
-                      title="Delete project"
-                    >
-                      <Trash2 size={15} aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Progress Bar Row */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '6px' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>
-                      Asset progress: <strong style={{ color: 'var(--text-secondary)' }}>{completedCount} of {totalCount} items</strong>
-                    </span>
-                    <span style={{ fontWeight: 800, color: isCompleted ? 'var(--success-light)' : 'var(--accent-primary-light)', letterSpacing: '-0.02em' }}>
-                      {progressPercent}%
-                    </span>
-                  </div>
-                  <div 
-                    className="progress-track"
-                    role="progressbar"
-                    aria-valuenow={progressPercent}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={`Asset submission progress for ${proj.title}: ${progressPercent}%`}
-                    style={{ height: '7px' }}
-                  >
-                    <div 
-                      className="progress-fill" 
-                      style={{ 
-                        width: `${progressPercent}%`,
-                        background: isCompleted ? 'var(--success)' : 'var(--gradient-brand)'
-                      }} 
-                    />
-                  </div>
-                </div>
-
-                {/* Items Quick Status Strip */}
-                <div style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 16px',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
-                  gap: '8px',
-                  marginBottom: '16px'
-                }}>
-                  {proj.items.map((item) => {
-                    const fileCount = Array.isArray(item.value?.files) 
-                      ? item.value.files.length 
-                      : (item.value?.fileName ? 1 : 0);
-
-                    return (
-                      <div 
-                        key={item.id} 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '8px', 
-                          fontSize: '0.815rem',
-                          color: item.isCompleted ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          padding: '2px 0'
-                        }}
-                      >
-                        {item.isCompleted ? (
-                          <FileCheck size={15} color="var(--success)" style={{ flexShrink: 0 }} />
-                        ) : (
-                          <FileX size={15} color="var(--warning)" style={{ flexShrink: 0 }} />
-                        )}
-                        <span className="truncate">
-                          {item.title}
-                          {fileCount > 1 && (
-                            <span style={{ marginLeft: '6px', fontSize: '0.74rem', color: 'var(--accent-primary-light)', fontWeight: 700 }}>
-                              ×{fileCount}
+                          <div className="docket-client-details">
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                              <User size={13} aria-hidden="true" />
+                              <strong style={{ color: 'var(--ink)' }}>{proj.clientName}</strong>
+                              <span>({proj.clientEmail})</span>
                             </span>
-                          )}
+
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                              <Calendar size={13} aria-hidden="true" />
+                              <span>DEADLINE: <strong style={{ color: 'var(--ink)' }}>{proj.deadline}</strong></span>
+                            </span>
+
+                            {proj.lastReminderSent && (
+                              <span style={{ color: 'var(--orange)', fontWeight: 700 }}>
+                                LAST NUDGE: {proj.lastReminderSent}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Meter */}
+                    <div className="docket-progress-section">
+                      <div className="docket-progress-labels">
+                        <span>
+                          ASSET FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                        </span>
+                        <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)', fontSize: '0.85rem' }}>
+                          {progressPercent}% FULFILLED
                         </span>
                       </div>
-                    );
-                  })}
-                </div>
 
-                {/* Bottom Action Footer */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                  paddingTop: '14px',
-                  borderTop: '1px solid var(--border-hairline)'
-                }}>
-                  <div>
-                    {!isCompleted ? (
-                      <button
-                        id={`btn-remind-${proj.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openReminderModal(proj.id);
-                        }}
-                        aria-label={`Send email reminder for ${proj.title}`}
-                        className="btn btn-secondary btn-sm btn-pill"
-                        style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.8rem', gap: '6px' }}
-                        title="Preview and send follow-up reminder"
+                      <div 
+                        className="docket-track-meter"
+                        role="progressbar"
+                        aria-valuenow={progressPercent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`Asset fulfillment for ${proj.title}: ${progressPercent}%`}
                       >
-                        <Send size={13} aria-hidden="true" />
-                        <span>{proj.lastReminderSent ? `Send Again (${proj.lastReminderSent})` : 'Send Reminder'}</span>
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: '0.82rem', color: 'var(--success-light)', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                        <CheckCircle2 size={15} aria-hidden="true" /> All assets delivered
-                      </span>
-                    )}
+                        <div 
+                          className={`docket-fill-meter ${!isCompleted ? 'pending' : ''}`}
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Asset Checklist Inspection Tray */}
+                    <div className="docket-checklist-tray">
+                      {(proj.items || []).map((item) => {
+                        const fileCount = Array.isArray(item.value?.files) 
+                          ? item.value.files.length 
+                          : (item.value?.fileName ? 1 : 0);
+
+                        return (
+                          <div 
+                            key={item.id} 
+                            className={`docket-item-pill ${item.isCompleted ? 'done' : ''}`}
+                            title={item.isCompleted ? `Delivered: ${item.title}` : `Pending: ${item.title}`}
+                          >
+                            <div className="docket-checkbox-icon" aria-hidden="true">
+                              {item.isCompleted ? '✓' : '–'}
+                            </div>
+
+                            <span style={{ 
+                              whiteSpace: 'nowrap', 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis',
+                              flex: 1
+                            }}>
+                              {item.title}
+                            </span>
+
+                            {fileCount > 1 && (
+                              <span className="file-count-badge-nb">
+                                ×{fileCount}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
                   </div>
 
-                  <button
-                    id={`btn-download-${proj.id}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownloadAll(proj);
-                    }}
-                    aria-label={`Export assets for ${proj.title} (${completedCount} items)`}
-                    className="btn btn-secondary btn-sm btn-pill"
-                    style={{ fontSize: '0.8rem', gap: '6px' }}
-                  >
-                    <Download size={14} aria-hidden="true" />
-                    <span>Export ({completedCount} items)</span>
-                  </button>
+                  {/* 3. Docket Action Footer */}
+                  <div className="docket-action-footer">
+                    <div className="docket-footer-left">
+                      {!isCompleted ? (
+                        <button
+                          id={`btn-remind-${proj.id}`}
+                          type="button"
+                          onClick={() => openReminderModal(proj.id)}
+                          aria-label={`Send polite email reminder for ${proj.title}`}
+                          className="btn-tactile-sm"
+                          style={{ background: 'var(--yellow)', color: 'var(--ink)' }}
+                          title="Preview and send polite email reminder to client via Resend"
+                        >
+                          <Send size={13} aria-hidden="true" />
+                          <span>{proj.lastReminderSent ? `SEND NUDGE AGAIN (${proj.lastReminderSent})` : 'SEND POLITE NUDGE'}</span>
+                        </button>
+                      ) : (
+                        <span style={{ 
+                          fontFamily: 'var(--font-mono)', 
+                          fontSize: '0.78rem', 
+                          fontWeight: 800, 
+                          color: '#065F46', 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '6px' 
+                        }}>
+                          <CheckCircle2 size={14} aria-hidden="true" />
+                          ALL ASSETS READY FOR KICKOFF
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="docket-footer-right">
+                      {/* 1-Click Copy Link */}
+                      <button
+                        id={`btn-copy-link-${proj.id}`}
+                        type="button"
+                        onClick={() => copyClientLink(proj.slug)}
+                        aria-label={`Copy client portal link for ${proj.title}`}
+                        className="btn-tactile-sm"
+                        style={{ 
+                          background: isLinkCopied ? '#DCFCE7' : 'var(--yellow)',
+                          color: isLinkCopied ? '#15803D' : 'var(--ink)'
+                        }}
+                        title="Copy private link for client upload"
+                      >
+                        {isLinkCopied ? (
+                          <>
+                            <Check size={14} aria-hidden="true" />
+                            <span>COPIED!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={14} aria-hidden="true" />
+                            <span>COPY CLIENT LINK</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Overview & Detail Button */}
+                      <button
+                        id={`btn-open-detail-${proj.id}`}
+                        type="button"
+                        onClick={() => openProjectDetail(proj.slug)}
+                        aria-label={`Open studio asset inspector for ${proj.title}`}
+                        className="btn-tactile-dark"
+                        title="Open studio asset inspector and full asset downloads"
+                      >
+                        <Eye size={14} aria-hidden="true" />
+                        <span>OVERVIEW</span>
+                      </button>
+
+                      {/* Export Assets Button */}
+                      <button
+                        id={`btn-download-${proj.id}`}
+                        type="button"
+                        onClick={() => handleDownloadAll(proj)}
+                        aria-label={`Export all assets for ${proj.title} as ZIP`}
+                        className="btn-tactile-sm"
+                        style={{ background: '#FFFFFF', color: 'var(--ink)' }}
+                        title="Export all client assets as a batch ZIP archive"
+                      >
+                        <Download size={13} aria-hidden="true" />
+                        <span>EXPORT ({completedCount})</span>
+                      </button>
+
+                      {/* Delete Docket Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete docket "${proj.title}"?`)) {
+                            deleteProject(proj.id);
+                          }
+                        }}
+                        aria-label={`Delete project docket ${proj.title}`}
+                        className="btn-tactile-sm"
+                        style={{ background: '#FFFFFF', color: 'var(--red)', padding: '6px 8px' }}
+                        title="Delete project docket"
+                      >
+                        <Trash2 size={14} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
+              );
+            })}
+          </div>
 
-              </div>
-            );
-          })}
-        </div>
-      )}
+        )}
 
-      {/* ── Feature Explainer Banner ──────────────────────────── */}
-      <div className="glass-card" style={{
-        marginTop: '56px',
-        padding: '40px 36px',
-        background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 60%, #fff7ed 100%)',
-        border: '1px solid rgba(37, 99, 235, 0.12)',
-        borderRadius: 'var(--radius-xl)'
-      }}>
-        <div style={{ textAlign: 'center', maxWidth: '620px', margin: '0 auto 28px' }}>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '8px', letterSpacing: '-0.025em', color: 'var(--text-primary)' }}>
-            Why clients love submitting via DropBrief
-          </h3>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', lineHeight: 1.55 }}>
-            We eliminated all friction and roadblocks that cause clients to delay deliverables.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-          {[
-            { icon: Sparkles, color: 'var(--accent-primary)', bg: 'var(--accent-primary-bg)', border: 'rgba(37, 99, 235, 0.2)',
-              title: 'Zero Passwords & No Signups',
-              desc: 'Clients click the link and upload immediately. No forgotten passwords, accounts, or friction.' },
-            { icon: BellRing, color: 'var(--warning)', bg: 'var(--warning-bg)', border: 'var(--warning-border)',
-              title: 'Automated Friendly Reminders',
-              desc: 'The system gently follows up on missing items automatically. No more awkward manual follow-ups.' },
-            { icon: Shield, color: 'var(--success)', bg: 'var(--success-bg)', border: 'var(--success-border)',
-              title: 'Bank-Grade Encryption + GDPR',
-              desc: 'Files are encrypted AES-256, hosted in the EU (Ireland) with automated 30-day purge.' }
-          ].map(({ icon: Icon, color, bg, border, title, desc }) => (
-            <div key={title} style={{
-              padding: '22px',
-              borderRadius: 'var(--radius-lg)',
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              <div style={{
-                width: '40px', height: '40px',
-                borderRadius: 'var(--radius-md)',
-                background: bg, color, border: `1px solid ${border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '14px'
-              }}>
-                <Icon size={20} />
-              </div>
-              <h4 style={{ fontSize: '0.96rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.015em', color: 'var(--text-primary)' }}>{title}</h4>
-              <p style={{ fontSize: '0.84rem', color: 'var(--text-tertiary)', lineHeight: 1.55 }}>{desc}</p>
+        {/* ── Studio Axioms / Zero-Friction Rules ──────────────── */}
+        <div className="dash-axioms-section">
+          <div className="axioms-header-box">
+            <div className="dash-kicker-badge" style={{ margin: '0 auto 10px' }}>
+              <span>ZERO-FRICTION STUDIO STANDARD</span>
             </div>
-          ))}
+            <h3 className="axioms-heading">
+              HOW DROPBRIEF ELIMINATES CLIENT DELAYS
+            </h3>
+            <p style={{ fontSize: '0.92rem', color: 'var(--ink-muted)', margin: 0 }}>
+              Three engineering principles that guarantee clients submit briefs in hours instead of weeks.
+            </p>
+          </div>
+
+          <div className="axioms-cards-row">
+            
+            <div className="axiom-card-box">
+              <div>
+                <span className="axiom-tag-num">AXIOM 01</span>
+                <h4 className="axiom-title">Zero Passwords &amp; No Signups</h4>
+                <p className="axiom-text">
+                  Clients click your private link and upload immediately. No forgotten accounts, no 2FA fatigue, and no permission hurdles.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--emerald)', fontWeight: 800 }}>
+                <Check size={14} /> 100% Zero Login Friction
+              </div>
+            </div>
+
+            <div className="axiom-card-box">
+              <div>
+                <span className="axiom-tag-num" style={{ background: 'var(--orange)' }}>AXIOM 02</span>
+                <h4 className="axiom-title">Automated Polite Follow-Ups</h4>
+                <p className="axiom-text">
+                  DropBrief tracks missing deliverables and sends gentle 1-click reminders so you never have to send awkward manual follow-ups.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--orange)', fontWeight: 800 }}>
+                <Send size={14} /> Built-in Resend Email Dispatch
+              </div>
+            </div>
+
+            <div className="axiom-card-box">
+              <div>
+                <span className="axiom-tag-num" style={{ background: 'var(--cobalt)' }}>AXIOM 03</span>
+                <h4 className="axiom-title">GDPR Art. 5 Auto Purge</h4>
+                <p className="axiom-text">
+                  Deliverables are hosted on encrypted EU servers (Frankfurt) and purged 30 days after completion to protect confidentiality.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontFamily: 'var(--font-mono)', color: 'var(--cobalt)', fontWeight: 800 }}>
+                <ShieldCheck size={14} /> Bank-Grade AES-256 Storage
+              </div>
+            </div>
+
+          </div>
         </div>
+
       </div>
 
     </div>
