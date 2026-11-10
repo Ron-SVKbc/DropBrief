@@ -14,11 +14,13 @@ import {
   Eye, 
   EyeOff, 
   RefreshCw, 
-  FolderSync, 
-  FileCheck,
-  Lock,
-  ArrowLeft
+  ArrowLeft,
+  ExternalLink,
+  Shield,
+  Layers,
+  FileCheck
 } from 'lucide-react';
+import '../styles/dashboard-brutalist.css';
 
 export default function AccountModal() {
   const { 
@@ -28,7 +30,6 @@ export default function AccountModal() {
     projects, 
     deleteFreelancerAccount,
     logoutFreelancer,
-    setIsLegalModalOpen,
     openLegalModal,
     addToast
   } = useApp();
@@ -69,7 +70,7 @@ export default function AccountModal() {
   if (!isAccountModalOpen || !currentFreelancer) return null;
 
   // Freelancer project statistics
-  const myProjects = projects.filter((p) => {
+  const myProjects = (projects || []).filter((p) => {
     if (p.freelancerId && p.freelancerId === currentFreelancer.id) return true;
     if (p.freelancerName && p.freelancerName.toLowerCase() === currentFreelancer.nick.toLowerCase()) return true;
     if (currentFreelancer.email && p.freelancerEmail && p.freelancerEmail.toLowerCase() === currentFreelancer.email.toLowerCase()) return true;
@@ -85,18 +86,22 @@ export default function AccountModal() {
   const formattedDate = currentFreelancer.createdAt
     ? new Date(currentFreelancer.createdAt).toLocaleDateString('en-US', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric',
       })
     : 'Recently';
 
   const isGoogleUser = currentFreelancer?.authProvider === 'google';
+  const tier = currentFreelancer?.tier || 'free';
+  const isVipPro = tier === 'pro';
 
   const handleCopyPin = () => {
     if (!currentFreelancer.pin) return;
     navigator.clipboard.writeText(String(currentFreelancer.pin));
     setCopiedPin(true);
-    addToast('PIN code copied to clipboard.', 'success', 'PIN Copied');
+    if (addToast) {
+      addToast('PIN code copied to clipboard.', 'success', 'PIN Copied');
+    }
     setTimeout(() => setCopiedPin(false), 2000);
   };
 
@@ -130,7 +135,7 @@ export default function AccountModal() {
 
   return (
     <div 
-      className="modal-overlay animate-fade-in"
+      className="account-modal-overlay"
       onClick={() => {
         if (!isDeleting) closeAccountModal();
       }}
@@ -139,56 +144,29 @@ export default function AccountModal() {
       aria-labelledby="account-modal-title"
     >
       <div 
-        className="auth-modal-card animate-slide-up"
+        className="account-modal-window"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: '520px',
-          padding: 'clamp(20px, 4vw, 32px)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
       >
-        {/* Ambient Glow */}
-        <div style={{
-          position: 'absolute',
-          top: '-60px',
-          right: '-40px',
-          width: '180px',
-          height: '180px',
-          background: isConfirmingDelete ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-          filter: 'blur(50px)',
-          borderRadius: '50%',
-          pointerEvents: 'none',
-          transition: 'background 0.3s ease'
-        }} />
-
-        {/* ── Header ────────────────────────────────────────────────── */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '20px',
-          position: 'relative',
-          zIndex: 1
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: 'var(--radius-md)',
-              background: isConfirmingDelete 
-                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%)'
-                : 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%)',
-              border: `1px solid ${isConfirmingDelete ? 'var(--danger-border)' : 'var(--border-accent)'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isConfirmingDelete ? 'var(--danger)' : 'var(--accent-primary-light)',
-              boxShadow: isConfirmingDelete ? 'var(--glow-red)' : 'var(--glow-accent)',
-              transition: 'var(--transition)',
-              overflow: 'hidden'
-            }}>
+        
+        {/* ── Modal Header ─────────────────────────────────────── */}
+        <header className="account-modal-header">
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+            <div 
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '6px',
+                background: isConfirmingDelete ? 'var(--red-light)' : 'var(--amber-light)',
+                border: `2px solid ${isConfirmingDelete ? 'var(--red)' : '#18181B'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: isConfirmingDelete ? 'var(--red)' : '#18181B',
+                boxShadow: '2px 2px 0px #18181B',
+                overflow: 'hidden',
+                flexShrink: 0
+              }}
+            >
               {isConfirmingDelete ? (
                 <AlertTriangle size={22} />
               ) : currentFreelancer?.avatarUrl && !avatarError ? (
@@ -203,23 +181,21 @@ export default function AccountModal() {
                 <User size={22} />
               )}
             </div>
+
             <div>
-              <h2 id="account-modal-title" style={{
-                fontSize: '1.25rem',
-                fontWeight: 800,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.2,
-                margin: 0
-              }}>
+              <div className="account-header-kicker">
+                <Shield size={12} aria-hidden="true" />
+                <span>{isConfirmingDelete ? 'GDPR ART. 17 ERASURE' : 'STUDIO SECURITY DOSSIER'}</span>
+              </div>
+
+              <h2 id="account-modal-title" className="account-header-title">
                 {isConfirmingDelete ? 'Delete Account & Data' : 'Profile & Security'}
               </h2>
-              <p style={{
-                fontSize: '0.8rem',
-                color: 'var(--text-tertiary)',
-                margin: '2px 0 0'
-              }}>
-                {isConfirmingDelete ? 'Confirm permanent and irreversible deletion' : 'Login overview and data management'}
+
+              <p className="account-header-sub">
+                {isConfirmingDelete 
+                  ? 'Irreversible purge of your studio account and files' 
+                  : `Credentials and privacy management for @${currentFreelancer.nick}`}
               </p>
             </div>
           </div>
@@ -227,481 +203,448 @@ export default function AccountModal() {
           <button
             onClick={closeAccountModal}
             disabled={isDeleting}
-            aria-label="Close account settings"
-            className="btn btn-secondary btn-icon btn-sm"
-            style={{ borderRadius: '50%', width: '32px', height: '32px', padding: 0 }}
+            aria-label="Close account modal"
+            className="account-modal-close-btn"
           >
             <X size={16} />
           </button>
-        </div>
+        </header>
 
-        {/* ── Step 1: Standard Profile View ─────────────────────────── */}
-        {!isConfirmingDelete ? (
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            
-            {/* Account Details Box */}
-            <div style={{
-              background: 'var(--bg-base)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              marginBottom: '20px'
-            }}>
+        {/* ── Modal Body ───────────────────────────────────────── */}
+        <div className="account-modal-body">
+
+          {!isConfirmingDelete ? (
+            /* ── Step 1: Profile & Credentials Overview ─────────── */
+            <div>
               
-              {/* Row 1: Nickname */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <User size={14} color="var(--accent-primary-light)" />
-                  Nickname:
-                </span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {currentFreelancer.nick}
-                </span>
-              </div>
-
-              {/* Row 2: Email */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Mail size={14} color="var(--accent-primary-light)" />
-                  Email address:
-                </span>
-                <span style={{ fontSize: '0.84rem', color: currentFreelancer.email ? 'var(--text-secondary)' : 'var(--text-quaternary)', fontFamily: currentFreelancer.email ? 'var(--font-mono)' : 'inherit' }}>
-                  {currentFreelancer.email || 'Not set'}
-                </span>
-              </div>
-
-              {/* Row 3: Created At */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Calendar size={14} color="var(--accent-primary-light)" />
-                  Created:
-                </span>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  {formattedDate}
-                </span>
-              </div>
-
-              {/* Row 4: Auth method / PIN code */}
-              {isGoogleUser ? (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <ShieldCheck size={14} color="#34A853" />
-                    Sign-in method:
+              {/* Account Credentials Card */}
+              <div className="account-section-card">
+                
+                {/* Nickname */}
+                <div className="account-field-row">
+                  <span className="account-field-label">
+                    <User size={14} color="var(--amber-dark)" />
+                    Studio Nickname:
                   </span>
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    color: 'var(--text-primary)',
-                    background: '#f8fafc',
-                    border: '1px solid var(--border-subtle)',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)'
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    Google Account (Verified)
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="account-field-val">
+                      @{currentFreelancer.nick}
+                    </span>
+                    <span 
+                      className="badge-stamp" 
+                      style={{ 
+                        background: isVipPro ? 'var(--amber-light)' : '#E5E7EB',
+                        color: isVipPro ? 'var(--amber-dark)' : '#374151',
+                        fontSize: '0.68rem',
+                        padding: '1px 6px'
+                      }}
+                    >
+                      {isVipPro ? '⭐ VIP PRO' : 'STARTER'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="account-field-row">
+                  <span className="account-field-label">
+                    <Mail size={14} color="var(--amber-dark)" />
+                    Email Address:
+                  </span>
+                  <span className="account-field-val" style={{ fontFamily: currentFreelancer.email ? 'var(--font-mono)' : 'inherit', fontSize: '0.84rem' }}>
+                    {currentFreelancer.email || 'Not set (PIN only)'}
                   </span>
                 </div>
-              ) : currentFreelancer.pin ? (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-hairline)', paddingTop: '10px' }}>
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <KeyRound size={14} color="var(--accent-primary-light)" />
-                    Security PIN:
+
+                {/* Registration Date */}
+                <div className="account-field-row">
+                  <span className="account-field-label">
+                    <Calendar size={14} color="var(--amber-dark)" />
+                    Member Since:
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="account-field-val" style={{ fontSize: '0.84rem' }}>
+                    {formattedDate}
+                  </span>
+                </div>
+
+                {/* Sign-in Method / Security PIN */}
+                {isGoogleUser ? (
+                  <div className="account-field-row">
+                    <span className="account-field-label">
+                      <ShieldCheck size={14} color="var(--emerald)" />
+                      Sign-in Method:
+                    </span>
                     <span style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.78rem',
                       fontWeight: 700,
-                      letterSpacing: showMyPin ? '0.12em' : '0.2em',
-                      color: 'var(--text-primary)',
-                      background: 'rgba(99, 102, 241, 0.1)',
-                      padding: '2px 8px',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-accent)'
+                      color: 'var(--ink-primary)',
+                      background: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      padding: '3px 8px',
+                      borderRadius: '4px'
                     }}>
-                      {showMyPin ? currentFreelancer.pin : '••••••'}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowMyPin(!showMyPin)}
-                      aria-label={showMyPin ? 'Hide PIN' : 'Show PIN'}
-                      title={showMyPin ? 'Hide PIN' : 'Show PIN'}
-                      className="btn btn-secondary btn-icon btn-sm"
-                      style={{ width: '26px', height: '26px', padding: 0 }}
-                    >
-                      {showMyPin ? <EyeOff size={13} /> : <Eye size={13} />}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleCopyPin}
-                      aria-label="Copy PIN code"
-                      title="Copy PIN code"
-                      className="btn btn-secondary btn-icon btn-sm"
-                      style={{ width: '26px', height: '26px', padding: 0 }}
-                    >
-                      {copiedPin ? <Check size={13} color="var(--success)" /> : <Copy size={13} />}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-            </div>
-
-            {/* Metrics and GDPR info */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '10px',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                background: 'var(--bg-base)',
-                border: '1px solid var(--border-hairline)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
-                  {myProjects.length}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                  Active Projects
-                </div>
-              </div>
-
-              <div style={{
-                background: 'var(--bg-base)',
-                border: '1px solid var(--border-hairline)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>
-                  {totalFilesCount}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                  Delivered Files
-                </div>
-              </div>
-            </div>
-
-            {/* GDPR & Legal Center Box */}
-            <div style={{
-              background: 'rgba(16, 185, 129, 0.04)',
-              border: '1px solid var(--success-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              marginBottom: '24px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck size={18} color="var(--success)" flexShrink={0} />
-                  <div>
-                    <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
-                      EU Data Protection &amp; Compliance (GDPR)
-                    </strong>
-                    <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                      Ireland EU cloud &bull; AES-256 encryption &bull; 0 tracking cookies
+                      <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                      </svg>
+                      Google Account (Verified)
                     </span>
                   </div>
+                ) : currentFreelancer.pin ? (
+                  <div className="account-field-row">
+                    <span className="account-field-label">
+                      <KeyRound size={14} color="var(--amber-dark)" />
+                      Security PIN:
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.86rem',
+                        fontWeight: 800,
+                        letterSpacing: showMyPin ? '0.12em' : '0.22em',
+                        color: 'var(--ink-primary)',
+                        background: 'var(--amber-light)',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid var(--amber)'
+                      }}>
+                        {showMyPin ? currentFreelancer.pin : '••••••'}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowMyPin(!showMyPin)}
+                        aria-label={showMyPin ? 'Hide PIN' : 'Show PIN'}
+                        title={showMyPin ? 'Hide PIN' : 'Show PIN'}
+                        className="btn-tactile-sm"
+                        style={{ padding: '4px 6px', height: '26px' }}
+                      >
+                        {showMyPin ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyPin}
+                        aria-label="Copy PIN code"
+                        title="Copy PIN code"
+                        className="btn-tactile-sm"
+                        style={{ padding: '4px 6px', height: '26px', background: copiedPin ? 'var(--emerald-light)' : '#FFFFFF' }}
+                      >
+                        {copiedPin ? <Check size={13} color="var(--emerald-dark)" /> : <Copy size={13} />}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+              </div>
+
+              {/* Studio Metrics Grid */}
+              <div className="account-metrics-grid">
+                <div className="account-metric-box">
+                  <div className="account-metric-num" style={{ color: 'var(--ink-primary)' }}>
+                    {myProjects.length}
+                  </div>
+                  <div className="account-metric-label">Active Dockets</div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAccountModal();
-                    openLegalModal('overview');
-                  }}
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '0.72rem', padding: '4px 10px', height: 'auto', fontWeight: 600 }}
-                >
-                  Legal Spec ↗
-                </button>
-              </div>
 
-              {/* Quick links to DPA, TOS, Retention */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingTop: '6px', borderTop: '1px dashed var(--border-hairline)' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAccountModal();
-                    openLegalModal('dpa');
-                  }}
-                  className="badge"
-                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
-                >
-                  📑 Art. 28 DPA Contract
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAccountModal();
-                    openLegalModal('tos');
-                  }}
-                  className="badge"
-                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
-                >
-                  📜 Terms of Service
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeAccountModal();
-                    openLegalModal('retention');
-                  }}
-                  className="badge"
-                  style={{ background: '#ffffff', border: '1px solid var(--border-hairline)', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}
-                >
-                  ⏱️ 30-Day Purge Policy
-                </button>
-              </div>
-            </div>
-
-            {/* ── Danger Zone ───────────────────────────────────────── */}
-            <div style={{
-              border: '1px solid var(--danger-border)',
-              background: 'rgba(239, 68, 68, 0.035)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Trash2 size={18} color="var(--danger)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                <div>
-                  <h3 style={{
-                    fontSize: '0.88rem',
-                    fontWeight: 700,
-                    color: 'var(--danger)',
-                    margin: 0,
-                    lineHeight: 1.3
-                  }}>
-                    Danger Zone – Permanent Account Deletion
-                  </h3>
-                  <p style={{
-                    fontSize: '0.76rem',
-                    color: 'var(--text-tertiary)',
-                    margin: '4px 0 0',
-                    lineHeight: 1.4
-                  }}>
-                    You have the right to permanently delete your account, all briefs, and cloud files at any time. This action is irreversible.
-                  </p>
+                <div className="account-metric-box">
+                  <div className="account-metric-num" style={{ color: 'var(--emerald-dark)' }}>
+                    {totalFilesCount}
+                  </div>
+                  <div className="account-metric-label">Delivered Files</div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '4px' }}>
-                <button
-                  type="button"
-                  id="btn-trigger-delete-account"
-                  onClick={() => setIsConfirmingDelete(true)}
-                  className="btn btn-outline-danger btn-sm"
-                  style={{ gap: '6px' }}
-                >
-                  <Trash2 size={13} />
-                  Delete my account and data...
-                </button>
-              </div>
-            </div>
+              {/* GDPR Compliance & Legal Center Box */}
+              <div className="account-gdpr-box">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ShieldCheck size={18} color="var(--emerald-dark)" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong style={{ fontSize: '0.86rem', color: 'var(--ink-primary)', display: 'block' }}>
+                        EU Data Privacy &amp; GDPR Compliance
+                      </strong>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--emerald-dark)', fontWeight: 600 }}>
+                        Ireland EU cloud &bull; AES-256 encrypted &bull; 100% cookie-free
+                      </span>
+                    </div>
+                  </div>
 
-          </div>
-        ) : (
-          /* ── Step 2: Confirm Deletion and Enter PIN ──────────────── */
-          <form onSubmit={handleDeleteSubmit} style={{ position: 'relative', zIndex: 1 }}>
-            
-            {/* Warning Alert */}
-            <div style={{
-              background: 'rgba(239, 68, 68, 0.08)',
-              border: '1px solid var(--danger-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px',
-              marginBottom: '20px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <AlertTriangle size={18} color="var(--danger)" />
-                <strong style={{ fontSize: '0.88rem', color: 'var(--danger)' }}>
-                  Warning! This operation is final and irreversible.
-                </strong>
-              </div>
-
-              <ul style={{
-                margin: 0,
-                paddingLeft: '18px',
-                fontSize: '0.78rem',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.55,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px'
-              }}>
-                <li>
-                  All your <strong>projects ({myProjects.length})</strong> and client collection forms will be deleted.
-                </li>
-                <li>
-                  All <strong>client-uploaded files ({totalFilesCount})</strong> will be immediately and permanently purged from cloud storage.
-                </li>
-                <li>
-                  All public client links (e.g. <code>?p=...</code>) will cease to exist.
-                </li>
-                <li>
-                  Your user profile and access PIN will be permanently removed from the database (GDPR Art. 17).
-                </li>
-              </ul>
-            </div>
-
-            {/* PIN or Word Confirmation Input Field */}
-            <div style={{ marginBottom: '20px' }}>
-              <label 
-                htmlFor="input-delete-account-pin"
-                style={{
-                  display: 'block',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  marginBottom: '8px'
-                }}
-              >
-                {isGoogleUser 
-                  ? 'To confirm, please type "DELETE" or "ZMAZAŤ" in the field below:' 
-                  : 'Enter your 6-digit PIN code to confirm your identity:'}
-              </label>
-
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="input-delete-account-pin"
-                  type={isGoogleUser ? 'text' : (showPinInput ? 'text' : 'password')}
-                  inputMode={isGoogleUser ? 'text' : 'numeric'}
-                  pattern={isGoogleUser ? undefined : '[0-9]*'}
-                  maxLength={isGoogleUser ? 20 : 6}
-                  value={pinInput}
-                  onChange={(e) => {
-                    const val = isGoogleUser ? e.target.value : e.target.value.replace(/\D/g, '').slice(0, 6);
-                    setPinInput(val);
-                    if (errorMessage) setErrorMessage('');
-                  }}
-                  placeholder={isGoogleUser ? 'Type DELETE to confirm' : '••••••'}
-                  autoFocus
-                  disabled={isDeleting}
-                  style={{
-                    width: '100%',
-                    padding: isGoogleUser ? '12px 14px' : '12px 42px 12px 14px',
-                    fontSize: isGoogleUser ? '1rem' : '1.25rem',
-                    fontFamily: 'var(--font-mono)',
-                    letterSpacing: isGoogleUser ? '0.04em' : '0.3em',
-                    textAlign: isGoogleUser ? 'left' : 'center',
-                    background: 'var(--bg-input-filled)',
-                    border: `1px solid ${errorMessage ? 'var(--danger)' : 'var(--border-medium)'}`,
-                    borderRadius: 'var(--radius-md)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    transition: 'var(--transition)'
-                  }}
-                />
-
-                {!isGoogleUser && (
                   <button
                     type="button"
-                    onClick={() => setShowPinInput(!showPinInput)}
-                    tabIndex={-1}
-                    aria-label={showPinInput ? 'Hide PIN' : 'Show PIN'}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-tertiary)',
-                      cursor: 'pointer',
-                      padding: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                    onClick={() => {
+                      closeAccountModal();
+                      openLegalModal('overview');
+                    }}
+                    className="btn-tactile-sm"
+                    style={{ fontSize: '0.72rem', padding: '4px 8px', background: '#FFFFFF' }}
+                  >
+                    <span>Legal Spec ↗</span>
+                  </button>
+                </div>
+
+                {/* Quick links to DPA, TOS, Retention */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', paddingTop: '10px', marginTop: '10px', borderTop: '1px dashed #A7F3D0' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAccountModal();
+                      openLegalModal('dpa');
+                    }}
+                    className="badge-stamp"
+                    style={{ background: '#FFFFFF', border: '1px solid #A7F3D0', color: 'var(--ink-secondary)', cursor: 'pointer', fontSize: '0.7rem' }}
+                  >
+                    📑 Art. 28 DPA Contract
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAccountModal();
+                      openLegalModal('tos');
+                    }}
+                    className="badge-stamp"
+                    style={{ background: '#FFFFFF', border: '1px solid #A7F3D0', color: 'var(--ink-secondary)', cursor: 'pointer', fontSize: '0.7rem' }}
+                  >
+                    📜 Terms of Service
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAccountModal();
+                      openLegalModal('retention');
+                    }}
+                    className="badge-stamp"
+                    style={{ background: '#FFFFFF', border: '1px solid #A7F3D0', color: 'var(--ink-secondary)', cursor: 'pointer', fontSize: '0.7rem' }}
+                  >
+                    ⏱️ 30-Day Purge Policy
+                  </button>
+                </div>
+              </div>
+
+              {/* Danger Zone (Account Deletion) */}
+              <div className="account-danger-box">
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <Trash2 size={18} color="var(--red)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                  <div>
+                    <h3 style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--red)', margin: 0 }}>
+                      Danger Zone – Permanent Account Erasure
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#7F1D1D', margin: '4px 0 0', lineHeight: 1.45 }}>
+                      Under GDPR Art. 17 (Right to Erasure), you can permanently delete your studio account, all dockets, and cloud files at any time.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+                  <button
+                    type="button"
+                    id="btn-trigger-delete-account"
+                    onClick={() => setIsConfirmingDelete(true)}
+                    className="btn-tactile-sm"
+                    style={{ 
+                      background: '#FFFFFF', 
+                      color: 'var(--red)', 
+                      borderColor: 'var(--red)',
+                      fontWeight: 800
                     }}
                   >
-                    {showPinInput ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <Trash2 size={13} />
+                    <span>Delete account and all data...</span>
                   </button>
+                </div>
+              </div>
+
+            </div>
+          ) : (
+            /* ── Step 2: Confirm Deletion and Enter PIN ──────────── */
+            <form onSubmit={handleDeleteSubmit}>
+              
+              {/* Warning Alert Banner */}
+              <div style={{
+                background: 'var(--red-light)',
+                border: '1.5px solid var(--red)',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '18px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <AlertTriangle size={18} color="var(--red)" />
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--red)', fontWeight: 800 }}>
+                    Final Warning! Irreversible Operation
+                  </strong>
+                </div>
+
+                <ul style={{
+                  margin: 0,
+                  paddingLeft: '18px',
+                  fontSize: '0.8rem',
+                  color: '#7F1D1D',
+                  lineHeight: 1.5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  <li>
+                    All <strong>{myProjects.length} client dockets</strong> will be permanently deleted.
+                  </li>
+                  <li>
+                    All <strong>{totalFilesCount} client-uploaded files</strong> will be purged immediately from cloud storage.
+                  </li>
+                  <li>
+                    All client upload links (<code>?p=...</code>) will instantly stop working.
+                  </li>
+                  <li>
+                    Your account and PIN will be permanently wiped (GDPR Art. 17).
+                  </li>
+                </ul>
+              </div>
+
+              {/* Confirmation Input Field */}
+              <div style={{ marginBottom: '20px' }}>
+                <label 
+                  htmlFor="input-delete-account-pin"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    color: 'var(--ink-primary)',
+                    marginBottom: '8px'
+                  }}
+                >
+                  {isGoogleUser 
+                    ? 'Type "DELETE" or "ZMAZAŤ" below to confirm deletion:' 
+                    : 'Enter your 6-digit Security PIN to verify your identity:'}
+                </label>
+
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="input-delete-account-pin"
+                    type={isGoogleUser ? 'text' : (showPinInput ? 'text' : 'password')}
+                    inputMode={isGoogleUser ? 'text' : 'numeric'}
+                    pattern={isGoogleUser ? undefined : '[0-9]*'}
+                    maxLength={isGoogleUser ? 20 : 6}
+                    value={pinInput}
+                    onChange={(e) => {
+                      const val = isGoogleUser ? e.target.value : e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPinInput(val);
+                      if (errorMessage) setErrorMessage('');
+                    }}
+                    placeholder={isGoogleUser ? 'Type DELETE to confirm' : '••••••'}
+                    autoFocus
+                    disabled={isDeleting}
+                    style={{
+                      width: '100%',
+                      padding: isGoogleUser ? '12px 14px' : '12px 42px 12px 14px',
+                      fontSize: isGoogleUser ? '0.95rem' : '1.3rem',
+                      fontFamily: 'var(--font-mono)',
+                      letterSpacing: isGoogleUser ? '0.04em' : '0.35em',
+                      textAlign: isGoogleUser ? 'left' : 'center',
+                      background: '#FAF9F6',
+                      border: `2px solid ${errorMessage ? 'var(--red)' : '#18181B'}`,
+                      borderRadius: '6px',
+                      color: 'var(--ink-primary)',
+                      outline: 'none',
+                      fontWeight: 800
+                    }}
+                  />
+
+                  {!isGoogleUser && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPinInput(!showPinInput)}
+                      tabIndex={-1}
+                      aria-label={showPinInput ? 'Hide PIN' : 'Show PIN'}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--ink-muted)',
+                        cursor: 'pointer',
+                        padding: '4px'
+                      }}
+                    >
+                      {showPinInput ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  )}
+                </div>
+
+                {errorMessage && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: 'var(--red)',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    marginTop: '8px'
+                  }}>
+                    <AlertTriangle size={14} />
+                    <span>{errorMessage}</span>
+                  </div>
                 )}
               </div>
 
-              {errorMessage && (
-                <div className="animate-shake" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: 'var(--danger-light)',
-                  fontSize: '0.78rem',
-                  marginTop: '8px'
-                }}>
-                  <AlertTriangle size={13} />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
-            </div>
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsConfirmingDelete(false);
+                    setPinInput('');
+                    setErrorMessage('');
+                  }}
+                  disabled={isDeleting}
+                  className="btn-tactile-secondary"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Back</span>
+                </button>
 
-            {/* Action Buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsConfirmingDelete(false);
-                  setPinInput('');
-                  setErrorMessage('');
-                }}
-                disabled={isDeleting}
-                className="btn btn-secondary"
-              >
-                <ArrowLeft size={14} />
-                Back
-              </button>
+                <button
+                  type="submit"
+                  id="btn-confirm-delete-account-permanently"
+                  disabled={
+                    isGoogleUser 
+                      ? (pinInput.trim().toUpperCase() !== 'DELETE' && pinInput.trim().toUpperCase() !== 'ZMAZAŤ') || isDeleting
+                      : pinInput.length !== 6 || isDeleting
+                  }
+                  className="btn-tactile-primary"
+                  style={{
+                    background: 'var(--red)',
+                    color: '#FFFFFF',
+                    borderColor: '#18181B'
+                  }}
+                >
+                  {isDeleting ? (
+                    <>
+                      <RefreshCw size={14} className="spin" />
+                      <span>Purging cloud data...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={14} />
+                      <span>Yes, permanently delete my account</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
-              <button
-                type="submit"
-                id="btn-confirm-delete-account-permanently"
-                disabled={
-                  isGoogleUser 
-                    ? (pinInput.trim().toUpperCase() !== 'DELETE' && pinInput.trim().toUpperCase() !== 'ZMAZAŤ') || isDeleting
-                    : pinInput.length !== 6 || isDeleting
-                }
-                className="btn btn-danger-solid"
-                style={{ gap: '6px' }}
-              >
-                {isDeleting ? (
-                  <>
-                    <RefreshCw size={14} className="spin" />
-                    Purging cloud data...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={14} />
-                    Yes, permanently delete my account
-                  </>
-                )}
-              </button>
-            </div>
+            </form>
+          )}
 
-          </form>
-        )}
+        </div>
 
       </div>
     </div>
