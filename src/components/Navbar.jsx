@@ -101,14 +101,12 @@ export default function Navbar({ onOpenCreateModal }) {
 
   return (
     <header style={{
-      borderBottom: '1px solid var(--border-subtle)',
-      background: 'rgba(255, 255, 255, 0.92)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: '2.5px solid #111111',
+      background: '#F5F1E8',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      boxShadow: '0 1px 0 var(--border-hairline), 0 2px 12px rgba(15, 23, 42, 0.06)',
+      boxShadow: '0 2px 0 #111111'
     }}>
       <div className="container" style={{
         display: 'flex',
@@ -120,7 +118,7 @@ export default function Navbar({ onOpenCreateModal }) {
         gap: '12px'
       }}>
         
-        {/* ── Brand ─────────────────────────────────────────── */}
+        {/* ── Brand Stamp (Matching Landing Page) ───────────── */}
         <button 
           type="button"
           onClick={openDashboard}
@@ -141,62 +139,95 @@ export default function Navbar({ onOpenCreateModal }) {
           }} 
           title="Go to main dashboard"
         >
-          {/* Logo mark */}
+          {/* Logo stamp */}
           <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--gradient-brand)',
+            background: 'var(--yellow, #FFE500)',
+            color: '#111111',
+            border: '2px solid #111111',
+            boxShadow: '2px 2px 0 #111111',
+            padding: '4px 10px',
+            borderRadius: '4px',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontWeight: 900,
+            fontSize: '0.92rem',
+            letterSpacing: '0.04em',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-            border: '1px solid rgba(37, 99, 235, 0.2)',
-            transition: 'var(--transition)',
-            flexShrink: 0
+            gap: '6px'
           }}>
-            <FolderSync size={19} aria-hidden="true" />
+            <FolderSync size={16} aria-hidden="true" />
+            <span>DROPBRIEF ⚡</span>
           </div>
+
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
               <span style={{ 
-                fontSize: '1.12rem', 
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '0.72rem', 
                 fontWeight: 800, 
-                letterSpacing: '-0.035em', 
-                color: 'var(--text-primary)'
+                letterSpacing: '0.04em', 
+                color: '#111111'
               }}>
-                DropBrief
+                STUDIO DISPATCH
               </span>
               {isLiveDb ? (
-                <span className="badge badge-success" style={{ fontSize: '0.6rem', padding: '2px 7px', gap: '4px' }}>
+                <span style={{ 
+                  background: '#ECFDF5', 
+                  color: '#065F46', 
+                  border: '1px solid #10B981', 
+                  borderRadius: '2px', 
+                  fontSize: '0.62rem', 
+                  fontWeight: 800, 
+                  padding: '1px 6px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '4px' 
+                }}>
                   <span className="status-dot status-dot-live" style={{ width: '5px', height: '5px' }} aria-hidden="true" />
-                  Live
+                  Live EU
                 </span>
               ) : (
-                <span className="badge badge-accent" style={{ fontSize: '0.6rem', padding: '2px 6px', gap: '3px' }}>
-                  <Zap size={9} aria-hidden="true" /> Free
+                <span style={{ 
+                  background: '#FFE500', 
+                  color: '#111111', 
+                  border: '1px solid #111', 
+                  borderRadius: '2px', 
+                  fontSize: '0.62rem', 
+                  fontWeight: 800, 
+                  padding: '1px 5px' 
+                }}>
+                  Free Tier
                 </span>
               )}
             </div>
-            <p className="navbar-subtitle" style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 500, lineHeight: 1, marginTop: '2px' }}>
-              Client brief collection tool
-            </p>
           </div>
         </button>
 
         {/* ── View Switcher ──────────────────────────────────── */}
-        <div className="segmented-control navbar-segmented" role="navigation" aria-label="View switcher">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} role="navigation" aria-label="View switcher">
           <button
             id="nav-dashboard-tab"
+            type="button"
             onClick={handleDashboardClick}
-            className={`btn btn-sm btn-pill ${(currentView === 'dashboard' || currentView === 'project-detail') ? 'btn-primary' : 'btn-secondary'}`}
             style={{ 
-              padding: '5px 13px', fontSize: '0.8rem'
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              padding: '6px 14px',
+              border: '2px solid #111111',
+              borderRadius: '4px',
+              background: (currentView === 'dashboard' || currentView === 'project-detail') ? '#111111' : '#FFFFFF',
+              color: (currentView === 'dashboard' || currentView === 'project-detail') ? '#FFFFFF' : '#111111',
+              boxShadow: (currentView === 'dashboard' || currentView === 'project-detail') ? '2px 2px 0 var(--yellow, #FFE500)' : '2px 2px 0 #111111',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s'
             }}
           >
             <LayoutDashboard size={13} aria-hidden="true" />
-            {currentFreelancer ? (currentView === 'project-detail' ? 'Dashboard / Back' : 'Dashboard') : 'For Freelancers'}
+            <span>{currentFreelancer ? (currentView === 'project-detail' ? 'DASHBOARD / BACK' : 'DASHBOARD') : 'FOR FREELANCERS'}</span>
           </button>
 
           {currentFreelancer ? (
@@ -208,19 +239,29 @@ export default function Navbar({ onOpenCreateModal }) {
                 aria-expanded={isClientDropdownOpen}
                 aria-haspopup="true"
                 aria-label="Select project for client preview"
-                className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ 
-                  padding: '5px 12px', 
-                  fontSize: '0.8rem',
-                  gap: '6px'
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  padding: '6px 12px',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  background: currentView === 'client-portal' ? '#111111' : '#FFFFFF',
+                  color: currentView === 'client-portal' ? '#FFFFFF' : '#111111',
+                  boxShadow: currentView === 'client-portal' ? '2px 2px 0 var(--yellow, #FFE500)' : '2px 2px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s'
                 }}
                 title="Click to select a project for client preview"
               >
                 <Eye size={13} aria-hidden="true" />
                 <span>
                   {currentView === 'client-portal' && currentPortalProject 
-                    ? `Preview: ${currentPortalProject.title.length > 16 ? currentPortalProject.title.slice(0, 15) + '...' : currentPortalProject.title}` 
-                    : 'Client View'}
+                    ? `PREVIEW: ${currentPortalProject.title.length > 14 ? currentPortalProject.title.slice(0, 13) + '...' : currentPortalProject.title}` 
+                    : 'CLIENT VIEW'}
                 </span>
                 <ChevronDown 
                   size={12} 
@@ -236,7 +277,6 @@ export default function Navbar({ onOpenCreateModal }) {
               {/* Dropdown Menu for Authenticated Freelancer */}
               {isClientDropdownOpen && (
                 <div 
-                  className="animate-fade-in"
                   role="menu"
                   aria-label="List of projects for client preview"
                   style={{
@@ -246,40 +286,38 @@ export default function Navbar({ onOpenCreateModal }) {
                     width: '320px',
                     maxWidth: '90vw',
                     background: '#ffffff',
-                    border: '1px solid var(--border-medium)',
-                    borderRadius: 'var(--radius-lg)',
-                    boxShadow: 'var(--shadow-xl)',
+                    border: '2.5px solid #111111',
+                    borderRadius: '6px',
+                    boxShadow: '5px 5px 0 #111111',
                     zIndex: 100,
-                    overflow: 'hidden',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)'
+                    overflow: 'hidden'
                   }}
                 >
                   {/* Dropdown Header */}
                   <div style={{
                     padding: '10px 14px',
-                    borderBottom: '1px solid var(--border-hairline)',
-                    background: 'var(--accent-primary-bg)',
+                    borderBottom: '2px solid #111111',
+                    background: 'var(--yellow-tint, #FFFDE6)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Eye size={13} color="var(--accent-primary)" aria-hidden="true" />
-                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--accent-primary-hover)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Select Project for Preview
+                      <Eye size={13} color="#111111" aria-hidden="true" />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', fontWeight: 800, color: '#111111', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Select Docket for Preview
                       </span>
                     </div>
-                    <span className="badge badge-accent" style={{ fontSize: '0.62rem', padding: '1px 6px' }}>
-                      {projectList.length} {projectList.length === 1 ? 'project' : 'projects'}
+                    <span style={{ background: '#111', color: '#fff', fontSize: '0.65rem', fontWeight: 800, padding: '1px 6px', borderRadius: '2px', fontFamily: 'var(--font-mono)' }}>
+                      {projectList.length} {projectList.length === 1 ? 'docket' : 'dockets'}
                     </span>
                   </div>
 
                   {/* Projects list */}
                   <div style={{ maxHeight: '260px', overflowY: 'auto', padding: '6px' }}>
                     {projectList.length === 0 ? (
-                      <div style={{ padding: '16px 12px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
-                        No projects created yet.
+                      <div style={{ padding: '16px 12px', textAlign: 'center', color: '#736E66', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+                        No dockets created yet.
                       </div>
                     ) : (
                       projectList.map((p) => {
@@ -300,41 +338,35 @@ export default function Navbar({ onOpenCreateModal }) {
                               width: '100%',
                               textAlign: 'left',
                               padding: '8px 10px',
-                              borderRadius: 'var(--radius-md)',
-                              background: isSelected ? 'var(--accent-primary-bg)' : 'transparent',
-                              border: isSelected ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid transparent',
-                              color: 'var(--text-primary)',
+                              borderRadius: '4px',
+                              background: isSelected ? 'var(--yellow, #FFE500)' : 'transparent',
+                              border: isSelected ? '1.5px solid #111' : '1.5px solid transparent',
+                              color: '#111111',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               gap: '10px',
                               transition: 'background 0.15s ease',
-                              marginBottom: '2px'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected) e.currentTarget.style.background = 'rgba(15, 23, 42, 0.04)';
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) e.currentTarget.style.background = 'transparent';
+                              marginBottom: '3px'
                             }}
                           >
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: isSelected ? 'var(--accent-primary)' : 'var(--text-primary)' }} className="truncate">
+                              <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#111111' }} className="truncate">
                                 {p.title}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: '#4B4842', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                                 <span className="truncate">{p.clientName}</span>
-                                <span>&bull;</span>
-                                <span style={{ color: isCompleted ? 'var(--success)' : 'var(--warning)', flexShrink: 0 }}>
+                                <span>•</span>
+                                <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)', fontWeight: 700, flexShrink: 0 }}>
                                   {completedCount}/{totalItems} items
                                 </span>
                               </div>
                             </div>
                             {isSelected ? (
-                              <Check size={14} color="var(--accent-primary)" style={{ flexShrink: 0 }} />
+                              <Check size={14} color="#111111" style={{ flexShrink: 0 }} />
                             ) : (
-                              <ExternalLink size={12} color="var(--text-tertiary)" style={{ flexShrink: 0, opacity: 0.7 }} />
+                              <ExternalLink size={12} color="#736E66" style={{ flexShrink: 0, opacity: 0.7 }} />
                             )}
                           </button>
                         );
@@ -345,8 +377,8 @@ export default function Navbar({ onOpenCreateModal }) {
                   {/* Footer with Demo Sandbox option */}
                   <div style={{
                     padding: '8px 12px',
-                    borderTop: '1px solid var(--border-hairline)',
-                    background: 'var(--bg-base)',
+                    borderTop: '2px solid #111111',
+                    background: '#F5F1E8',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
@@ -360,22 +392,22 @@ export default function Navbar({ onOpenCreateModal }) {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--text-tertiary)',
+                        color: '#111111',
                         fontSize: '0.74rem',
+                        fontWeight: 800,
+                        fontFamily: 'var(--font-mono)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '5px',
-                        padding: '2px 0'
+                        padding: 0
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-primary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                     >
-                      <Sparkles size={11} color="var(--accent-primary)" />
+                      <Sparkles size={12} color="var(--orange)" />
                       <span>Interactive Client Sandbox</span>
                     </button>
 
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-quaternary)' }}>
+                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#736E66', fontWeight: 700 }}>
                       Zero passwords
                     </span>
                   </div>
@@ -387,32 +419,25 @@ export default function Navbar({ onOpenCreateModal }) {
               id="nav-client-portal-tab"
               type="button"
               onClick={() => openClientPortal('demo-preview')}
-              className={`btn btn-sm btn-pill ${currentView === 'client-portal' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ 
-                padding: '5px 12px', 
-                fontSize: '0.8rem',
-                gap: '7px',
-                position: 'relative'
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                padding: '6px 12px',
+                border: '2px solid #111111',
+                borderRadius: '4px',
+                background: currentView === 'client-portal' ? '#111111' : '#FFFFFF',
+                color: currentView === 'client-portal' ? '#FFFFFF' : '#111111',
+                boxShadow: '2px 2px 0 #111111',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
               title="Experience what your client sees — live interactive test (no password or registration required)"
             >
               <Eye size={13} aria-hidden="true" />
-              <span style={{ fontWeight: currentView === 'client-portal' ? 700 : 600 }}>Client Experience</span>
-              <span 
-                className="badge badge-glow-interactive" 
-                style={{ 
-                  fontSize: '0.62rem', 
-                  padding: '2px 7px', 
-                  gap: '4px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  borderRadius: 'var(--radius-full)'
-                }}
-              >
-                <span className="status-dot-pulse" aria-hidden="true" />
-                Live Test
-              </span>
+              <span>CLIENT TEST PORTAL</span>
             </button>
           )}
         </div>
@@ -424,31 +449,44 @@ export default function Navbar({ onOpenCreateModal }) {
             id="btn-security-info"
             onClick={() => openLegalModal('overview')}
             aria-label="Data security and GDPR information"
-            className="btn btn-secondary btn-sm btn-pill"
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '0.76rem',
+              fontWeight: 800,
+              padding: '6px 10px',
+              border: '2px solid #111111',
+              borderRadius: '4px',
+              background: '#FFFFFF',
+              color: '#111111',
+              boxShadow: '2px 2px 0 #111111',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
             title="Data security & GDPR information"
-            style={{ gap: '5px' }}
           >
-            <ShieldCheck size={14} color="var(--success)" aria-hidden="true" />
-            <span className="navbar-gdpr-label" style={{ fontSize: '0.78rem' }}>GDPR</span>
+            <ShieldCheck size={14} color="#10B981" aria-hidden="true" />
+            <span>GDPR</span>
           </button>
 
           {currentFreelancer ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 
               {/* User profile pill */}
               <div 
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-full)',
-                  padding: '3px 10px 3px 4px',
-                  fontSize: '0.815rem',
+                  gap: '8px',
+                  background: '#FFFFFF',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  padding: '4px 10px 4px 6px',
+                  fontSize: '0.8rem',
+                  fontFamily: 'var(--font-mono, monospace)',
                   cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  boxShadow: 'var(--shadow-xs)'
+                  boxShadow: '2px 2px 0 #111111'
                 }}
                 onClick={openAccountModal}
                 title="User profile and account settings"
@@ -468,24 +506,28 @@ export default function Navbar({ onOpenCreateModal }) {
                     referrerPolicy="no-referrer"
                     onError={() => setAvatarError(true)}
                     style={{
-                      width: '24px', 
-                      height: '24px',
-                      borderRadius: '50%',
+                      width: '22px', 
+                      height: '22px',
+                      borderRadius: '3px',
                       objectFit: 'cover',
                       flexShrink: 0,
-                      border: '1px solid var(--border-subtle)'
+                      border: '1px solid #111111'
                     }} 
                   />
                 ) : (
                   <div 
                     style={{
-                      width: '24px', height: '24px',
-                      borderRadius: '50%',
-                      background: 'var(--gradient-brand)',
+                      width: '22px', 
+                      height: '22px',
+                      borderRadius: '3px',
+                      background: 'var(--yellow, #FFE500)',
+                      border: '1px solid #111111',
                       display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 800, fontSize: '0.7rem', color: '#fff',
-                      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.35)',
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      fontWeight: 900, 
+                      fontSize: '0.72rem', 
+                      color: '#111111',
                       flexShrink: 0
                     }} 
                     aria-hidden="true"
@@ -493,7 +535,7 @@ export default function Navbar({ onOpenCreateModal }) {
                     {(currentFreelancer.nick || 'F').charAt(0).toUpperCase()}
                   </div>
                 )}
-                <strong style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{currentFreelancer.nick}</strong>
+                <strong style={{ color: '#111111', fontWeight: 800 }}>@{currentFreelancer.nick}</strong>
                 
                 {/* Google user badge */}
                 {currentFreelancer.authProvider === 'google' ? (
@@ -501,22 +543,16 @@ export default function Navbar({ onOpenCreateModal }) {
                     title="Signed in with Google"
                     style={{
                       background: '#f8fafc',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid #111',
+                      borderRadius: '2px',
                       padding: '1px 5px',
-                      fontSize: '0.7rem',
+                      fontSize: '0.68rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
-                      color: 'var(--text-secondary)'
+                      gap: '3px',
+                      color: '#111'
                     }}
                   >
-                    <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
                     Google
                   </span>
                 ) : currentFreelancer.pin ? (
@@ -529,43 +565,71 @@ export default function Navbar({ onOpenCreateModal }) {
                     aria-label={`Copy PIN code (${currentFreelancer.pin})`}
                     title="Click to copy PIN code"
                     style={{
-                      background: 'var(--accent-primary-bg)',
-                      border: '1px solid rgba(37, 99, 235, 0.25)',
-                      color: 'var(--accent-primary-hover)',
-                      borderRadius: 'var(--radius-xs)',
+                      background: 'var(--yellow, #FFE500)',
+                      border: '1px solid #111',
+                      color: '#111',
+                      borderRadius: '2px',
                       padding: '1px 6px',
-                      fontSize: '0.72rem',
+                      fontSize: '0.7rem',
                       fontFamily: 'var(--font-mono)',
+                      fontWeight: 800,
                       cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: '3px',
-                      transition: 'var(--transition)',
-                      letterSpacing: '0.05em'
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '3px',
+                      letterSpacing: '0.04em'
                     }}
                   >
-                    {copiedPin ? <Check size={10} color="var(--success)" aria-hidden="true" /> : <KeyRound size={10} color="var(--accent-primary)" aria-hidden="true" />}
-                    {currentFreelancer.pin}
+                    {copiedPin ? <Check size={10} color="#15803D" aria-hidden="true" /> : <KeyRound size={10} color="#111" aria-hidden="true" />}
+                    <span>{currentFreelancer.pin}</span>
                   </button>
                 ) : null}
               </div>
 
-              {/* New project */}
+              {/* New project button */}
               <button
                 id="btn-nav-new-project"
+                type="button"
                 onClick={onOpenCreateModal}
-                className="btn btn-primary btn-sm btn-pill"
+                style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '0.8rem',
+                  fontWeight: 900,
+                  padding: '7px 14px',
+                  background: 'var(--yellow, #FFE500)',
+                  color: '#111111',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  boxShadow: '3px 3px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'transform 0.15s, box-shadow 0.15s'
+                }}
               >
-                <Plus size={14} aria-hidden="true" />
-                New Project
+                <Plus size={15} aria-hidden="true" />
+                <span>+ NEW DOCKET</span>
               </button>
 
               {/* Account Settings / Profile */}
               <button
                 id="btn-nav-account-settings"
+                type="button"
                 onClick={openAccountModal}
                 aria-label="Profile and account settings"
-                className="btn btn-secondary btn-sm"
+                style={{
+                  padding: '7px 9px',
+                  background: '#FFFFFF',
+                  color: '#111111',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  boxShadow: '2px 2px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
                 title="Profile, security, and account deletion"
-                style={{ padding: '6px 8px', color: 'var(--text-secondary)', borderRadius: 'var(--radius-full)', borderColor: 'var(--border-subtle)' }}
               >
                 <Settings size={14} aria-hidden="true" />
               </button>
@@ -573,35 +637,74 @@ export default function Navbar({ onOpenCreateModal }) {
               {/* Logout */}
               <button
                 id="btn-nav-logout"
+                type="button"
                 onClick={logoutFreelancer}
                 aria-label="Log out of account"
-                className="btn btn-secondary btn-sm"
+                style={{
+                  padding: '7px 9px',
+                  background: '#FFFFFF',
+                  color: '#111111',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  boxShadow: '2px 2px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center'
+                }}
                 title="Log out"
-                style={{ padding: '6px 8px', color: 'var(--text-tertiary)', borderRadius: 'var(--radius-full)', borderColor: 'var(--border-subtle)' }}
               >
                 <LogOut size={14} aria-hidden="true" />
               </button>
 
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 id="btn-nav-login"
+                type="button"
                 onClick={() => openAuthModal('login')}
-                className="btn btn-secondary btn-sm btn-pill"
+                style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  padding: '7px 14px',
+                  background: '#FFFFFF',
+                  color: '#111111',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  boxShadow: '2px 2px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
               >
                 <KeyRound size={13} aria-hidden="true" />
-                Log In
+                <span>LOG IN</span>
               </button>
 
               <button
                 id="btn-nav-register"
+                type="button"
                 onClick={() => openAuthModal('register')}
-                className="btn btn-primary btn-sm btn-pill"
-                style={{ boxShadow: 'var(--glow-accent)' }}
+                style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '0.8rem',
+                  fontWeight: 900,
+                  padding: '7px 14px',
+                  background: 'var(--yellow, #FFE500)',
+                  color: '#111111',
+                  border: '2px solid #111111',
+                  borderRadius: '4px',
+                  boxShadow: '3px 3px 0 #111111',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
               >
-                <Plus size={13} aria-hidden="true" />
-                Sign Up Free
+                <Plus size={14} aria-hidden="true" />
+                <span>START FREE</span>
               </button>
             </div>
           )}

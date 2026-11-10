@@ -30,6 +30,7 @@
   --border-ink: 2.5px solid #111111;
   --border-heavy: 3.5px solid #111111;
   --border-thin: 1.5px solid #111111;
+  --border-dashed: 2.5px dashed #111111;
   --shadow-xs: 2px 2px 0px #111111;
   --shadow-sm: 3px 3px 0px #111111;
   --shadow-md: 5px 5px 0px #111111;
@@ -116,6 +117,58 @@
   font-weight: 800;
 }
 
+.nb-dashboard-page .dash-ticker-link {
+  background: none;
+  border: none;
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s, background-color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nb-dashboard-page .dash-ticker-link:hover {
+  color: var(--ink);
+  background: var(--yellow);
+  text-decoration: none;
+}
+
+.nb-dashboard-page .dash-ticker-pill-btn {
+  background: var(--yellow);
+  color: var(--ink);
+  border: 1px solid #111;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.nb-dashboard-page .dash-ticker-pill-btn:hover {
+  background: var(--orange);
+  color: #fff;
+}
+
+.nb-dashboard-page .dash-ticker-sep {
+  color: var(--ink-dim);
+  opacity: 0.7;
+  user-select: none;
+}
+
 /* ── Main Container ─────────────────────────────────────────── */
 .nb-dashboard-page .dash-container {
   max-width: 1240px;
@@ -156,14 +209,25 @@
   letter-spacing: -0.035em;
   line-height: 1.05;
   text-transform: uppercase;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   color: var(--ink);
+}
+
+.nb-dashboard-page .highlight-badge {
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 2px 8px;
+  border: var(--border-ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  display: inline-block;
+  transform: rotate(-1deg);
+  margin-left: 6px;
 }
 
 .nb-dashboard-page .dash-subtitle {
   font-size: 1rem;
   color: var(--ink-muted);
-  max-width: 620px;
+  max-width: 640px;
   line-height: 1.5;
   margin: 0;
 }
@@ -257,6 +321,12 @@
 .nb-dashboard-page .btn-tactile-dark:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-md);
+  background: #222222;
+}
+
+.nb-dashboard-page .btn-tactile-dark:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-xs);
 }
 
 .nb-dashboard-page .btn-tactile-sm {
@@ -271,7 +341,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
+  user-select: none;
 }
 
 .nb-dashboard-page .btn-tactile-sm:hover {
@@ -284,7 +355,7 @@
   box-shadow: none;
 }
 
-/* ── Metrics Bento Grid ─────────────────────────────────────── */
+/* ── Metrics Bento HUD ──────────────────────────────────────── */
 .nb-dashboard-page .dash-bento-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -340,8 +411,8 @@
 }
 
 .nb-dashboard-page .metric-icon-stamp {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: 1.5px solid var(--ink);
   border-radius: 4px;
   display: flex;
@@ -432,12 +503,13 @@
 }
 
 .nb-dashboard-page .slot-track-nb {
-  height: 12px;
+  height: 14px;
   background: #E5E2D8;
   border: 2px solid var(--ink);
   border-radius: 3px;
   overflow: hidden;
   margin: 10px 0;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .nb-dashboard-page .slot-fill-nb {
@@ -481,6 +553,7 @@
 
 .nb-dashboard-page .ref-input-nb:focus {
   border-color: var(--orange);
+  box-shadow: 0 0 0 2px var(--orange-tint);
 }
 
 /* ── Filter & Search Toolbar ────────────────────────────────── */
@@ -616,6 +689,14 @@
   gap: 8px;
 }
 
+.nb-dashboard-page .docket-barcode-mock {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  user-select: none;
+}
+
 .nb-dashboard-page .docket-header-tags {
   display: flex;
   align-items: center;
@@ -723,6 +804,8 @@
 
 .nb-dashboard-page .docket-title:hover {
   color: var(--orange);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .nb-dashboard-page .docket-client-details {
@@ -789,15 +872,16 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--ink);
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 4px;
   background: #ffffff;
-  border: 1px solid rgba(17, 17, 17, 0.15);
+  border: 1.5px solid rgba(17, 17, 17, 0.2);
+  transition: background-color 0.15s, border-color 0.15s;
 }
 
 .nb-dashboard-page .docket-item-pill.done {
   background: var(--emerald-tint);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
 .nb-dashboard-page .docket-checkbox-icon {
@@ -970,3 +1054,40 @@
   margin: 0;
 }
 
+/* ── Bottom Neo Footer ──────────────────────────────────────── */
+.nb-dashboard-page .neo-dashboard-footer {
+  max-width: 1240px;
+  margin: 56px auto 0;
+  padding: 24px 24px 0;
+  border-top: var(--border-heavy);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+
+.nb-dashboard-page .neo-dash-footer-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.nb-dashboard-page .neo-dash-footer-btn {
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.nb-dashboard-page .neo-dash-footer-btn:hover {
+  background: var(--yellow);
+}

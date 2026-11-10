@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCadenceBadge, isTodaySubmitted, getRetentionStatus } from '../utils/cadenceUtils';
+import confetti from 'canvas-confetti';
 import { 
   FolderSync, 
   Copy, 
   ExternalLink, 
-  BellRing, 
   Download, 
   Trash2, 
   CheckCircle2, 
   Clock, 
-  AlertCircle, 
   Plus, 
   Search, 
   Sparkles, 
-  FileCheck, 
-  FileX, 
   Send, 
-  Shield, 
   ShieldCheck, 
   Layers, 
   Calendar, 
@@ -26,15 +22,14 @@ import {
   Check, 
   X, 
   TrendingUp, 
-  ArrowUpRight, 
   RefreshCw, 
   Eye, 
   Settings,
   Gift,
   Users,
-  Inbox,
-  FileCode,
-  HardDrive
+  KeyRound,
+  FileText,
+  Paperclip
 } from 'lucide-react';
 import '../styles/dashboard-brutalist.css';
 
@@ -42,7 +37,6 @@ export default function Dashboard({ onOpenCreateModal }) {
   const { 
     projects, 
     deleteProject, 
-    sendSimulatedReminder, 
     openReminderModal, 
     openExportModal, 
     openClientPortal, 
@@ -51,13 +45,15 @@ export default function Dashboard({ onOpenCreateModal }) {
     currentFreelancer, 
     seedDemoProjectForFreelancer, 
     toggleProjectType, 
-    openAccountModal 
+    openAccountModal,
+    openLegalModal
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'completed' | 'ongoing' | 'one-off'
   const [copiedSlug, setCopiedSlug] = useState(null);
   const [copiedInvite, setCopiedInvite] = useState(false);
+  const [copiedPin, setCopiedPin] = useState(false);
 
   // Filter projects belonging to this authenticated freelancer
   const myProjects = (projects || []).filter((p) => {
@@ -87,9 +83,19 @@ export default function Dashboard({ onOpenCreateModal }) {
     navigator.clipboard.writeText(referralUrl);
     setCopiedInvite(true);
     if (addToast) {
-      addToast('Studio referral link copied to clipboard!', 'success', 'Referral');
+      addToast('Studio referral link copied to clipboard!', 'success', 'Referral Link');
     }
     setTimeout(() => setCopiedInvite(false), 2500);
+  };
+
+  const copyFreelancerPin = () => {
+    if (!currentFreelancer?.pin) return;
+    navigator.clipboard.writeText(currentFreelancer.pin);
+    setCopiedPin(true);
+    if (addToast) {
+      addToast(`Security PIN (${currentFreelancer.pin}) copied to clipboard!`, 'success', 'PIN Copied');
+    }
+    setTimeout(() => setCopiedPin(false), 2500);
   };
 
   // Search & Filter Logic
@@ -137,7 +143,7 @@ export default function Dashboard({ onOpenCreateModal }) {
     navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     if (addToast) {
-      addToast('Client link copied! Paste into WhatsApp or email.', 'success', 'Link Copied');
+      addToast('Client token link copied! Paste directly into WhatsApp or email.', 'success', 'Link Copied');
     }
     setTimeout(() => setCopiedSlug(null), 2500);
   };
@@ -149,22 +155,76 @@ export default function Dashboard({ onOpenCreateModal }) {
   return (
     <div className="nb-dashboard-page" role="region" aria-label="Freelancer Studio Dashboard">
 
+      {/* ── 0. Top Dispatch Telemetry Masthead ────────────────── */}
+      <div className="dash-top-ticker" role="region" aria-label="Studio Dispatch Status Bar">
+        <div className="dash-ticker-left">
+          <span className="status-dot-pulse" aria-hidden="true" />
+          <span>SYS_ENGINE: LIVE (EU IRELAND)</span>
+          <span className="dash-ticker-sep" aria-hidden="true">•</span>
+          <span>DISPATCH_OPERATOR: <strong style={{ color: 'var(--yellow)' }}>@{currentFreelancer?.nick || 'STUDIO'}</strong></span>
+          <span className="dash-ticker-sep" aria-hidden="true">•</span>
+          {isVipPro ? (
+            <span className="dash-ticker-tag-pro">⭐ VIP FOUNDING PRO</span>
+          ) : (
+            <span className="dash-ticker-tag">STARTER TIER</span>
+          )}
+          <span className="dash-ticker-sep" aria-hidden="true">•</span>
+          <span style={{ color: 'var(--emerald)' }}>256-BIT SSL</span>
+        </div>
+
+        <div className="dash-ticker-right">
+          <span style={{ color: activeProjectsCount >= maxProjects ? 'var(--orange)' : 'var(--paper)' }}>
+            SLOTS: <strong>{activeProjectsCount}/{maxProjects} ACTIVE</strong>
+          </span>
+          <span className="dash-ticker-sep" aria-hidden="true">•</span>
+          <button 
+            type="button" 
+            className="dash-ticker-link"
+            onClick={() => openLegalModal && openLegalModal('retention')}
+            title="Read 30-day automated storage purge policy (GDPR Art. 5)"
+          >
+            30-DAY RETENTION (GDPR)
+          </button>
+          <span className="dash-ticker-sep" aria-hidden="true">•</span>
+          {currentFreelancer?.pin && (
+            <button
+              type="button"
+              className="dash-ticker-pill-btn"
+              onClick={copyFreelancerPin}
+              title="Click to copy your personal security PIN"
+            >
+              <KeyRound size={11} aria-hidden="true" />
+              <span>{copiedPin ? 'PIN COPIED! ✓' : `PIN: ${currentFreelancer.pin}`}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            className="dash-ticker-pill-btn"
+            onClick={openAccountModal}
+            title="Open comprehensive account & GDPR settings"
+          >
+            <span>ACCOUNT SPEC ↗</span>
+          </button>
+        </div>
+      </div>
+
       <div className="dash-container">
 
-        {/* ── Studio Header & Primary Action Deck ──────────────── */}
+        {/* ── 1. Studio Header & Primary Action Deck ────────────── */}
         <div className="dash-header-section">
           <div>
             <div className="dash-kicker-badge">
               <Sparkles size={13} aria-hidden="true" />
-              <span>STUDIO DISPATCH BOARD // DOCKETS</span>
+              <span>⚡ ZERO-FRICTION CLIENT DISPATCH DESK • LIVE TELEMETRY</span>
             </div>
 
             <h1 className="dash-title">
               CLIENT ASSET DOCKETS
+              <span className="highlight-badge">REAL-TIME INTAKE</span>
             </h1>
 
             <p className="dash-subtitle">
-              Tactile overview of active client intake portals. Clients upload logos, copy, and assets through their private link with zero passwords and zero friction.
+              Tactile studio overview of active client intake portals. Clients upload vector logos, raw photography, copy, and documents through their private single-token link with zero passwords and zero setup friction.
             </p>
           </div>
 
@@ -179,6 +239,16 @@ export default function Dashboard({ onOpenCreateModal }) {
               <Plus size={18} aria-hidden="true" />
               <span>+ NEW DOCKET</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => openClientPortal('demo-preview')}
+              className="btn-tactile-secondary"
+              title="Experience what your client sees — live interactive test (no passwords or registration required)"
+            >
+              <Eye size={15} aria-hidden="true" />
+              <span>CLIENT SANDBOX ↗</span>
+            </button>
             
             <button
               id="btn-dashboard-account-settings"
@@ -188,13 +258,13 @@ export default function Dashboard({ onOpenCreateModal }) {
               title="Account settings, security PIN, and GDPR data erasure"
               aria-label="Account and GDPR settings"
             >
-              <Settings size={16} aria-hidden="true" />
+              <Settings size={15} aria-hidden="true" />
               <span>ACCOUNT &amp; GDPR</span>
             </button>
           </div>
         </div>
 
-        {/* ── Metrics Bento HUD ─────────────────────────────────── */}
+        {/* ── 2. Operational Metrics Bento HUD ─────────────────── */}
         <div className="dash-bento-grid">
 
           {/* Metric 1 — Total Active Projects */}
@@ -202,7 +272,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             <div className="metric-box-top">
               <span className="metric-box-label">TRACKED DOCKETS</span>
               <div className="metric-icon-stamp" style={{ background: 'var(--yellow)' }}>
-                <Layers size={16} color="var(--ink)" aria-hidden="true" />
+                <Layers size={17} color="var(--ink)" aria-hidden="true" />
               </div>
             </div>
             <div className="metric-big-number">{totalProjects}</div>
@@ -210,17 +280,37 @@ export default function Dashboard({ onOpenCreateModal }) {
           </div>
 
           {/* Metric 2 — Pending Deliverables */}
-          <div className="metric-docket-box" style={{ background: totalMissingItems > 0 ? 'var(--card)' : 'var(--card-alt)' }}>
+          <div 
+            className="metric-docket-box" 
+            style={{ 
+              background: totalMissingItems > 0 ? 'var(--card)' : 'var(--card-alt)',
+              borderColor: totalMissingItems > 0 ? 'var(--ink)' : 'rgba(17, 17, 17, 0.4)'
+            }}
+          >
             <div className="metric-box-top">
               <span className="metric-box-label">PENDING ASSETS</span>
-              <div className="metric-icon-stamp" style={{ background: totalMissingItems > 0 ? 'var(--orange)' : '#E5E2D8' }}>
-                <Clock size={16} color={totalMissingItems > 0 ? '#FFFFFF' : 'var(--ink)'} aria-hidden="true" />
+              <div 
+                className="metric-icon-stamp" 
+                style={{ 
+                  background: totalMissingItems > 0 ? 'var(--orange)' : 'var(--emerald)' 
+                }}
+              >
+                {totalMissingItems > 0 ? (
+                  <Clock size={17} color="#FFFFFF" aria-hidden="true" />
+                ) : (
+                  <CheckCircle2 size={17} color="#FFFFFF" aria-hidden="true" />
+                )}
               </div>
             </div>
-            <div className="metric-big-number" style={{ color: totalMissingItems > 0 ? 'var(--orange)' : 'var(--ink)' }}>
+            <div 
+              className="metric-big-number" 
+              style={{ color: totalMissingItems > 0 ? 'var(--orange)' : '#065F46' }}
+            >
               {totalMissingItems}
             </div>
-            <div className="metric-box-sub">Awaiting client submission</div>
+            <div className="metric-box-sub">
+              {totalMissingItems > 0 ? 'Awaiting client submission' : 'All deliverables received! ✓'}
+            </div>
           </div>
 
           {/* Metric 3 — Ready for Kickoff */}
@@ -228,7 +318,7 @@ export default function Dashboard({ onOpenCreateModal }) {
             <div className="metric-box-top">
               <span className="metric-box-label">100% COMPLETE</span>
               <div className="metric-icon-stamp" style={{ background: 'var(--emerald)' }}>
-                <CheckCircle2 size={16} color="#FFFFFF" aria-hidden="true" />
+                <CheckCircle2 size={17} color="#FFFFFF" aria-hidden="true" />
               </div>
             </div>
             <div className="metric-big-number" style={{ color: '#065F46' }}>
@@ -238,22 +328,24 @@ export default function Dashboard({ onOpenCreateModal }) {
           </div>
 
           {/* Metric 4 — Hours Saved */}
-          <div className="metric-docket-box">
+          <div className="metric-docket-box" style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
             <div className="metric-box-top">
-              <span className="metric-box-label">TIME RECLAIMED</span>
-              <div className="metric-icon-stamp" style={{ background: 'var(--ink)' }}>
-                <TrendingUp size={16} color="var(--yellow)" aria-hidden="true" />
+              <span className="metric-box-label" style={{ color: 'var(--paper)', opacity: 0.8 }}>TIME RECLAIMED</span>
+              <div className="metric-icon-stamp" style={{ background: 'var(--yellow)', border: '1.5px solid var(--paper)' }}>
+                <TrendingUp size={17} color="var(--ink)" aria-hidden="true" />
               </div>
             </div>
-            <div className="metric-big-number">
+            <div className="metric-big-number" style={{ color: 'var(--yellow)' }}>
               ~{estimatedHoursSaved}h
             </div>
-            <div className="metric-box-sub">Zero email chasing · 0 expired links</div>
+            <div className="metric-box-sub" style={{ color: 'var(--paper)', opacity: 0.8 }}>
+              Zero email chasing · 0 expired links
+            </div>
           </div>
 
         </div>
 
-        {/* ── Studio License & Referral Dispatch Terminal ──────── */}
+        {/* ── 3. Studio License & Referral Dispatch Terminal ──── */}
         <div id="referral-tier-card" className="dash-license-terminal">
           
           <div className="terminal-header-strip">
@@ -301,10 +393,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px' }}>
                 <Gift size={16} color="var(--orange)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
                 <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--ink-muted)', lineHeight: 1.5 }}>
-                  <strong>Invite a fellow web designer:</strong> You unlock <strong>+2 project slots</strong> &amp; <strong>+50MB storage</strong> for every designer who signs up with your link.
+                  <strong>Invite a fellow web designer:</strong> Unlock <strong>+2 project slots</strong> &amp; <strong>+50MB storage limit</strong> for every designer who signs up with your link.
                 </p>
               </div>
             </div>
@@ -355,7 +447,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                   {copiedInvite ? (
                     <>
                       <Check size={14} aria-hidden="true" />
-                      <span>COPIED!</span>
+                      <span>COPIED! ✓</span>
                     </>
                   ) : (
                     <>
@@ -371,7 +463,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
         </div>
 
-        {/* ── Filter & Search Command Console ─────────────────── */}
+        {/* ── 4. Filter & Search Command Console ──────────────── */}
         <div className="dash-filter-console">
           
           {/* Architectural Search Input */}
@@ -469,7 +561,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
         </div>
 
-        {/* ── Project Production Dockets Stack ────────────────── */}
+        {/* ── 5. Project Production Dockets Stack ─────────────── */}
         {filteredProjects.length === 0 ? (
           
           /* Empty State — Blueprint Drawing Board */
@@ -516,7 +608,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
         ) : (
 
-          /* Dockets List */
+          /* Dockets List — Matching the Physical Landing Page Ticket */
           <div className="dash-dockets-stack">
             {filteredProjects.map((proj) => {
               const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
@@ -526,7 +618,7 @@ export default function Dashboard({ onOpenCreateModal }) {
               const isLinkCopied = copiedSlug === proj.slug;
               const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
 
-              // Unique serial code simulation
+              // Unique serial code simulation matching the landing page ticket
               const serialCode = (proj.id || 'proj-000').slice(-5).toUpperCase();
 
               return (
@@ -539,6 +631,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                   {/* 1. Perforated Docket Header Strip */}
                   <div className="docket-perforated-strip">
                     <div className="docket-serial-stamp">
+                      <span className="docket-barcode-mock">||| |||| || ||||| ||||</span>
                       <span style={{ color: 'var(--orange)', fontWeight: 900 }}>#</span>
                       <span>DKT-{serialCode}</span>
                       <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
@@ -721,6 +814,12 @@ export default function Dashboard({ onOpenCreateModal }) {
                               {item.title}
                             </span>
 
+                            {item.type === 'file' ? (
+                              <Paperclip size={12} color="var(--ink-dim)" style={{ flexShrink: 0 }} aria-hidden="true" />
+                            ) : (
+                              <FileText size={12} color="var(--ink-dim)" style={{ flexShrink: 0 }} aria-hidden="true" />
+                            )}
+
                             {fileCount > 1 && (
                               <span className="file-count-badge-nb">
                                 ×{fileCount}
@@ -782,7 +881,7 @@ export default function Dashboard({ onOpenCreateModal }) {
                         {isLinkCopied ? (
                           <>
                             <Check size={14} aria-hidden="true" />
-                            <span>COPIED!</span>
+                            <span>COPIED! ✓</span>
                           </>
                         ) : (
                           <>
@@ -844,7 +943,7 @@ export default function Dashboard({ onOpenCreateModal }) {
 
         )}
 
-        {/* ── Studio Axioms / Zero-Friction Rules ──────────────── */}
+        {/* ── 6. Studio Axioms / Zero-Friction Rules ──────────── */}
         <div className="dash-axioms-section">
           <div className="axioms-header-box">
             <div className="dash-kicker-badge" style={{ margin: '0 auto 10px' }}>
@@ -901,6 +1000,64 @@ export default function Dashboard({ onOpenCreateModal }) {
 
           </div>
         </div>
+
+        {/* ── 7. Studio Dispatch Footer ──────────────────────── */}
+        <footer className="neo-dashboard-footer" aria-label="Studio dashboard footer">
+          <div>
+            <strong>DROPBRIEF ⚡</strong> &bull; Client Intake &amp; Asset Docket System &bull; <span style={{ color: 'var(--emerald)', fontWeight: 800 }}>SYS_ENGINE: LIVE (EU IRELAND)</span>
+          </div>
+
+          <div className="neo-dash-footer-links">
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('tos')}
+              aria-label="Terms of service"
+            >
+              Terms of Service
+            </button>
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('privacy')}
+              aria-label="GDPR compliance and privacy policy"
+            >
+              Privacy &amp; GDPR
+            </button>
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('cookies')}
+              aria-label="Cookie-free declaration"
+            >
+              100% Cookie-free
+            </button>
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('retention')}
+              aria-label="30-day retention and purge policy"
+            >
+              30-Day Purge
+            </button>
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('dpa')}
+              aria-label="Data processing agreement"
+            >
+              DPA (Art. 28)
+            </button>
+            <button
+              type="button"
+              className="neo-dash-footer-btn"
+              onClick={() => openLegalModal && openLegalModal('impressum')}
+              aria-label="Operator information and contacts"
+            >
+              Impressum &amp; Contact
+            </button>
+          </div>
+        </footer>
 
       </div>
 
