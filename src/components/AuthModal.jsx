@@ -220,7 +220,7 @@ export default function AuthModal() {
     setTimeout(() => setCopiedPin(false), 3000);
   };
 
-  const handleOpenLegal = (tab = 'overview') => {
+  const handleOpenLegal = (tab) => {
     closeAuthModal();
     openLegalModal(tab);
   };
@@ -507,15 +507,7 @@ export default function AuthModal() {
                 </button>
 
                 <div className="auth-footer-legal">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenLegal('overview')}
-                    className="auth-legal-link"
-                    style={{ fontWeight: 600 }}
-                  >
-                    Protected by 256-bit encryption
-                  </button>
-                  {' '}&bull;{' '}
+                  Protected by 256-bit encryption &bull;{' '}
                   <button
                     type="button"
                     onClick={() => handleOpenLegal('privacy')}
