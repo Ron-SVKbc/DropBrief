@@ -475,6 +475,7 @@ export default function Navbar({ onOpenCreateModal }) {
 
               {/* User profile pill */}
               <div 
+                id="btn-nav-account-settings"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -584,6 +585,13 @@ export default function Navbar({ onOpenCreateModal }) {
                     <span>{currentFreelancer.pin}</span>
                   </button>
                 ) : null}
+
+                <Settings 
+                  size={14} 
+                  color="#111111" 
+                  style={{ marginLeft: '4px', opacity: 0.8 }} 
+                  aria-hidden="true" 
+                />
               </div>
 
               {/* New project button */}
@@ -610,28 +618,6 @@ export default function Navbar({ onOpenCreateModal }) {
               >
                 <Plus size={15} aria-hidden="true" />
                 <span>NEW DOCKET</span>
-              </button>
-
-              {/* Account Settings / Profile */}
-              <button
-                id="btn-nav-account-settings"
-                type="button"
-                onClick={openAccountModal}
-                aria-label="Profile and account settings"
-                style={{
-                  padding: '7px 9px',
-                  background: '#FFFFFF',
-                  color: '#111111',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  boxShadow: '2px 2px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center'
-                }}
-                title="Profile, security, and account deletion"
-              >
-                <Settings size={14} aria-hidden="true" />
               </button>
 
               {/* Logout */}
