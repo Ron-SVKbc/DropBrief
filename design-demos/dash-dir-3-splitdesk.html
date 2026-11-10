@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direction 3: Architectural Split Workbench with Live Rail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F5F3EF;
+      --card: #FFFFFF;
+      --card-alt: #FAF8F5;
+      --ink: #18181B;
+      --ink-dim: #71717A;
+      --border: #E4E4E7;
+      --border-ink: 2px solid #18181B;
+      --shadow: 3px 3px 0 #18181B;
+      
+      --yellow: #FACC15;
+      --orange: #F97316;
+      --green: #22C55E;
+      --green-tint: #F0FDF4;
+      --blue: #3B82F6;
+
+      --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .workbench-layout {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Main Stage */
+    .main-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stage-header {
+      background: var(--card);
+      border: var(--border-ink);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stage-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .btn-create {
+      background: var(--yellow);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 9px 18px;
+      border: var(--border-ink);
+      box-shadow: 2px 2px 0 #000;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Docket Cards Stack */
+    .docket-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .docket-box {
+      background: var(--card);
+      border: var(--border-ink);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .docket-box-header {
+      background: #FAF9F6;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .docket-box-body {
+      padding: 20px 22px;
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .docket-box-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .docket-box-client {
+      font-size: 0.85rem;
+      color: var(--ink-dim);
+      margin-bottom: 14px;
+    }
+
+    .item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .item-tag {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      background: #F4F4F5;
+      color: var(--ink-dim);
+    }
+
+    .item-tag.done {
+      background: var(--green-tint);
+      color: #166534;
+      font-weight: 700;
+    }
+
+    .docket-box-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-action-primary {
+      background: var(--yellow);
+      color: #000;
+      border: 1.5px solid #000;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 800;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .btn-action-secondary {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 7px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    /* Right Studio Intelligence Rail */
+    .studio-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .rail-card {
+      background: var(--card);
+      border: var(--border-ink);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .rail-header {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+      color: var(--ink-dim);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+    }
+
+    .stat-bar {
+      height: 8px;
+      background: #E4E4E7;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0 14px;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="workbench-layout">
+    
+    <!-- Left Stage (70%) -->
+    <main class="main-stage">
+      <div class="stage-header">
+        <div>
+          <h1 class="stage-title">STUDIO DOCKETS</h1>
+          <p style="font-size: 0.88rem; color: var(--ink-dim)">Active asset pipelines for @marko (3 dockets)</p>
+        </div>
+        <button class="btn-create">+ NEW DOCKET</button>
+      </div>
+
+      <div class="docket-stack">
+        <!-- Docket 1 -->
+        <article class="docket-box">
+          <div class="docket-box-header">
+            <span>#DKT-8842 &bull; 3-DAY CADENCE</span>
+            <span style="color: var(--orange); font-weight: 800;">WAITING FOR CLIENT (1/3 DELIVERED)</span>
+          </div>
+          <div class="docket-box-body">
+            <div>
+              <h2 class="docket-box-title">Nordic Bakery — Web Redesign Assets</h2>
+              <div class="docket-box-client">Elena Rostova (elena@nordicbakery.se) &bull; Deadline: Nov 24, 2026</div>
+              <div class="item-tags">
+                <span class="item-tag done">✓ Brand Brief</span>
+                <span class="item-tag">⏳ Vector Logo</span>
+                <span class="item-tag">⏳ Photo Gallery</span>
+              </div>
+            </div>
+            <div class="docket-box-actions">
+              <button class="btn-action-primary">COPY LINK</button>
+              <button class="btn-action-secondary">✉ NUDGE</button>
+              <button class="btn-action-secondary">OVERVIEW</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Docket 2 -->
+        <article class="docket-box">
+          <div class="docket-box-header">
+            <span>#DKT-9104 &bull; 30-DAY RETENTION</span>
+            <span style="color: #166534; font-weight: 800;">100% COMPLETE // KICKOFF READY</span>
+          </div>
+          <div class="docket-box-body">
+            <div>
+              <h2 class="docket-box-title">Dental Clinic Aurora — Brand Identity</h2>
+              <div class="docket-box-client">MUDr. Peter Varga (aurora@dental.sk) &bull; Completed Yesterday</div>
+              <div class="item-tags">
+                <span class="item-tag done">✓ Vector Logo (2)</span>
+                <span class="item-tag done">✓ Staff Portraits (6)</span>
+                <span class="item-tag done">✓ Price List PDF</span>
+              </div>
+            </div>
+            <div class="docket-box-actions">
+              <button class="btn-action-primary">COPY LINK</button>
+              <button class="btn-action-secondary" style="background: var(--ink); color: #fff;">ZIP EXPORT</button>
+              <button class="btn-action-secondary">OVERVIEW</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <!-- Right Rail (30%) -->
+    <aside class="studio-rail">
+      <!-- Capacity Card -->
+      <div class="rail-card">
+        <div class="rail-header">STUDIO CAPACITY</div>
+        <div class="stat-row">
+          <span>Active Slots</span>
+          <strong>3 / 5 (60%)</strong>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" style="width: 60%;"></div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--ink-dim)">VIP Founding Pro License &bull; 50MB per project storage</div>
+      </div>
+
+      <!-- Referral Engine -->
+      <div class="rail-card" style="background: #FEF9C3; border-color: #CA8A04;">
+        <div class="rail-header" style="color: #854D0E; border-color: #EAB308;">INVITE FELLOW DESIGNERS</div>
+        <div style="font-size: 0.84rem; color: #713F12; margin-bottom: 10px;">
+          Unlock <strong>+2 project slots</strong> for every designer who signs up with your link.
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.72rem; background: #fff; padding: 6px 8px; border: 1px solid #CA8A04; border-radius: 4px; margin-bottom: 8px;">
+          usedropbrief.xyz/?ref=marko
+        </div>
+        <button class="btn-action-primary" style="width: 100%;">COPY INVITE LINK</button>
+      </div>
+
+      <!-- Compliance Spec -->
+      <div class="rail-card">
+        <div class="rail-header">SECURITY &amp; COMPLIANCE</div>
+        <div style="font-size: 0.8rem; line-height: 1.6; color: var(--ink-dim)">
+          &bull; 100% Zero-Password Client Access<br>
+          &bull; 30-Day Automated Cloud Purge<br>
+          &bull; AES-256 Ireland EU Storage<br>
+          &bull; Cookie-Free Session Spec
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+</body>
+</html>

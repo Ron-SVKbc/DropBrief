@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direction 1: Atelier Studio Ledger — High-Legibility Minimalist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8F7F4;
+      --card: #FFFFFF;
+      --card-alt: #FAFAF9;
+      --ink: #111827;
+      --ink-secondary: #4B5563;
+      --ink-muted: #6B7280;
+      --border-subtle: #E5E7EB;
+      --border-card: #1F2937;
+      --shadow-tactile: 3px 3px 0px #1F2937;
+      --shadow-hover: 5px 5px 0px #1F2937;
+      
+      --amber: #F59E0B;
+      --amber-light: #FEF3C7;
+      --amber-dark: #92400E;
+      --emerald: #10B981;
+      --emerald-light: #ECFDF5;
+      --emerald-dark: #065F46;
+      --blue: #2563EB;
+      --blue-light: #EFF6FF;
+      --purple: #8B5CF6;
+      --purple-light: #F5F3FF;
+      --red: #EF4444;
+      --red-light: #FEF2F2;
+
+      --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Top Studio Header */
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .studio-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--amber-dark);
+      background: var(--amber-light);
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      border: 1px solid var(--amber);
+    }
+
+    .studio-title {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .studio-sub {
+      color: var(--ink-secondary);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-create {
+      background: var(--amber);
+      color: #000;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 10px 20px;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-tactile);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .btn-create:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 10px 16px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* HUD Metrics Deck */
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .hud-box {
+      background: var(--card);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hud-box-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .hud-box-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .hud-val {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .hud-sub {
+      font-size: 0.82rem;
+      color: var(--ink-secondary);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--card);
+      padding: 10px 14px;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+
+    .search-input {
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-family: var(--font-body);
+      width: 280px;
+      outline: none;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-pill {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      cursor: pointer;
+    }
+
+    .filter-pill.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* Dockets Grid */
+    .dockets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .docket-card {
+      background: var(--card);
+      border: 2px solid var(--border-card);
+      border-radius: 8px;
+      box-shadow: var(--shadow-tactile);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .docket-card-header {
+      background: #FAF9F6;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .docket-serial {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .docket-badges {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-amber { background: var(--amber-light); color: var(--amber-dark); border: 1px solid var(--amber); }
+    .badge-emerald { background: var(--emerald-light); color: var(--emerald-dark); border: 1px solid var(--emerald); }
+    .badge-blue { background: var(--blue-light); color: var(--blue); }
+
+    .docket-body {
+      padding: 20px 22px;
+      flex: 1;
+    }
+
+    .docket-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .docket-client-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: var(--ink-secondary);
+      margin-bottom: 18px;
+    }
+
+    .progress-box {
+      background: var(--card-alt);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: #E5E7EB;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--emerald);
+      border-radius: 4px;
+    }
+
+    /* Checklist manifest list */
+    .checklist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-size: 0.84rem;
+    }
+
+    .checklist-item.done {
+      background: var(--emerald-light);
+      border-color: #A7F3D0;
+      color: var(--emerald-dark);
+      font-weight: 600;
+    }
+
+    .docket-footer {
+      background: #FAF9F6;
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-copy {
+      background: var(--amber);
+      color: #000;
+      border: 1.5px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-ghost {
+      background: #fff;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header class="studio-header">
+      <div>
+        <span class="studio-kicker">⚡ DIRECTION 1: ATELIER STUDIO LEDGER</span>
+        <h1 class="studio-title">WORKSPACE DOCKETS</h1>
+        <p class="studio-sub">Active client intake pipelines for @marko • High-legibility editorial craft</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary">ACCOUNT &amp; GDPR</button>
+        <button class="btn-create">+ NEW DOCKET</button>
+      </div>
+    </header>
+
+    <!-- Metrics HUD -->
+    <section class="hud-grid">
+      <div class="hud-box">
+        <div class="hud-box-top">
+          <span class="hud-box-label">DOCKET CAPACITY</span>
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--emerald-dark)">60% USED</span>
+        </div>
+        <div class="hud-val">3 <span style="font-size: 1.1rem; color: var(--ink-muted); font-weight: 600">/ 5 slots</span></div>
+        <div class="hud-sub">VIP Founding Pro • 2 slots available</div>
+      </div>
+
+      <div class="hud-box" style="border-left: 4px solid var(--amber);">
+        <div class="hud-box-top">
+          <span class="hud-box-label">AWAITING CLIENTS</span>
+          <span class="badge badge-amber">3 ASSETS</span>
+        </div>
+        <div class="hud-val" style="color: var(--amber-dark)">2 <span style="font-size: 1.1rem; font-weight: 600">dockets</span></div>
+        <div class="hud-sub">Clients have opened portal today</div>
+      </div>
+
+      <div class="hud-box" style="border-left: 4px solid var(--emerald);">
+        <div class="hud-box-top">
+          <span class="hud-box-label">100% READY // KICKOFF</span>
+          <span class="badge badge-emerald">READY</span>
+        </div>
+        <div class="hud-val" style="color: var(--emerald-dark)">1 <span style="font-size: 1.1rem; font-weight: 600">docket</span></div>
+        <div class="hud-sub">All assets delivered &bull; ZIP export ready</div>
+      </div>
+
+      <div class="hud-box" style="background: #FFFDF5; border-color: #FDE68A;">
+        <div class="hud-box-top">
+          <span class="hud-box-label" style="color: #92400E;">INVITE PEERS (+2 SLOTS)</span>
+          <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 800; color: #92400E;">1 REFERRED</span>
+        </div>
+        <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 6px;">usedropbrief.xyz/?ref=marko</div>
+        <button class="btn-copy" style="width: 100%; padding: 6px 10px; font-size: 0.75rem;">COPY REFERRAL LINK</button>
+      </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <input type="text" class="search-input" placeholder="Search dockets by title, client..." value="">
+      <div class="filter-pills">
+        <button class="filter-pill active">All (3)</button>
+        <button class="filter-pill">Awaiting Assets (2)</button>
+        <button class="filter-pill">100% Ready (1)</button>
+        <button class="filter-pill">Retainers (1)</button>
+      </div>
+    </div>
+
+    <!-- Dockets Grid -->
+    <div class="dockets-grid">
+
+      <!-- Card 1 -->
+      <article class="docket-card">
+        <div class="docket-card-header">
+          <span class="docket-serial">#DKT-8842 &bull; CADENCE: 3D</span>
+          <div class="docket-badges">
+            <span class="badge badge-blue">ONE-OFF BRIEF</span>
+            <span class="badge badge-amber">WAITING FOR CLIENT</span>
+          </div>
+        </div>
+
+        <div class="docket-body">
+          <h2 class="docket-title">Nordic Bakery — Web Redesign Assets</h2>
+          <div class="docket-client-row">
+            <span>Client: <strong>Elena Rostova</strong> (elena@nordicbakery.se)</span>
+            <span>&bull;</span>
+            <span>Deadline: <strong>Nov 24, 2026</strong></span>
+          </div>
+
+          <div class="progress-box">
+            <div class="progress-labels">
+              <span>Fulfillment: <strong>1 of 3 assets delivered</strong></span>
+              <span style="color: var(--amber-dark)">33% Completed</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 33%; background: var(--amber);"></div>
+            </div>
+          </div>
+
+          <div class="checklist-list">
+            <div class="checklist-item done">
+              <span>✓ 01 // Core Brand Brief & Answers</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem;">SUBMITTED</span>
+            </div>
+            <div class="checklist-item">
+              <span>⏳ 02 // Master Vector Logo (.SVG / .AI)</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--amber-dark);">PENDING</span>
+            </div>
+            <div class="checklist-item">
+              <span>⏳ 03 // Brand Photography Gallery</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--amber-dark);">PENDING</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="docket-footer">
+          <div>
+            <button class="btn-ghost" style="color: var(--amber-dark); font-weight: 800;">✉ SEND POLITE NUDGE</button>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-copy">COPY CLIENT LINK</button>
+            <button class="btn-ghost">OVERVIEW</button>
+            <button class="btn-ghost">EXPORT</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="docket-card">
+        <div class="docket-card-header">
+          <span class="docket-serial">#DKT-9104 &bull; CADENCE: 30D</span>
+          <div class="docket-badges">
+            <span class="badge badge-emerald">100% READY // KICKOFF</span>
+            <span class="badge badge-emerald">PURGE IN 29D</span>
+          </div>
+        </div>
+
+        <div class="docket-body">
+          <h2 class="docket-title">Dental Clinic Aurora — Brand Identity</h2>
+          <div class="docket-client-row">
+            <span>Client: <strong>MUDr. Peter Varga</strong> (aurora@dental.sk)</span>
+            <span>&bull;</span>
+            <span>Completed: <strong>Yesterday</strong></span>
+          </div>
+
+          <div class="progress-box">
+            <div class="progress-labels">
+              <span>Fulfillment: <strong>4 of 4 assets delivered</strong></span>
+              <span style="color: var(--emerald-dark)">100% Ready</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 100%; background: var(--emerald);"></div>
+            </div>
+          </div>
+
+          <div class="checklist-list">
+            <div class="checklist-item done">
+              <span>✓ 01 // Clinic Logo & Vector Guidelines</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem;">2 FILES (12.4 MB)</span>
+            </div>
+            <div class="checklist-item done">
+              <span>✓ 02 // Doctor Staff Portraits</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem;">6 PHOTOS (48.1 MB)</span>
+            </div>
+            <div class="checklist-item done">
+              <span>✓ 03 // Price List Specification (.PDF)</span>
+              <span style="font-family: var(--font-mono); font-size: 0.72rem;">1 FILE (3.2 MB)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="docket-footer">
+          <div>
+            <span style="font-size: 0.78rem; font-weight: 800; color: var(--emerald-dark);">✓ ALL ASSETS READY FOR KICKOFF</span>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-copy">COPY CLIENT LINK</button>
+            <button class="btn-ghost">OVERVIEW</button>
+            <button class="btn-ghost" style="background: var(--ink); color: #fff;">EXPORT (ZIP)</button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

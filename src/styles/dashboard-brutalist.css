@@ -1,55 +1,57 @@
 /* ============================================================
-   DropBrief — Studio Dispatch Cockpit & Dashboard
-   Tactile Neo-Brutalist Studio Operating Environment
-   Matches WelcomeView & neo-brutalist.css aesthetic DNA
-   Distinct, high-density, ergonomic dashboard architecture
+   DropBrief — Atelier Studio Cockpit & Workspace Dashboard
+   High-legibility, calm studio palette, architectural precision
+   Maximum text contrast, zero background noise, distinct dashboard identity
    ============================================================ */
 
 .nb-dashboard-page {
-  /* Tactile Neo-Brutalist Palette */
-  --paper: #F5F1E8;
-  --card: #FFFFFF;
-  --card-alt: #FFFDF9;
-  --ink: #111111;
-  --ink-muted: #4B4842;
-  --ink-dim: #736E66;
-  --border-hairline: #D8D3C8;
+  /* Atelier Studio Palette — Calming, zero-noise, high contrast */
+  --bg-studio: #F8F7F4;
+  --card-bg: #FFFFFF;
+  --card-alt: #FAF9F6;
+  --ink-primary: #111827;
+  --ink-secondary: #4B5563;
+  --ink-muted: #6B7280;
+  --border-subtle: #E5E7EB;
+  --border-hairline: #E2E8F0;
+  --border-card: #18181B;
 
-  /* Spot Inks */
-  --orange: #FF4400;
-  --orange-tint: #FFF0EB;
-  --yellow: #FFE500;
-  --yellow-tint: #FFFDE6;
-  --cobalt: #1A56DB;
-  --cobalt-tint: #EFF4FF;
+  /* Spot Inks (Calibrated for legibility) */
+  --amber: #F59E0B;
+  --amber-light: #FEF3C7;
+  --amber-dark: #92400E;
+  --orange: #EA580C;
+  --orange-light: #FFF7ED;
+  --orange-dark: #9A3412;
   --emerald: #10B981;
-  --emerald-tint: #ECFDF5;
+  --emerald-light: #ECFDF5;
+  --emerald-dark: #065F46;
+  --blue: #2563EB;
+  --blue-light: #EFF6FF;
+  --blue-dark: #1E40AF;
   --purple: #8B5CF6;
-  --purple-tint: #F5F3FF;
+  --purple-light: #F5F3FF;
+  --purple-dark: #5B21B6;
   --red: #DC2626;
-  --red-tint: #FEF2F2;
+  --red-light: #FEF2F2;
 
-  /* Brutalist Physical Tokens */
-  --border-ink: 2.5px solid #111111;
-  --border-heavy: 3.5px solid #111111;
-  --border-thin: 1.5px solid #111111;
-  --shadow-xs: 2px 2px 0px #111111;
-  --shadow-sm: 3px 3px 0px #111111;
-  --shadow-md: 5px 5px 0px #111111;
-  --shadow-lg: 8px 8px 0px #111111;
+  /* Refined Tactile Shadows */
+  --shadow-sm: 2px 2px 0px #18181B;
+  --shadow-md: 3px 3px 0px #18181B;
+  --shadow-lg: 5px 5px 0px #18181B;
 
   /* Typography */
   --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  background-color: var(--paper);
-  color: var(--ink);
+  background-color: var(--bg-studio);
+  color: var(--ink-primary);
   font-family: var(--font-body);
   min-height: 100vh;
   line-height: 1.5;
-  background-image: radial-gradient(rgba(17, 17, 17, 0.08) 1.5px, transparent 1.5px);
-  background-size: 20px 20px;
+  /* NO noisy dot pattern — pure calm readable canvas */
+  background-image: none;
   overflow-x: hidden;
   padding-bottom: 60px;
   box-sizing: border-box;
@@ -61,55 +63,54 @@
 
 /* ── Container ──────────────────────────────────────────────── */
 .nb-dashboard-page .dash-container {
-  max-width: 1380px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 24px 20px 0;
+  padding: 28px 24px 0;
 }
 
-/* ── Header Cockpit Bar ─────────────────────────────────────── */
+/* ── Studio Header & Primary Action Deck ─────────────────────── */
 .nb-dashboard-page .dash-header-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 20px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: var(--border-heavy);
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--border-card);
 }
 
 .nb-dashboard-page .dash-kicker-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--yellow);
-  border: var(--border-ink);
+  background: var(--amber-light);
+  color: var(--amber-dark);
+  border: 1px solid var(--amber);
   padding: 3px 10px;
   border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  box-shadow: var(--shadow-xs);
   margin-bottom: 8px;
-  transform: rotate(-0.5deg);
 }
 
 .nb-dashboard-page .dash-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
   font-weight: 900;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   text-transform: uppercase;
-  margin: 0 0 8px 0;
-  color: var(--ink);
+  margin: 0 0 6px 0;
+  color: var(--ink-primary);
 }
 
 .nb-dashboard-page .dash-subtitle {
   font-size: 0.95rem;
-  color: var(--ink-muted);
-  max-width: 640px;
+  color: var(--ink-secondary);
+  max-width: 650px;
   line-height: 1.5;
   margin: 0;
   display: flex;
@@ -123,7 +124,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--emerald);
-  box-shadow: 0 0 8px var(--emerald);
+  box-shadow: 0 0 6px var(--emerald);
   display: inline-block;
   flex-shrink: 0;
   animation: nbPulse 2s infinite ease-in-out;
@@ -143,14 +144,14 @@
 
 /* ── Tactile Buttons ────────────────────────────────────────── */
 .nb-dashboard-page .btn-tactile-primary {
-  background: var(--yellow);
-  color: var(--ink);
+  background: var(--amber);
+  color: #111827;
   font-family: var(--font-mono);
   font-size: 0.88rem;
   font-weight: 800;
   padding: 10px 20px;
-  border: var(--border-heavy);
-  box-shadow: var(--shadow-md);
+  border: 2px solid var(--border-card);
+  box-shadow: var(--shadow-sm);
   border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
@@ -162,101 +163,82 @@
 }
 
 .nb-dashboard-page .btn-tactile-primary:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-lg);
-  background: #FFE81A;
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+  background: #FBBF24;
 }
 
 .nb-dashboard-page .btn-tactile-primary:active {
-  transform: translate(2px, 2px);
-  box-shadow: var(--shadow-xs);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #18181B;
 }
 
 .nb-dashboard-page .btn-tactile-secondary {
-  background: var(--card);
-  color: var(--ink);
+  background: #FFFFFF;
+  color: var(--ink-primary);
   font-family: var(--font-mono);
-  font-size: 0.86rem;
-  font-weight: 800;
+  font-size: 0.85rem;
+  font-weight: 700;
   padding: 10px 16px;
-  border: var(--border-ink);
-  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+  transition: all 0.12s;
   user-select: none;
 }
 
 .nb-dashboard-page .btn-tactile-secondary:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-md);
   background: var(--card-alt);
-}
-
-.nb-dashboard-page .btn-tactile-secondary:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 #111;
+  border-color: var(--ink-primary);
 }
 
 .nb-dashboard-page .btn-tactile-dark {
-  background: var(--ink);
+  background: var(--ink-primary);
   color: #FFFFFF;
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  font-weight: 800;
-  padding: 7px 14px;
-  border: var(--border-ink);
-  box-shadow: var(--shadow-xs);
+  font-weight: 700;
+  padding: 6px 14px;
+  border: 1.5px solid var(--ink-primary);
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  transition: transform 0.12s, box-shadow 0.12s;
+  transition: background 0.12s;
   user-select: none;
 }
 
 .nb-dashboard-page .btn-tactile-dark:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: var(--shadow-sm);
-  background: #222222;
-}
-
-.nb-dashboard-page .btn-tactile-dark:active {
-  transform: translate(1px, 1px);
-  box-shadow: none;
+  background: #27272A;
 }
 
 .nb-dashboard-page .btn-tactile-sm {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 700;
   padding: 6px 12px;
-  border: var(--border-ink);
-  box-shadow: var(--shadow-xs);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   text-decoration: none;
-  transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+  background: #FFFFFF;
+  color: var(--ink-primary);
+  transition: all 0.12s;
   user-select: none;
 }
 
 .nb-dashboard-page .btn-tactile-sm:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.nb-dashboard-page .btn-tactile-sm:active {
-  transform: translate(1px, 1px);
-  box-shadow: none;
+  border-color: var(--ink-primary);
+  background: var(--card-alt);
 }
 
 /* ── Studio Command HUD Grid ────────────────────────────────── */
@@ -264,90 +246,84 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .nb-dashboard-page .hud-card {
-  background: var(--card);
-  border: var(--border-ink);
-  box-shadow: var(--shadow-sm);
-  border-radius: 6px;
-  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: relative;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .nb-dashboard-page .hud-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .nb-dashboard-page .hud-card-highlight {
-  background: var(--card-alt);
-  border-color: var(--ink);
+  border-left: 4px solid var(--amber);
 }
 
 .nb-dashboard-page .hud-card-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .nb-dashboard-page .hud-label {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  color: var(--ink-dim);
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
   text-transform: uppercase;
 }
 
 .nb-dashboard-page .hud-icon-stamp {
   width: 28px;
   height: 28px;
-  border: 1.5px solid var(--ink);
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 1.5px 1.5px 0px var(--ink);
   flex-shrink: 0;
 }
 
 .nb-dashboard-page .hud-big-value {
   font-family: var(--font-display);
-  font-size: 2.1rem;
+  font-size: 2.3rem;
   font-weight: 900;
   line-height: 1;
-  color: var(--ink);
-  margin-bottom: 6px;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
 
 .nb-dashboard-page .hud-meta-text {
-  font-size: 0.82rem;
-  color: var(--ink-muted);
-  line-height: 1.35;
+  font-size: 0.84rem;
+  color: var(--ink-secondary);
+  line-height: 1.4;
   margin: 0;
 }
 
 /* Meter within HUD Tile 1 */
 .nb-dashboard-page .hud-meter-wrap {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .nb-dashboard-page .hud-slot-track {
   width: 100%;
-  height: 10px;
-  background: #EAE6DC;
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
   overflow: hidden;
   position: relative;
 }
@@ -355,12 +331,12 @@
 .nb-dashboard-page .hud-slot-fill {
   height: 100%;
   background: var(--emerald);
+  border-radius: 4px;
   transition: width 0.3s ease;
-  border-right: 1.5px solid var(--ink);
 }
 
 .nb-dashboard-page .hud-slot-fill.warning {
-  background: var(--yellow);
+  background: var(--amber);
 }
 
 .nb-dashboard-page .hud-slot-fill.full {
@@ -377,19 +353,19 @@
 .nb-dashboard-page .hud-ref-input {
   flex: 1;
   min-width: 0;
-  background: var(--paper);
-  border: 1.5px solid var(--ink);
+  background: #F8FAFC;
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink);
+  font-weight: 600;
+  color: var(--ink-primary);
   outline: none;
 }
 
 .nb-dashboard-page .hud-ref-input:focus {
-  border-color: var(--orange);
+  border-color: var(--amber);
   background: #FFFFFF;
 }
 
@@ -400,12 +376,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  margin-bottom: 22px;
-  background: var(--card);
-  border: var(--border-ink);
-  box-shadow: var(--shadow-sm);
-  border-radius: 6px;
-  padding: 12px 16px;
+  margin-bottom: 24px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
 .nb-dashboard-page .dash-search-wrap {
@@ -417,27 +393,26 @@
 
 .nb-dashboard-page .dash-search-input {
   width: 100%;
-  background: var(--paper);
-  border: var(--border-ink);
-  border-radius: 4px;
-  padding: 9px 36px 9px 38px;
-  font-family: var(--font-mono);
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: var(--ink);
+  background: #FAF9F6;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 9px 36px 9px 36px;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ink-primary);
   outline: none;
   transition: border-color 0.15s, background-color 0.15s;
 }
 
 .nb-dashboard-page .dash-search-input:focus {
-  border-color: var(--orange);
+  border-color: var(--amber);
   background: #FFFFFF;
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 0 0 2px var(--amber-light);
 }
 
 .nb-dashboard-page .dash-search-input::placeholder {
-  color: var(--ink-dim);
-  font-weight: 600;
+  color: var(--ink-muted);
 }
 
 /* Segmented Filter Pills */
@@ -449,14 +424,14 @@
 }
 
 .nb-dashboard-page .dash-filter-btn {
-  background: var(--paper);
-  border: 1.5px solid var(--ink);
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  font-weight: 800;
-  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -467,38 +442,37 @@
 
 .nb-dashboard-page .dash-filter-btn:hover {
   background: var(--card-alt);
-  border-color: var(--ink);
+  color: var(--ink-primary);
 }
 
 .nb-dashboard-page .dash-filter-btn.active {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-  box-shadow: var(--shadow-xs);
+  background: var(--ink-primary);
+  color: #FFFFFF;
+  border-color: var(--ink-primary);
 }
 
 .nb-dashboard-page .filter-count-badge {
-  background: rgba(17, 17, 17, 0.1);
-  color: var(--ink);
-  font-size: 0.68rem;
-  font-weight: 900;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .nb-dashboard-page .dash-filter-btn.active .filter-count-badge {
-  background: var(--yellow);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
 }
 
-/* View Mode Switcher (Dossier Cards vs Manifest Table) */
+/* View Mode Switcher */
 .nb-dashboard-page .dash-view-toggle {
   display: flex;
   align-items: center;
-  border: 1.5px solid var(--ink);
-  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   overflow: hidden;
-  background: var(--paper);
+  background: #FAF9F6;
 }
 
 .nb-dashboard-page .view-toggle-btn {
@@ -510,50 +484,50 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: var(--ink-dim);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--ink-muted);
   transition: background 0.12s, color 0.12s;
 }
 
 .nb-dashboard-page .view-toggle-btn:hover {
-  color: var(--ink);
+  color: var(--ink-primary);
 }
 
 .nb-dashboard-page .view-toggle-btn.active {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--ink-primary);
+  color: #FFFFFF;
 }
 
 /* ── Dossier Cards Grid (2-Columns on wide screen) ────────────── */
 .nb-dashboard-page .dash-dockets-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
-  gap: 20px;
+  gap: 22px;
 }
 
 .nb-dashboard-page .project-docket-card {
-  background: var(--card);
-  border: var(--border-heavy);
-  box-shadow: var(--shadow-md);
-  border-radius: 6px;
+  background: #FFFFFF;
+  border: 2px solid var(--border-card);
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .nb-dashboard-page .project-docket-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-lg);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
 }
 
-/* Perforated Top Header Strip */
+/* Card Header Strip */
 .nb-dashboard-page .docket-perforated-strip {
-  background: #FAF8F2;
-  border-bottom: 2px dashed #D8D3C8;
-  padding: 10px 16px;
+  background: #FAF9F6;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -563,9 +537,9 @@
 
 .nb-dashboard-page .docket-serial-stamp {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--ink-primary);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -582,68 +556,69 @@
 .nb-dashboard-page .badge-stamp {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 3px 8px;
-  border-radius: 3px;
-  border: 1.5px solid var(--ink);
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .nb-dashboard-page .badge-stamp-clickable {
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  border: 1px solid currentColor;
+  transition: transform 0.1s;
 }
 
 .nb-dashboard-page .badge-stamp-clickable:hover {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-xs);
 }
 
 .nb-dashboard-page .badge-stamp-yellow {
-  background: var(--yellow);
-  color: var(--ink);
+  background: var(--amber-light);
+  color: var(--amber-dark);
+  border: 1px solid var(--amber);
 }
 
 .nb-dashboard-page .badge-stamp-orange {
-  background: var(--orange);
-  color: #FFFFFF;
+  background: var(--orange-light);
+  color: var(--orange-dark);
+  border: 1px solid var(--orange);
 }
 
 .nb-dashboard-page .badge-stamp-emerald {
-  background: var(--emerald);
-  color: #FFFFFF;
+  background: var(--emerald-light);
+  color: var(--emerald-dark);
+  border: 1px solid var(--emerald);
 }
 
 .nb-dashboard-page .badge-stamp-blue {
-  background: var(--cobalt-tint);
-  color: var(--cobalt);
-  border-color: var(--cobalt);
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1px solid #BFDBFE;
 }
 
 .nb-dashboard-page .badge-stamp-purple {
-  background: var(--purple-tint);
-  color: var(--purple);
-  border-color: var(--purple);
+  background: var(--purple-light);
+  color: var(--purple-dark);
+  border: 1px solid #DDD6FE;
 }
 
 .nb-dashboard-page .badge-stamp-red {
-  background: var(--red-tint);
+  background: var(--red-light);
   color: var(--red);
-  border-color: var(--red);
+  border: 1px solid #FECACA;
 }
 
 /* Docket Content Body */
 .nb-dashboard-page .docket-content-body {
-  padding: 16px 18px;
+  padding: 20px 22px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .nb-dashboard-page .docket-meta-row {
@@ -655,80 +630,79 @@
 .nb-dashboard-page .docket-client-avatar {
   width: 44px;
   height: 44px;
-  background: var(--yellow);
-  border: var(--border-ink);
-  border-radius: 4px;
-  box-shadow: var(--shadow-xs);
+  background: var(--amber-light);
+  border: 1.5px solid var(--border-card);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 1.25rem;
-  color: var(--ink);
+  color: var(--ink-primary);
   flex-shrink: 0;
 }
 
 .nb-dashboard-page .docket-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-family: var(--font-body);
+  font-size: 1.28rem;
   font-weight: 800;
-  color: var(--ink);
-  margin: 0 0 4px 0;
-  line-height: 1.2;
+  color: var(--ink-primary);
+  margin: 0 0 5px 0;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   cursor: pointer;
   transition: color 0.12s;
 }
 
 .nb-dashboard-page .docket-title:hover {
-  color: var(--orange);
+  color: var(--blue);
   text-decoration: underline;
 }
 
 .nb-dashboard-page .docket-client-details {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: var(--ink-muted);
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
 }
 
-/* Progress Meter */
+/* Progress Section */
 .nb-dashboard-page .docket-progress-section {
-  background: var(--paper);
-  border: 1.5px solid var(--ink);
-  border-radius: 4px;
-  padding: 10px 12px;
+  background: var(--card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 12px 14px;
 }
 
 .nb-dashboard-page .docket-progress-labels {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
   margin-bottom: 6px;
 }
 
 .nb-dashboard-page .docket-track-meter {
   width: 100%;
-  height: 9px;
-  background: #E5E1D5;
-  border: 1px solid var(--ink);
-  border-radius: 2px;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .nb-dashboard-page .docket-fill-meter {
   height: 100%;
   background: var(--emerald);
+  border-radius: 4px;
   transition: width 0.3s ease;
 }
 
 .nb-dashboard-page .docket-fill-meter.pending {
-  background: var(--orange);
+  background: var(--amber);
 }
 
 /* Checklist Tray */
@@ -741,52 +715,51 @@
 .nb-dashboard-page .docket-item-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  border-radius: 4px;
-  background: var(--paper);
-  border: 1.5px solid #D8D3C8;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-  max-width: 240px;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  max-width: 250px;
 }
 
 .nb-dashboard-page .docket-item-pill.done {
-  background: var(--emerald-tint);
+  background: var(--emerald-light);
   border-color: #A7F3D0;
-  color: #065F46;
-  font-weight: 700;
+  color: var(--emerald-dark);
+  font-weight: 600;
 }
 
 .nb-dashboard-page .docket-checkbox-icon {
-  width: 15px;
-  height: 15px;
-  border-radius: 2px;
-  border: 1px solid currentColor;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 900;
   flex-shrink: 0;
 }
 
 .nb-dashboard-page .file-count-badge-nb {
-  background: var(--ink);
+  background: var(--ink-primary);
   color: #FFFFFF;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 
 /* Docket Action Footer */
 .nb-dashboard-page .docket-action-footer {
-  background: #FAF8F2;
-  border-top: var(--border-ink);
-  padding: 10px 16px;
+  background: #FAF9F6;
+  border-top: 1px solid var(--border-subtle);
+  padding: 12px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -804,11 +777,11 @@
 
 /* ── Compact Manifest Table View ─────────────────────────────── */
 .nb-dashboard-page .dash-manifest-wrap {
-  background: var(--card);
-  border: var(--border-heavy);
-  box-shadow: var(--shadow-md);
-  border-radius: 6px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
   overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .nb-dashboard-page .dash-manifest-table {
@@ -819,26 +792,27 @@
 }
 
 .nb-dashboard-page .dash-manifest-table th {
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 800;
+  background: #F8FAFC;
+  color: var(--ink-secondary);
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 12px 14px;
-  border-bottom: var(--border-heavy);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .nb-dashboard-page .dash-manifest-table td {
-  padding: 12px 14px;
-  border-bottom: 1.5px solid var(--border-hairline);
-  font-size: 0.84rem;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+  font-size: 0.88rem;
   vertical-align: middle;
 }
 
 .nb-dashboard-page .dash-manifest-table tr:hover td {
-  background: var(--card-alt);
+  background: #F8FAFC;
 }
 
 .nb-dashboard-page .dash-manifest-table tr:last-child td {
@@ -847,22 +821,20 @@
 
 /* ── Empty Blueprint State ───────────────────────────────────── */
 .nb-dashboard-page .dash-empty-blueprint {
-  background: var(--card);
-  border: 3px dashed var(--ink);
+  background: #FFFFFF;
+  border: 2px dashed var(--border-subtle);
   border-radius: 8px;
-  box-shadow: var(--shadow-md);
   padding: 56px 24px;
   text-align: center;
-  max-width: 680px;
+  max-width: 640px;
   margin: 40px auto;
 }
 
 .nb-dashboard-page .empty-blueprint-icon {
-  width: 64px;
-  height: 64px;
-  background: var(--yellow);
-  border: var(--border-heavy);
-  box-shadow: var(--shadow-sm);
+  width: 56px;
+  height: 56px;
+  background: var(--amber-light);
+  border: 1.5px solid var(--border-card);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -871,18 +843,17 @@
 }
 
 .nb-dashboard-page .empty-blueprint-title {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--ink);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink-primary);
   margin: 0 0 8px 0;
   letter-spacing: -0.02em;
 }
 
 .nb-dashboard-page .empty-blueprint-desc {
   font-size: 0.94rem;
-  color: var(--ink-muted);
-  max-width: 500px;
+  color: var(--ink-secondary);
+  max-width: 480px;
   margin: 0 auto 24px;
   line-height: 1.5;
 }
@@ -891,9 +862,8 @@
 .nb-dashboard-page .dash-studio-footer {
   margin-top: 36px;
   padding: 14px 18px;
-  background: var(--card);
-  border: var(--border-ink);
-  box-shadow: var(--shadow-xs);
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   display: flex;
   justify-content: space-between;
@@ -901,8 +871,8 @@
   flex-wrap: wrap;
   gap: 12px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: 0.76rem;
+  font-weight: 600;
   color: var(--ink-muted);
 }
 
@@ -921,7 +891,7 @@
 
 @media (max-width: 768px) {
   .nb-dashboard-page .dash-container {
-    padding: 16px 12px 0;
+    padding: 16px 14px 0;
   }
   .nb-dashboard-page .dash-hud-grid {
     grid-template-columns: 1fr;
