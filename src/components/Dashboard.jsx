@@ -146,48 +146,8 @@ export default function Dashboard({ onOpenCreateModal }) {
     openExportModal(proj.id || proj);
   };
 
-  const todayFormatted = new Date().toLocaleDateString('en-GB', { 
-    day: '2-digit', 
-    month: 'short', 
-    year: 'numeric' 
-  }).toUpperCase();
-
   return (
     <div className="nb-dashboard-page" role="region" aria-label="Freelancer Studio Dashboard">
-
-      {/* ── Top Studio Telemetry Bar ────────────────────────────── */}
-      <div className="dash-top-ticker" role="region" aria-label="Studio Dispatch Telemetry">
-        <div className="dash-ticker-left">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            <span className="status-dot-pulse" aria-hidden="true" />
-            <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>DISPATCH_LIVE:</span>
-            <span>OP: @{currentFreelancer?.nick || 'Freelancer'}</span>
-          </div>
-
-          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
-
-          {isVipPro ? (
-            <span className="dash-ticker-tag-pro">
-              ⭐ VIP PRO STUDIO
-            </span>
-          ) : (
-            <span className="dash-ticker-tag">
-              STARTER STUDIO
-            </span>
-          )}
-
-          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
-          <span style={{ color: '#D4D0C5' }}>NODE: FRANKFURT-EU (GDPR ART. 5 ACTIVE)</span>
-        </div>
-
-        <div className="dash-ticker-right">
-          <span>STAMP: {todayFormatted}</span>
-          <span style={{ opacity: 0.4 }} aria-hidden="true">|</span>
-          <span style={{ color: 'var(--yellow)', fontWeight: 800 }}>
-            {activeProjectsCount}/{maxProjects} SLOTS COMMITTED
-          </span>
-        </div>
-      </div>
 
       <div className="dash-container">
 
