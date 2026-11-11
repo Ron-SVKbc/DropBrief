@@ -1225,11 +1225,297 @@
   .cp-handoff-relay,
   .cp-celebration-opt-note,
   .cp-celebration-actions,
-  .cp-item-card.is-attention {
+  .cp-item-card.is-attention,
+  .cp-reopen-card,
+  .cp-reopen-ring,
+  .cp-reopen-disc,
+  .cp-reopen-stroke,
+  .cp-done-dock.is-reopened,
+  .cp-reopen-timer {
     animation: none !important;
   }
-  .cp-seal-check {
+  .cp-seal-check,
+  .cp-reopen-stroke {
     stroke-dashoffset: 0 !important;
+  }
+}
+
+/* ── Unconfirmed / Re-Opened Studio Notice Animation ─────────── */
+@keyframes cpReopenSpring {
+  0% {
+    opacity: 0;
+    transform: translateY(-26px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cpReopenStroke {
+  0% {
+    stroke-dashoffset: 68;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cpReopenTimerBar {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes cpDockReopenFlash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0), 5px 5px 0px #111111;
+    transform: scale(1);
+  }
+  28% {
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.42), 6px 6px 0px #D97706;
+    border-color: #D97706;
+    background: #FEF3C7;
+    transform: translateY(-3px) scale(1.008);
+  }
+  65% {
+    box-shadow: 0 0 0 3px rgba(255, 229, 0, 0.25), 5px 5px 0px #111111;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    box-shadow: 5px 5px 0px #111111;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cp-done-dock.is-reopened {
+  animation: cpDockReopenFlash 0.95s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+
+.cp-reopen-inline-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1.5px solid #D97706;
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.cp-reopen-wrap {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(530px, calc(100% - 28px));
+  z-index: 9800;
+  pointer-events: none;
+}
+
+.cp-reopen-card {
+  pointer-events: auto;
+  background: #FFFDF7;
+  border: 2.5px solid #111111;
+  border-radius: 12px;
+  box-shadow: 6px 6px 0px #111111;
+  padding: 18px 18px 16px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: cpReopenSpring 0.48s cubic-bezier(0.22, 1.24, 0.36, 1) forwards;
+}
+
+.cp-reopen-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #FFE500 0%, #F59E0B 50%, #FF4400 100%);
+  border-bottom: 1.5px solid #111111;
+}
+
+.cp-reopen-seal {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-reopen-ring {
+  position: absolute;
+  inset: 0;
+  width: 68px;
+  height: 68px;
+  animation: cpRingReveal 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+.cp-reopen-disc {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2.5px solid #111111;
+  box-shadow: 2.5px 2.5px 0px #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  animation: cpDiscPop 0.38s cubic-bezier(0.22, 1.32, 0.36, 1) 0.12s both;
+}
+
+.cp-reopen-stroke {
+  stroke-dasharray: 68;
+  stroke-dashoffset: 68;
+  animation: cpReopenStroke 0.44s cubic-bezier(0.65, 0, 0.35, 1) 0.28s forwards;
+}
+
+.cp-reopen-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 22px;
+}
+
+.cp-reopen-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1.5px solid #111111;
+  box-shadow: 1.5px 1.5px 0px #111111;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  animation: cpStampSlam 0.4s cubic-bezier(0.22, 1.24, 0.36, 1) 0.22s both;
+}
+
+.cp-reopen-title {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: #111111;
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin: 0 0 3px;
+  animation: cpFadeUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+}
+
+.cp-reopen-desc {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #4B5563;
+  margin: 0 0 8px;
+  animation: cpFadeUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.cp-reopen-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-reopen-jump-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--yellow);
+  color: #111111;
+  border: 1.5px solid #111111;
+  box-shadow: 1.5px 1.5px 0px #111111;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.cp-reopen-jump-btn:hover {
+  background: #FBBF24;
+  transform: translate(-1px, -1px);
+  box-shadow: 2.5px 2.5px 0px #111111;
+}
+
+.cp-reopen-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: #FFFFFF;
+  border: 1.5px solid #111111;
+  box-shadow: 1px 1px 0px #111111;
+  color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cp-reopen-close:hover {
+  background: #FEF3C7;
+}
+
+.cp-reopen-timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: #F59E0B;
+  transform-origin: left center;
+  animation: cpReopenTimerBar 5.8s linear forwards;
+}
+
+.cp-reopen-card:hover .cp-reopen-timer {
+  animation-play-state: paused;
+}
+
+@media (max-width: 500px) {
+  .cp-reopen-card {
+    padding: 16px 14px 14px;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .cp-reopen-seal {
+    width: 54px;
+    height: 54px;
+  }
+  .cp-reopen-ring {
+    width: 54px;
+    height: 54px;
+  }
+  .cp-reopen-disc {
+    width: 40px;
+    height: 40px;
   }
 }
 

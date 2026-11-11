@@ -151,14 +151,25 @@ export default function ClientPortal() {
   const [attentionItemId, setAttentionItemId] = useState(null);
   const [clientConfirmedDone, setClientConfirmedDone] = useState(false);
   const [needsReconfirm, setNeedsReconfirm] = useState(false);
+  const [showReopenNotice, setShowReopenNotice] = useState(false);
+  const [reopenAnimKey, setReopenAnimKey] = useState(0);
+  const [reopenPaused, setReopenPaused] = useState(false);
 
   // Reset transient completion state when opening a different docket slug
   useEffect(() => {
     setShowCompletionModal(false);
     setClientConfirmedDone(false);
     setNeedsReconfirm(false);
+    setShowReopenNotice(false);
     setAttentionItemId(null);
   }, [activeProjectSlug]);
+
+  // Auto-dismiss non-blocking re-open alert after 5.8s unless hovered
+  useEffect(() => {
+    if (!showReopenNotice || reopenPaused) return;
+    const timer = setTimeout(() => setShowReopenNotice(false), 5800);
+    return () => clearTimeout(timer);
+  }, [showReopenNotice, reopenAnimKey, reopenPaused]);
 
   // Close completion celebration overlay on Escape key (WCAG 2.1.2)
   useEffect(() => {
@@ -227,6 +238,7 @@ export default function ClientPortal() {
     setShowCompletionModal(false);
     setClientConfirmedDone(false);
     setNeedsReconfirm(false);
+    setShowReopenNotice(false);
     addToast('Interactive demo preview has been reset to defaults.', 'info', 'Reset');
   };
 
@@ -336,13 +348,17 @@ export default function ClientPortal() {
   // If the user modifies or clears any field (including optional ones) after confirmation,
   // un-green the Done dock so they must either refill/submit or manually click Done again.
   const invalidateConfirmedState = () => {
-    if (clientConfirmedDone || isAllDone) {
+    if (isGreenComplete) {
       setClientConfirmedDone(false);
       setNeedsReconfirm(true);
+      setReopenPaused(false);
+      setReopenAnimKey((k) => k + 1);
+      setShowReopenNotice(true);
     }
   };
 
   const triggerCompletionCelebration = () => {
+    setShowReopenNotice(false);
     setCelebrationCount((c) => c + 1);
     setShowCompletionModal(true);
     confetti({
@@ -364,6 +380,7 @@ export default function ClientPortal() {
     setNeedsReconfirm(false);
 
     if (allSubmitted && (!isAllDone || needsReconfirm)) {
+      setShowReopenNotice(false);
       setClientConfirmedDone(true);
       triggerCompletionCelebration();
       addToast(
@@ -1778,15 +1795,18 @@ export default function ClientPortal() {
           const missingReqCount = Math.max(0, requiredItems.length - requiredCompletedCount);
           const unsubmittedOptCount = Math.max(0, optionalItems.length - optionalCompletedCount);
 
-          const dockStateClass = isGreenComplete
-            ? 'is-ready'
-            : (canFinishNow ? 'is-actionable' : '');
+          const dockStateClass = [
+            isGreenComplete
+              ? 'is-ready'
+              : (canFinishNow ? 'is-actionable' : ''),
+            needsReconfirm && !isGreenComplete ? 'is-reopened' : ''
+          ].filter(Boolean).join(' ');
           const btnStateClass = isGreenComplete
             ? 'is-ready'
             : (canFinishNow ? 'is-actionable' : 'is-waiting');
 
           return (
-            <div className={`cp-done-dock ${dockStateClass}`}>
+            <div id="cp-done-dock" className={`cp-done-dock ${dockStateClass}`}>
               <div className="cp-done-dock-info">
                 <div className="cp-done-icon-box" aria-hidden="true">
                   {isGreenComplete ? (
@@ -1802,18 +1822,26 @@ export default function ClientPortal() {
                     fontFamily: 'var(--font-display)',
                     fontSize: '1.05rem',
                     color: 'var(--ink-primary)',
-                    display: 'block',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '8px',
                     lineHeight: 1.25
                   }}>
-                    {isGreenComplete
-                      ? `Ready — waiting on ${project.freelancerName} now`
-                      : !hasRequiredItems
-                        ? 'Ready whenever you are'
-                        : isRequiredComplete
-                          ? (unsubmittedOptCount === 0
-                            ? 'Changes in progress — confirm Done when ready'
-                            : 'Required deliverables uploaded — click Done when ready')
-                          : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
+                    <span>
+                      {isGreenComplete
+                        ? `Ready — waiting on ${project.freelancerName} now`
+                        : !hasRequiredItems
+                          ? 'Ready whenever you are'
+                          : isRequiredComplete
+                            ? (unsubmittedOptCount === 0
+                              ? 'Changes in progress — confirm Done when ready'
+                              : 'Required deliverables uploaded — click Done when ready')
+                            : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
+                    </span>
+                    {needsReconfirm && !isGreenComplete && (
+                      <span className="cp-reopen-inline-stamp">UNCONFIRMED</span>
+                    )}
                   </strong>
                   <span style={{
                     fontSize: '0.82rem',
@@ -2176,6 +2204,8 @@ export default function ClientPortal() {
                   id="btn-celebration-confirm"
                   type="button"
                   onClick={() => {
+                    setNeedsReconfirm(false);
+                    setShowReopenNotice(false);
                     setClientConfirmedDone(true);
                     setShowCompletionModal(false);
                   }}
@@ -2196,6 +2226,79 @@ export default function ClientPortal() {
           </div>
         );
       })()}
+
+      {/* Non-blocking Studio Alert when confirmed checklist is edited/re-opened */}
+      {showReopenNotice && !isGreenComplete && (
+        <div className="cp-reopen-wrap" role="status" aria-live="polite">
+          <div
+            key={`reopen-${reopenAnimKey}`}
+            className="cp-reopen-card"
+            onMouseEnter={() => setReopenPaused(true)}
+            onMouseLeave={() => setReopenPaused(false)}
+          >
+            <button
+              type="button"
+              className="cp-reopen-close"
+              aria-label="Dismiss unconfirmed notice"
+              onClick={() => setShowReopenNotice(false)}
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+
+            <div className="cp-reopen-seal" aria-hidden="true">
+              <svg className="cp-reopen-ring" viewBox="0 0 60 60" fill="none">
+                <circle cx="30" cy="30" r="26" stroke="#D97706" strokeWidth="2.5" strokeDasharray="6 5" />
+              </svg>
+              <div className="cp-reopen-disc">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#111111" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path
+                    className="cp-reopen-stroke"
+                    pathLength="28"
+                    d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                  />
+                  <path
+                    className="cp-reopen-stroke"
+                    pathLength="28"
+                    d="M21 3v5h-5"
+                  />
+                </svg>
+              </div>
+              <span className="cp-seal-spark sp-1" />
+              <span className="cp-seal-spark sp-2" />
+              <span className="cp-seal-spark sp-4" />
+            </div>
+
+            <div className="cp-reopen-body">
+              <div className="cp-reopen-stamp">EDITS OPEN &bull; NOT CONFIRMED</div>
+              <h4 className="cp-reopen-title">No Longer Confirmed</h4>
+              <p className="cp-reopen-desc">
+                You changed a field &mdash; save edits above or click <strong>Done</strong> below to mark Ready for {project.freelancerName} again.
+              </p>
+              <div className="cp-reopen-actions">
+                <button
+                  type="button"
+                  className="cp-reopen-jump-btn"
+                  onClick={() => {
+                    setShowReopenNotice(false);
+                    const dock = document.getElementById('cp-done-dock');
+                    if (dock) {
+                      dock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                >
+                  Jump to Done &darr;
+                </button>
+              </div>
+            </div>
+
+            <div
+              className="cp-reopen-timer"
+              style={{ animationPlayState: reopenPaused ? 'paused' : 'running' }}
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
