@@ -209,6 +209,15 @@ export default function ClientPortal() {
 
   const project = isDemoMode ? demoProject : realProject;
 
+  // Clear confirmed-done confirmation state if client removes a required deliverable
+  useEffect(() => {
+    if (!project || !clientConfirmedDone) return;
+    const reqs = (project.items || []).filter((i) => i.required !== false);
+    if (reqs.length > 0 && reqs.some((i) => !i.isCompleted)) {
+      setClientConfirmedDone(false);
+    }
+  }, [project, clientConfirmedDone]);
+
   const handleResetDemo = () => {
     setDemoProject(createInitialDemoProject());
     setTextInputs({});
@@ -331,29 +340,31 @@ export default function ClientPortal() {
     });
   };
 
-  // Trigger celebratory handoff screen & confetti when required items become complete
+  // Trigger celebratory handoff screen automatically only when 100% of items are submitted
+  // (all required-only items uploaded, or optional items filled as well).
+  // When required items finish while optional fields remain blank, stay subtle until client fills them or clicks Done.
   const handleCheckCompletion = (nextItems) => {
     const wasReady = isRequiredComplete;
     const isNowReady = areProjectItemsComplete(nextItems);
     const allSubmitted = nextItems.length > 0 && nextItems.every((i) => i.isCompleted);
 
-    if (isNowReady && !wasReady) {
+    if (allSubmitted && !isAllDone) {
+      setClientConfirmedDone(true);
       triggerCompletionCelebration();
       addToast(
-        allSubmitted
-          ? 'Awesome! All requested assets have been successfully submitted.'
-          : 'All required deliverables are in! Optional items can remain empty.',
+        'Awesome! All requested assets have been successfully submitted.',
         'success',
-        allSubmitted ? 'All Done!' : 'Required Complete!'
+        'All Done!'
       );
-    } else if (wasReady && !isAllDone && allSubmitted) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.62 },
-        colors: ['#FFE500', '#10B981', '#111111']
-      });
-      addToast('All optional extras delivered too — 100% complete!', 'success', '100% Delivered');
+      return;
+    }
+
+    if (isNowReady && !wasReady) {
+      addToast(
+        'All required items are saved! You can add optional items below or click Done to finish.',
+        'success',
+        'Required Items Ready'
+      );
     }
   };
 
@@ -1019,8 +1030,8 @@ export default function ClientPortal() {
                 />
               </div>
 
-              {/* 100% / Required Complete Celebration Banner */}
-              {isRequiredComplete && (
+              {/* 100% / Confirmed Done Celebration Banner */}
+              {(isAllDone || clientConfirmedDone) && (
                 <div className="cp-all-done-banner">
                   <Sparkles size={24} style={{ flexShrink: 0, color: '#059669' }} />
                   <div>
@@ -1032,7 +1043,7 @@ export default function ClientPortal() {
                     <span style={{ fontSize: '0.84rem', color: '#065F46' }}>
                       {isAllDone
                         ? `${project.freelancerName} has everything needed to execute your deliverables without friction.`
-                        : `${project.freelancerName} can now start right away — remaining open items below are optional extras.`}
+                        : `${project.freelancerName} can now start right away — any open optional items below are extra.`}
                     </span>
                   </div>
                 </div>
@@ -2067,7 +2078,7 @@ export default function ClientPortal() {
               </div>
 
               <h2 id="cp-celebration-heading" className="cp-celebration-title">
-                Everything&apos;s Complete!
+                {isAllDone ? "Everything's Complete!" : 'All Set! Your Part Is Done'}
               </h2>
 
               <p className="cp-celebration-copy">
