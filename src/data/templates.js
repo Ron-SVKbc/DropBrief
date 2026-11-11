@@ -139,6 +139,8 @@ export const INITIAL_DEMO_PROJECTS = [
     lastReminderSent: '2026-10-01',
     createdAt: '2026-09-28',
     status: 'pending',
+    clientConfirmed: false,
+    clientConfirmedAt: null,
     items: [
       {
         id: 'item-1',
@@ -199,6 +201,8 @@ export const INITIAL_DEMO_PROJECTS = [
     lastReminderSent: null,
     createdAt: '2026-10-01',
     status: 'completed',
+    clientConfirmed: true,
+    clientConfirmedAt: '2026-10-10T14:22:00Z',
     batches: [
       {
         id: 'batch-demo-1',

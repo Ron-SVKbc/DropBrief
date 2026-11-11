@@ -91,6 +91,8 @@ function mapDbToProject(proj) {
     lastReminderSent: proj.last_reminder_sent,
     createdAt: proj.created_at ? proj.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
     status: proj.status || 'pending',
+    clientConfirmed: Boolean(proj.client_confirmed),
+    clientConfirmedAt: proj.client_confirmed_at || null,
     completedAt: proj.completed_at || (proj.status === 'completed' ? (proj.created_at ? proj.created_at.split('T')[0] : null) : null),
     purgedAt: proj.purged_at || null,
     filesPurged: Boolean(proj.files_purged),
@@ -1304,6 +1306,8 @@ export function AppProvider({ children }) {
       lastReminderSent: null,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'pending',
+      clientConfirmed: false,
+      clientConfirmedAt: null,
       projectType,
       cadenceDays: projectType === 'ongoing' ? (Number(newProjData.cadenceDays) || 1) : null,
       batches: [],
@@ -1334,6 +1338,8 @@ export function AppProvider({ children }) {
           deadline: newProjData.deadline || '',
           reminder_frequency: Number(newProjData.reminderFrequency) || 3,
           status: 'pending',
+          client_confirmed: false,
+          client_confirmed_at: null,
           project_type: projectType,
           cadence_days: newProject.cadenceDays,
           batches: [],
@@ -1356,6 +1362,8 @@ export function AppProvider({ children }) {
           delete insertPayload.batches;
           delete insertPayload.project_type;
           delete insertPayload.freelancer_id;
+          delete insertPayload.client_confirmed;
+          delete insertPayload.client_confirmed_at;
 
           const retryRes = await supabase
             .from('projects')
@@ -1644,12 +1652,15 @@ export function AppProvider({ children }) {
         });
 
         const requiredCompleted = areProjectItemsComplete(updatedItems);
+        const allItemsSubmitted = updatedItems.length > 0 && updatedItems.every((i) => i.isCompleted);
 
         return {
           ...proj,
           items: updatedItems,
           status: requiredCompleted ? 'completed' : 'pending',
           completedAt: requiredCompleted ? (proj.completedAt || new Date().toISOString()) : null,
+          clientConfirmed: allItemsSubmitted,
+          clientConfirmedAt: allItemsSubmitted ? (proj.clientConfirmedAt || new Date().toISOString()) : null,
         };
       })
     );
@@ -1671,12 +1682,15 @@ export function AppProvider({ children }) {
         if (currentProj) {
           const nextItems = currentProj.items.map((i) => (i.id === itemId ? { ...i, isCompleted } : i));
           const reqDone = areProjectItemsComplete(nextItems);
+          const allDone = nextItems.length > 0 && nextItems.every((i) => i.isCompleted);
           
           await supabase
             .from('projects')
             .update({ 
               status: reqDone ? 'completed' : 'pending',
               completed_at: reqDone ? (currentProj.completedAt || new Date().toISOString()) : null,
+              client_confirmed: allDone,
+              client_confirmed_at: allDone ? (currentProj.clientConfirmedAt || new Date().toISOString()) : null,
             })
             .ilike('slug', currentProj.slug);
         }
@@ -1685,6 +1699,51 @@ export function AppProvider({ children }) {
       }
     }
   };
+
+  const setClientConfirmation = useCallback(async (projectSlug, confirmed = true) => {
+    const cleanSlug = String(projectSlug || '').trim();
+    if (!cleanSlug) return;
+    const confirmedBool = Boolean(confirmed);
+    const nowIso = confirmedBool ? new Date().toISOString() : null;
+
+    setProjects((prev) =>
+      prev.map((proj) => {
+        if (proj.slug?.toLowerCase() !== cleanSlug.toLowerCase() && proj.id !== cleanSlug) return proj;
+        const reqDone = areProjectItemsComplete(proj.items || []);
+        return {
+          ...proj,
+          clientConfirmed: confirmedBool,
+          clientConfirmedAt: confirmedBool ? (proj.clientConfirmedAt || nowIso) : null,
+          status: reqDone ? 'completed' : 'pending',
+          completedAt: reqDone ? (proj.completedAt || new Date().toISOString()) : null,
+        };
+      })
+    );
+
+    if (isSupabaseConfigured && supabase && cleanSlug.toLowerCase() !== 'demo-preview') {
+      try {
+        setSupabaseSessionHeaders({ slug: cleanSlug });
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
+        let query = supabase
+          .from('projects')
+          .update({
+            client_confirmed: confirmedBool,
+            client_confirmed_at: nowIso,
+          });
+        if (isUuid) {
+          query = query.or(`slug.ilike.${cleanSlug},id.eq.${cleanSlug}`);
+        } else {
+          query = query.ilike('slug', cleanSlug);
+        }
+        const { error } = await query;
+        if (error) {
+          console.error('Failed to update client confirmation in Supabase:', error);
+        }
+      } catch (err) {
+        console.error('Failed to sync client confirmation with Supabase:', err);
+      }
+    }
+  }, []);
 
   const openReminderModal = (projectId) => {
     const proj = projects.find((p) => p.id === projectId);
@@ -1822,6 +1881,8 @@ export function AppProvider({ children }) {
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
           completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
+          clientConfirmed: false,
+          clientConfirmedAt: null,
         };
       })
     );
@@ -1861,6 +1922,8 @@ export function AppProvider({ children }) {
           .update({
             status: currentReqDone ? 'completed' : 'pending',
             completed_at: currentReqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+            client_confirmed: false,
+            client_confirmed_at: null,
           })
           .eq('id', targetProject.id);
       } catch (err) {
@@ -1891,11 +1954,14 @@ export function AppProvider({ children }) {
           };
         });
         const reqDone = areProjectItemsComplete(updatedItems);
+        const stillConfirmed = reqDone ? p.clientConfirmed : false;
         return {
           ...p,
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
           completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
+          clientConfirmed: stillConfirmed,
+          clientConfirmedAt: stillConfirmed ? p.clientConfirmedAt : null,
         };
       })
     );
@@ -1913,12 +1979,17 @@ export function AppProvider({ children }) {
 
         const currentItems = targetProject.items.map((i) => (i.id === itemId ? { ...i, ...updatePayload } : i));
         const reqDone = areProjectItemsComplete(currentItems);
+        const projUpdate = {
+          status: reqDone ? 'completed' : 'pending',
+          completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+        };
+        if (!reqDone) {
+          projUpdate.client_confirmed = false;
+          projUpdate.client_confirmed_at = null;
+        }
         await supabase
           .from('projects')
-          .update({
-            status: reqDone ? 'completed' : 'pending',
-            completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
-          })
+          .update(projUpdate)
           .eq('id', targetProject.id);
       } catch (err) {
         console.error('Failed to update item in Supabase:', err);
@@ -1940,11 +2011,14 @@ export function AppProvider({ children }) {
         if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
         const updatedItems = p.items.filter((i) => i.id !== itemId);
         const reqDone = areProjectItemsComplete(updatedItems);
+        const keepConfirmed = updatedItems.length > 0 && reqDone ? p.clientConfirmed : false;
         return {
           ...p,
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
           completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
+          clientConfirmed: keepConfirmed,
+          clientConfirmedAt: keepConfirmed ? p.clientConfirmedAt : null,
         };
       })
     );
@@ -1956,12 +2030,17 @@ export function AppProvider({ children }) {
 
         const remainingItems = targetProject.items.filter((i) => i.id !== itemId);
         const reqDone = areProjectItemsComplete(remainingItems);
+        const projUpdate = {
+          status: reqDone ? 'completed' : 'pending',
+          completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+        };
+        if (remainingItems.length === 0 || !reqDone) {
+          projUpdate.client_confirmed = false;
+          projUpdate.client_confirmed_at = null;
+        }
         await supabase
           .from('projects')
-          .update({
-            status: reqDone ? 'completed' : 'pending',
-            completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
-          })
+          .update(projUpdate)
           .eq('id', targetProject.id);
       } catch (err) {
         console.error('Failed to delete item from Supabase:', err);
@@ -1987,6 +2066,7 @@ export function AppProvider({ children }) {
         createProject,
         deleteProject,
         updateItemValue,
+        setClientConfirmation,
         addItemToProject,
         updateItemInProject,
         deleteItemFromProject,

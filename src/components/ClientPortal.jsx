@@ -121,6 +121,7 @@ export default function ClientPortal() {
     openDashboard, 
     openProjectDetail, 
     updateItemValue, 
+    setClientConfirmation,
     submitOngoingBatch,
     addToast,
     fetchProjectBySlug,
@@ -222,14 +223,18 @@ export default function ClientPortal() {
 
   const project = isDemoMode ? demoProject : realProject;
 
-  // Clear confirmed-done confirmation state if client removes a required deliverable
+  // Sync confirmed-done state with persisted project confirmation and required checklist items
   useEffect(() => {
-    if (!project || !clientConfirmedDone) return;
+    if (!project) return;
     const reqs = (project.items || []).filter((i) => i.required !== false);
     if (reqs.length > 0 && reqs.some((i) => !i.isCompleted)) {
       setClientConfirmedDone(false);
+      return;
     }
-  }, [project, clientConfirmedDone]);
+    if (!needsReconfirm) {
+      setClientConfirmedDone(Boolean(project.clientConfirmed));
+    }
+  }, [project, needsReconfirm]);
 
   const handleResetDemo = () => {
     setDemoProject(createInitialDemoProject());
@@ -334,7 +339,8 @@ export default function ClientPortal() {
   const totalCount = items.length;
   const isAllDone = totalCount > 0 && completedCount === totalCount;
   const isRequiredComplete = areProjectItemsComplete(items);
-  const isGreenComplete = !needsReconfirm && (isAllDone || clientConfirmedDone);
+  const persistedConfirmed = Boolean(project?.clientConfirmed);
+  const isGreenComplete = !needsReconfirm && (isAllDone || clientConfirmedDone || persistedConfirmed);
   const progressPercent = hasRequiredItems
     ? Math.round((requiredCompletedCount / requiredItems.length) * 100)
     : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0);
@@ -354,6 +360,11 @@ export default function ClientPortal() {
       setReopenPaused(false);
       setReopenAnimKey((k) => k + 1);
       setShowReopenNotice(true);
+      if (isDemoMode) {
+        setDemoProject((prev) => ({ ...prev, clientConfirmed: false, clientConfirmedAt: null }));
+      } else if (project?.slug) {
+        setClientConfirmation(project.slug, false);
+      }
     }
   };
 
@@ -382,6 +393,15 @@ export default function ClientPortal() {
     if (allSubmitted && (!isAllDone || needsReconfirm)) {
       setShowReopenNotice(false);
       setClientConfirmedDone(true);
+      if (isDemoMode) {
+        setDemoProject((prev) => ({
+          ...prev,
+          clientConfirmed: true,
+          clientConfirmedAt: new Date().toISOString(),
+        }));
+      } else if (project?.slug) {
+        setClientConfirmation(project.slug, true);
+      }
       triggerCompletionCelebration();
       addToast(
         'Awesome! All requested assets have been successfully submitted.',
@@ -421,6 +441,15 @@ export default function ClientPortal() {
 
     setNeedsReconfirm(false);
     setClientConfirmedDone(true);
+    if (isDemoMode) {
+      setDemoProject((prev) => ({
+        ...prev,
+        clientConfirmed: true,
+        clientConfirmedAt: prev.clientConfirmedAt || new Date().toISOString(),
+      }));
+    } else if (project?.slug) {
+      setClientConfirmation(project.slug, true);
+    }
     triggerCompletionCelebration();
   };
 
@@ -2207,6 +2236,15 @@ export default function ClientPortal() {
                     setNeedsReconfirm(false);
                     setShowReopenNotice(false);
                     setClientConfirmedDone(true);
+                    if (isDemoMode) {
+                      setDemoProject((prev) => ({
+                        ...prev,
+                        clientConfirmed: true,
+                        clientConfirmedAt: prev.clientConfirmedAt || new Date().toISOString(),
+                      }));
+                    } else if (project?.slug) {
+                      setClientConfirmation(project.slug, true);
+                    }
                     setShowCompletionModal(false);
                   }}
                   className="cp-btn-done is-ready"

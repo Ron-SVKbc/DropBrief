@@ -23,7 +23,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileArchive,
-  RotateCcw
+  RotateCcw,
+  Ban
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
@@ -107,7 +108,18 @@ export default function ExportModal() {
     return typeof item.value === 'object' ? JSON.stringify(item.value, null, 2) : String(item.value);
   };
 
-  // Counts
+  // Counts & client handoff confirmation state
+  const isRequiredComplete = items.length > 0 && items.every((i) => i.required === false || i.isCompleted);
+  const isProjectConfirmed = Boolean(project.clientConfirmed || project.client_confirmed);
+  const confirmedAt = project.clientConfirmedAt || project.client_confirmed_at || null;
+  const declinedItems = isProjectConfirmed
+    ? items.filter((i) => !i.isCompleted && i.required === false)
+    : [];
+  const declinedCount = declinedItems.length;
+  const trulyPendingItems = items.filter(
+    (i) => !i.isCompleted && !(isProjectConfirmed && i.required === false)
+  );
+  const trulyPendingCount = trulyPendingItems.length;
   const totalFilesCount = items.reduce((acc, it) => acc + getItemFiles(it).length, 0);
   const totalTextsCount = items.filter((it) => it.type === 'text' && it.isCompleted).length;
 
@@ -277,14 +289,23 @@ export default function ExportModal() {
       summaryText += `Freelancer:      ${project.freelancerName || 'Freelancer'}\n`;
       summaryText += `Deadline:        ${project.deadline || 'None'}\n`;
       summaryText += `Export Date:     ${new Date().toLocaleString('en-US')}\n`;
+      summaryText += `Client Handoff:  ${isProjectConfirmed ? 'CONFIRMED (Client clicked Done — Ready to Start)' : 'NOT CONFIRMED YET (Client has not clicked Done)'}\n`;
+      if (isProjectConfirmed && confirmedAt) {
+        summaryText += `Confirmed At:    ${new Date(confirmedAt).toLocaleString('en-US')}\n`;
+      }
       summaryText += `Progress:        ${completedCount} of ${totalCount} requirements completed (${totalCount > 0 ? Math.round((completedCount/totalCount)*100) : 0}%)\n\n`;
       summaryText += `----------------------------------------------------------------------\n`;
-      summaryText += `LIST OF COMPLETED AND PENDING ITEMS\n`;
+      summaryText += `LIST OF DELIVERABLES\n`;
       summaryText += `----------------------------------------------------------------------\n\n`;
 
       items.forEach((item, idx) => {
         const num = String(idx + 1).padStart(2, '0');
-        const statusStr = item.isCompleted ? '[DELIVERED]' : '[MISSING - PENDING CLIENT]';
+        const isDeclined = isProjectConfirmed && !item.isCompleted && item.required === false;
+        const statusStr = item.isCompleted
+          ? '[DELIVERED]'
+          : isDeclined
+            ? '[DECLINED BY CLIENT - OPTIONAL]'
+            : '[MISSING - PENDING CLIENT]';
         summaryText += `${num}. ${statusStr} ${item.title} (${item.type === 'file' ? 'File' : 'Text'})\n`;
         if (item.description) summaryText += `    Description: ${item.description}\n`;
         if (item.isCompleted && item.completedAt) {
@@ -310,12 +331,15 @@ export default function ExportModal() {
         clientEmail: project.clientEmail,
         freelancer: project.freelancerName,
         deadline: project.deadline,
+        clientConfirmed: isProjectConfirmed,
+        clientConfirmedAt: confirmedAt,
         exportedAt: new Date().toISOString(),
         items: items.map((i) => ({
           title: i.title,
           type: i.type,
-          required: i.required,
+          required: i.required !== false,
           isCompleted: i.isCompleted,
+          declinedByClient: Boolean(isProjectConfirmed && !i.isCompleted && i.required === false),
           completedAt: i.completedAt,
           value: i.value,
         }))
@@ -442,17 +466,21 @@ export default function ExportModal() {
       freelancer: project.freelancerName,
       deadline: project.deadline,
       exportedAt: new Date().toISOString(),
+      clientConfirmed: isProjectConfirmed,
+      clientConfirmedAt: confirmedAt,
       summary: {
         totalItems: totalCount,
         completedItems: completedCount,
-        missingItems: missingCount,
+        declinedOptionalItems: declinedCount,
+        pendingItems: trulyPendingCount,
       },
       items: items.map((item) => ({
         id: item.id,
         title: item.title,
         type: item.type,
-        required: item.required,
+        required: item.required !== false,
         isCompleted: item.isCompleted,
+        declinedByClient: Boolean(isProjectConfirmed && !item.isCompleted && item.required === false),
         completedAt: item.completedAt,
         files: getItemFiles(item),
         textValue: getItemText(item),
@@ -501,9 +529,13 @@ export default function ExportModal() {
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="ed-kicker-row">
                 <span className="ed-kicker-stamp">ARCHIVE // EXPORT</span>
-                <span className={`ed-ready-pill ${totalCount > 0 && completedCount === totalCount ? 'is-complete' : ''}`}>
-                  {totalCount > 0 && completedCount === totalCount && <CheckCircle2 size={11} aria-hidden="true" />}
-                  <span>{completedCount} / {totalCount} READY</span>
+                <span className={`ed-ready-pill ${(isProjectConfirmed || (totalCount > 0 && completedCount === totalCount)) ? 'is-complete' : ''}`}>
+                  {(isProjectConfirmed || (totalCount > 0 && completedCount === totalCount)) && <CheckCircle2 size={11} aria-hidden="true" />}
+                  <span>
+                    {isProjectConfirmed
+                      ? `${completedCount} / ${totalCount} FINALIZED`
+                      : `${completedCount} / ${totalCount} READY`}
+                  </span>
                 </span>
               </div>
 
@@ -553,6 +585,56 @@ export default function ExportModal() {
 
         {/* ── Scrollable / Adaptive Body Shell ─────────────────── */}
         <div className="ed-scroll-shell">
+          {/* ── Client Handoff Confirmation Banner ──────────────── */}
+          <div className="ed-handoff-wrap">
+            <div
+              id="ed-handoff-status-banner"
+              className={`ed-handoff-banner ${isProjectConfirmed ? 'is-confirmed' : 'is-pending'}`}
+              role="status"
+            >
+              <div className="ed-handoff-left">
+                <div className="ed-handoff-icon" aria-hidden="true">
+                  {isProjectConfirmed ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+                </div>
+                <div className="ed-handoff-copy">
+                  <div className="ed-handoff-title-row">
+                    <span className="ed-handoff-stamp">
+                      {isProjectConfirmed ? 'CLIENT HANDOFF CONFIRMED' : 'AWAITING CLIENT DONE'}
+                    </span>
+                    {isProjectConfirmed && confirmedAt && (
+                      <span className="ed-handoff-time">
+                        Confirmed {new Date(confirmedAt).toLocaleDateString('en-US', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <div className="ed-handoff-headline">
+                    {isProjectConfirmed
+                      ? `${project.clientName || 'Client'} finished & clicked Done`
+                      : `${project.clientName || 'Client'} hasn't clicked Done yet`}
+                  </div>
+                  <p className="ed-handoff-sub">
+                    {isProjectConfirmed
+                      ? declinedCount > 0
+                        ? `Submission finalized (${declinedCount} optional item${declinedCount === 1 ? '' : 's'} declined). Everything is settled so you can start right away.`
+                        : 'All deliverables are finalized and locked for production.'
+                      : isRequiredComplete
+                        ? 'Required files are uploaded, but the client has not clicked Done yet (still deciding on optional items or reviewing).'
+                        : 'Client is still uploading deliverables and has not finalized with Done.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="ed-handoff-decision">
+                {isProjectConfirmed ? 'READY TO START' : 'DO NOT START YET'}
+              </div>
+            </div>
+          </div>
+
           {/* ── Studio Telemetry Bento Strip ─────────────────────── */}
           <div className="ed-telemetry-strip">
           <div className="ed-stat-card">
@@ -586,15 +668,17 @@ export default function ExportModal() {
           </div>
 
           <div className="ed-stat-card">
-            <div className={`ed-stat-icon ${missingCount > 0 ? 'is-pending' : 'is-ready'}`} aria-hidden="true">
-              {missingCount > 0 ? <Clock size={17} /> : <CheckCircle2 size={17} />}
+            <div className={`ed-stat-icon ${trulyPendingCount > 0 ? 'is-pending' : 'is-ready'}`} aria-hidden="true">
+              {trulyPendingCount > 0 ? <Clock size={17} /> : <CheckCircle2 size={17} />}
             </div>
             <div>
               <div className="ed-stat-label">Collection Status</div>
-              <div className={`ed-stat-value ${missingCount > 0 ? 'is-pending' : 'is-complete'}`}>
-                {missingCount === 0
-                  ? 'All delivered (100%)'
-                  : `${missingCount} item${missingCount === 1 ? '' : 's'} pending`}
+              <div className={`ed-stat-value ${trulyPendingCount > 0 ? 'is-pending' : 'is-complete'}`}>
+                {trulyPendingCount === 0
+                  ? declinedCount > 0
+                    ? `Finalized (${declinedCount} declined)`
+                    : 'All delivered (100%)'
+                  : `${trulyPendingCount} item${trulyPendingCount === 1 ? '' : 's'} pending`}
               </div>
             </div>
           </div>
@@ -631,14 +715,21 @@ export default function ExportModal() {
               { id: 'completed', label: `Ready (${completedCount})` },
               { id: 'files', label: `Files (${fileItemsCount})` },
               { id: 'texts', label: `Texts (${textItemsCount})` },
-              { id: 'missing', label: `Missing (${missingCount})`, isMissing: true }
+              {
+                id: 'missing',
+                label: trulyPendingCount === 0 && declinedCount > 0
+                  ? `Declined (${declinedCount})`
+                  : `Missing (${missingCount})`,
+                isMissing: trulyPendingCount > 0,
+                isDeclined: trulyPendingCount === 0 && declinedCount > 0,
+              }
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
                 aria-pressed={activeFilter === tab.id}
-                className={`ed-filter-tab ${activeFilter === tab.id ? 'is-active' : ''} ${tab.isMissing ? 'is-missing-tab' : ''}`}
+                className={`ed-filter-tab ${activeFilter === tab.id ? 'is-active' : ''} ${tab.isMissing ? 'is-missing-tab' : ''} ${tab.isDeclined ? 'is-declined-tab' : ''}`}
               >
                 {tab.label}
               </button>
@@ -677,22 +768,29 @@ export default function ExportModal() {
             <div className="ed-item-list">
               {filteredItems.map((item, idx) => {
                 const isDone = item.isCompleted;
+                const isOptionalItem = item.required === false;
+                const isDeclinedOptional = isProjectConfirmed && !isDone && isOptionalItem;
                 const isFile = item.type === 'file';
                 const files = getItemFiles(item);
                 const text = getItemText(item);
                 const isTextExpanded = Boolean(expandedTextIds[item.id]);
                 const firstFileCopied = copiedKey === `item-${item.id}`;
                 const textCopied = copiedKey === `item-text-${item.id}`;
+                const cardStateClass = isDone
+                  ? 'is-done'
+                  : isDeclinedOptional
+                    ? 'is-declined'
+                    : 'is-pending';
 
                 return (
                   <div
                     key={item.id || idx}
-                    className={`ed-item-card ${isDone ? 'is-done' : 'is-pending'}`}
+                    className={`ed-item-card ${cardStateClass}`}
                   >
                     <div className="ed-item-head">
                       {/* Left: Number + Title + Badges */}
                       <div className="ed-item-title-cluster">
-                        <div className={`ed-index-badge ${isDone ? 'is-done' : 'is-pending'}`}>
+                        <div className={`ed-index-badge ${cardStateClass}`}>
                           {String(idx + 1).padStart(2, '0')}
                         </div>
 
@@ -705,13 +803,18 @@ export default function ExportModal() {
                             <span className={`ed-micro-pill ${isFile ? 'ed-pill-file' : 'ed-pill-text'}`}>
                               {isFile ? 'File' : 'Text'}
                             </span>
-                            <span className={`ed-micro-pill ${item.required ? 'ed-pill-req' : 'ed-pill-opt'}`}>
-                              {item.required ? 'Required' : 'Optional'}
+                            <span className={`ed-micro-pill ${!isOptionalItem ? 'ed-pill-req' : 'ed-pill-opt'}`}>
+                              {!isOptionalItem ? 'Required' : 'Optional'}
                             </span>
                             {isDone ? (
                               <span className="ed-micro-pill ed-pill-delivered">
                                 <CheckCircle2 size={10} aria-hidden="true" />
                                 <span>Delivered</span>
+                              </span>
+                            ) : isDeclinedOptional ? (
+                              <span className="ed-micro-pill ed-pill-declined">
+                                <Ban size={10} aria-hidden="true" />
+                                <span>Declined by client</span>
                               </span>
                             ) : (
                               <span className="ed-micro-pill ed-pill-pending">
@@ -801,6 +904,8 @@ export default function ExportModal() {
                               </button>
                             </>
                           )
+                        ) : isDeclinedOptional ? (
+                          <span className="ed-declined-stamp">Skipped (Optional)</span>
                         ) : (
                           <button
                             type="button"
@@ -921,6 +1026,15 @@ export default function ExportModal() {
                             )}
                           </div>
                         )
+                      ) : isDeclinedOptional ? (
+                        <div className="ed-declined-strip">
+                          <Ban size={14} aria-hidden="true" />
+                          <span>
+                            {isFile
+                              ? 'Client declined to submit this optional file and finalized the project.'
+                              : 'Client declined to provide this optional text and finalized the project.'}
+                          </span>
+                        </div>
                       ) : (
                         <div className="ed-missing-strip">
                           <AlertCircle size={14} aria-hidden="true" />
