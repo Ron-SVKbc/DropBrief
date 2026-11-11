@@ -2,40 +2,33 @@ import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
-import { 
-  X, 
-  Download, 
-  Copy, 
-  Check, 
-  FolderDown, 
-  FileText, 
-  File, 
-  Image as ImageIcon, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  Search, 
-  Sparkles, 
-  Send, 
-  ShieldCheck, 
-  Loader2, 
+import '../styles/export-modal-brutalist.css';
+import {
+  X,
+  Download,
+  Copy,
+  Check,
+  FolderDown,
+  FileText,
+  File,
+  Image as ImageIcon,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Search,
+  Send,
+  ShieldCheck,
+  Loader2,
   ExternalLink,
   ChevronDown,
   ChevronUp,
   FileArchive,
-  Layers
+  RotateCcw
 } from 'lucide-react';
 
 const isImageFile = (fileName, mimeType) => {
   if (mimeType && mimeType.startsWith('image/')) return true;
   return /\.(jpe?g|png|webp|gif|svg|heic|heif|bmp|avif)$/i.test(fileName || '');
-};
-
-const sanitizeFileName = (name) => {
-  return (name || 'file')
-    .replace(/[\\/:*?"<>|]/g, '_')
-    .replace(/\s+/g, '_')
-    .substring(0, 80);
 };
 
 const sanitizeFolderName = (name) => {
@@ -53,11 +46,12 @@ const sanitizeFolderName = (name) => {
 };
 
 export default function ExportModal() {
-  const { 
-    exportModalProject, 
-    closeExportModal, 
-    openReminderModal, 
-    addToast 
+  const {
+    projects,
+    exportModalProject,
+    closeExportModal,
+    openReminderModal,
+    addToast
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,6 +60,14 @@ export default function ExportModal() {
   const [zipProgress, setZipProgress] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
   const [expandedTextIds, setExpandedTextIds] = useState({});
+
+  // Reset transient filters/copy state when opening a different docket
+  useEffect(() => {
+    setSearchQuery('');
+    setActiveFilter('all');
+    setExpandedTextIds({});
+    setCopiedKey(null);
+  }, [exportModalProject?.id]);
 
   // Close modal on Escape key press (WCAG 2.1.2)
   useEffect(() => {
@@ -79,13 +81,15 @@ export default function ExportModal() {
 
   if (!exportModalProject) return null;
 
-  const project = exportModalProject;
+  const project = (projects || []).find((p) => p.id === exportModalProject.id) || exportModalProject;
   const items = project.items || [];
   const completedItems = items.filter((i) => i.isCompleted);
   const missingItems = items.filter((i) => !i.isCompleted);
   const totalCount = items.length;
   const completedCount = completedItems.length;
   const missingCount = missingItems.length;
+  const fileItemsCount = items.filter((i) => i.type === 'file').length;
+  const textItemsCount = items.filter((i) => i.type === 'text').length;
 
   // Helper to extract files array from an item
   const getItemFiles = (item) => {
@@ -476,676 +480,501 @@ export default function ExportModal() {
   };
 
   return (
-    <div 
-      className="modal-overlay"
+    <div
+      className="ed-modal-overlay"
       onClick={closeExportModal}
     >
-      <div 
-        className="export-modal-card animate-fade-in"
+      <div
+        className="ed-modal-window"
         role="dialog"
         aria-modal="true"
         aria-labelledby="export-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        
         {/* ── Modal Header ─────────────────────────────────────── */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '14px',
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-hairline)',
-          background: 'var(--bg-base)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-            <div style={{
-              width: '42px', height: '42px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
-              color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: 'var(--glow-accent)',
-              flexShrink: 0
-            }}>
-              <FolderDown size={22} aria-hidden="true" />
+        <div className="ed-header">
+          <div className="ed-header-left">
+            <div className="ed-header-icon" aria-hidden="true">
+              <FolderDown size={22} />
             </div>
 
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h2 id="export-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                  Export & Deliverables Download
-                </h2>
-                <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                  {completedCount} of {totalCount} ready
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="ed-kicker-row">
+                <span className="ed-kicker-stamp">ARCHIVE // EXPORT</span>
+                <span className={`ed-ready-pill ${totalCount > 0 && completedCount === totalCount ? 'is-complete' : ''}`}>
+                  {totalCount > 0 && completedCount === totalCount && <CheckCircle2 size={11} aria-hidden="true" />}
+                  <span>{completedCount} / {totalCount} READY</span>
                 </span>
               </div>
-              <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', marginTop: '2px' }} className="truncate">
-                Project: <strong style={{ color: 'var(--text-primary)' }}>{project.title}</strong> &bull; Client: <strong style={{ color: 'var(--text-primary)' }}>{project.clientName}</strong> ({project.clientEmail})
-              </p>
+
+              <h2 id="export-modal-title" className="ed-title">
+                Export &amp; Deliverables
+              </h2>
+
+              <div className="ed-meta-row">
+                <span className="ed-meta-chip">
+                  Project: <strong>{project.title}</strong>
+                </span>
+                <span className="ed-meta-sep" aria-hidden="true">&bull;</span>
+                <span className="ed-meta-chip">
+                  Client: <strong>{project.clientName}</strong>
+                  {project.clientEmail ? ` (${project.clientEmail})` : ''}
+                </span>
+                {project.deadline && (
+                  <>
+                    <span className="ed-meta-sep" aria-hidden="true">&bull;</span>
+                    <span className="ed-meta-chip">
+                      Due: <strong>{project.deadline}</strong>
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Top Actions in Header */}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Primary Action: Download Everything as a Folder (ZIP) */}
-            <button
-              id="btn-export-download-all-zip"
-              onClick={handleDownloadAllAsFolder}
-              disabled={isZipping || completedCount === 0}
-              className="btn btn-primary btn-pill"
-              style={{
-                boxShadow: completedCount > 0 ? 'var(--glow-accent)' : 'none',
-                fontWeight: 700,
-                gap: '8px'
-              }}
-              title="Download all delivered assets neatly organized in a single ZIP folder"
-            >
-              {isZipping ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <FolderDown size={16} aria-hidden="true" />}
-              {isZipping ? (zipProgress || 'Creating folder...') : 'Download All as Folder (.ZIP)'}
-            </button>
-
-            {/* JSON Export */}
-            <button
-              onClick={handleDownloadJson}
-              className="btn btn-secondary btn-pill"
-              style={{ fontSize: '0.8rem', padding: '8px 12px' }}
-              title="Download raw data in JSON format"
-            >
-              <Download size={13} aria-hidden="true" />
-              JSON
-            </button>
-
-            {/* Close */}
-            <button
-              onClick={closeExportModal}
-              aria-label="Close export modal"
-              className="btn btn-secondary"
-              style={{ borderRadius: 'var(--radius-full)', padding: '7px' }}
-              title="Close window"
-            >
-              <X size={17} aria-hidden="true" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={closeExportModal}
+            aria-label="Close export modal"
+            className="ed-close-btn"
+            title="Close window"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
         </div>
 
-        {/* ── In-progress ZIP Banner ────────────────────────────── */}
+        {/* ── In-progress ZIP Banner ───────────────────────────── */}
         {isZipping && (
-          <div style={{
-            background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.22) 100%)',
-            borderBottom: '1px solid var(--border-accent)',
-            padding: '10px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <Loader2 size={16} className="animate-spin" color="var(--accent-primary)" />
-            <div style={{ fontSize: '0.84rem', color: '#e0e7ff', fontWeight: 600 }}>
-              {zipProgress || 'Preparing archive and downloading files...'}
-            </div>
+          <div className="ed-zip-banner" role="status" aria-live="polite">
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+            <span>{zipProgress || 'Preparing archive and downloading files...'}</span>
           </div>
         )}
 
-        {/* ── Subheader Metric Bento Chips ──────────────────────── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px',
-          padding: '16px 24px',
-          background: '#f8fafc',
-          borderBottom: '1px solid var(--border-hairline)'
-        }}>
-          {/* Files count */}
-          <div style={{
-            padding: '10px 14px',
-            background: '#ffffff',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <div style={{
-              width: '32px', height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(99, 102, 241, 0.14)',
-              color: 'var(--accent-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <File size={16} />
+        {/* ── Scrollable / Adaptive Body Shell ─────────────────── */}
+        <div className="ed-scroll-shell">
+          {/* ── Studio Telemetry Bento Strip ─────────────────────── */}
+          <div className="ed-telemetry-strip">
+          <div className="ed-stat-card">
+            <div className="ed-stat-icon is-files" aria-hidden="true">
+              <File size={17} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Received Files
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {totalFilesCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>files in project</span>
+              <div className="ed-stat-label">Received Files</div>
+              <div className="ed-stat-value">
+                {totalFilesCount}{' '}
+                <span className="ed-stat-sub">
+                  file{totalFilesCount === 1 ? '' : 's'} uploaded
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Texts count */}
-          <div style={{
-            padding: '10px 14px',
-            background: '#ffffff',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <div style={{
-              width: '32px', height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(168, 85, 247, 0.14)',
-              color: '#c084fc',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <FileText size={16} />
+          <div className="ed-stat-card">
+            <div className="ed-stat-icon is-texts" aria-hidden="true">
+              <FileText size={17} />
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Text Deliverables
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {totalTextsCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>text submissions</span>
+              <div className="ed-stat-label">Text Submissions</div>
+              <div className="ed-stat-value">
+                {totalTextsCount}{' '}
+                <span className="ed-stat-sub">
+                  response{totalTextsCount === 1 ? '' : 's'} ready
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Missing items */}
-          <div style={{
-            padding: '10px 14px',
-            background: '#ffffff',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <div style={{
-              width: '32px', height: '32px',
-              borderRadius: 'var(--radius-sm)',
-              background: missingCount > 0 ? 'var(--warning-bg)' : 'var(--success-bg)',
-              color: missingCount > 0 ? 'var(--warning)' : 'var(--success)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              {missingCount > 0 ? <Clock size={16} /> : <CheckCircle2 size={16} />}
+          <div className="ed-stat-card">
+            <div className={`ed-stat-icon ${missingCount > 0 ? 'is-pending' : 'is-ready'}`} aria-hidden="true">
+              {missingCount > 0 ? <Clock size={17} /> : <CheckCircle2 size={17} />}
             </div>
             <div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                Pending from Client
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: missingCount > 0 ? 'var(--warning-light)' : 'var(--success-light)' }}>
-                {missingCount === 0 ? 'All delivered (100%)' : `${missingCount} requirements pending`}
+              <div className="ed-stat-label">Collection Status</div>
+              <div className={`ed-stat-value ${missingCount > 0 ? 'is-pending' : 'is-complete'}`}>
+                {missingCount === 0
+                  ? 'All delivered (100%)'
+                  : `${missingCount} item${missingCount === 1 ? '' : 's'} pending`}
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── Filter & Search Toolbar ───────────────────────────── */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          padding: '14px 24px',
-          background: 'var(--bg-base)',
-          borderBottom: '1px solid var(--border-hairline)'
-        }}>
-          {/* Search Input */}
-          <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: '380px' }}>
-            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+        {/* ── Filter & Search Toolbar ──────────────────────────── */}
+        <div className="ed-toolbar">
+          <div className="ed-search-wrap">
+            <Search size={14} className="ed-search-icon" aria-hidden="true" />
             <input
               type="text"
-              className="input"
-              placeholder="Filter by title, file name, or text..."
+              className="ed-search-input"
+              aria-label="Filter deliverables by title, file name, or text"
+              placeholder="Search items, files, or text..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                paddingLeft: '34px',
-                paddingRight: searchQuery ? '32px' : '12px',
-                fontSize: '0.8rem',
-                paddingTop: '7px',
-                paddingBottom: '7px'
-              }}
             />
             {searchQuery && (
-              <button 
-                type="button" 
+              <button
+                type="button"
+                className="ed-search-clear"
                 onClick={() => setSearchQuery('')}
-                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer' }}
+                aria-label="Clear search"
+                title="Clear search"
               >
-                <X size={13} />
+                <X size={13} aria-hidden="true" />
               </button>
             )}
           </div>
 
-          {/* Segmented Filter Pills */}
-          <div className="segmented-control">
-            <button
-              onClick={() => setActiveFilter('all')}
-              className={`btn btn-sm btn-pill ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
-            >
-              All &bull; {totalCount}
-            </button>
-            <button
-              onClick={() => setActiveFilter('completed')}
-              className={`btn btn-sm btn-pill ${activeFilter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem', color: activeFilter === 'completed' ? '#fff' : 'var(--success-light)' }}
-            >
-              Delivered &bull; {completedCount}
-            </button>
-            <button
-              onClick={() => setActiveFilter('files')}
-              className={`btn btn-sm btn-pill ${activeFilter === 'files' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
-            >
-              Files Only
-            </button>
-            <button
-              onClick={() => setActiveFilter('texts')}
-              className={`btn btn-sm btn-pill ${activeFilter === 'texts' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem' }}
-            >
-              Text Only
-            </button>
-            <button
-              onClick={() => setActiveFilter('missing')}
-              className={`btn btn-sm btn-pill ${activeFilter === 'missing' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ border: 'none', padding: '4px 11px', fontSize: '0.74rem', color: activeFilter === 'missing' ? '#fff' : 'var(--warning-light)' }}
-            >
-              Missing &bull; {missingCount}
-            </button>
+          <div className="ed-filter-tabs" role="group" aria-label="Filter deliverables by status or type">
+            {[
+              { id: 'all', label: `All (${totalCount})` },
+              { id: 'completed', label: `Ready (${completedCount})` },
+              { id: 'files', label: `Files (${fileItemsCount})` },
+              { id: 'texts', label: `Texts (${textItemsCount})` },
+              { id: 'missing', label: `Missing (${missingCount})`, isMissing: true }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                aria-pressed={activeFilter === tab.id}
+                className={`ed-filter-tab ${activeFilter === tab.id ? 'is-active' : ''} ${tab.isMissing ? 'is-missing-tab' : ''}`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ── Table Container ───────────────────────────────────── */}
-        <div className="export-table-container" style={{ margin: '0 24px 16px', borderRadius: 'var(--radius-lg)' }}>
+        {/* ── Scrollable Ledger Cards Body ─────────────────────── */}
+        <div className="ed-body">
           {filteredItems.length === 0 ? (
-            <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-              <AlertCircle size={36} color="var(--text-tertiary)" style={{ marginBottom: '10px' }} />
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '4px' }}>No matching items</h3>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.825rem' }}>
-                Adjust your filter or search query to view requirements.
+            <div className="ed-empty-state">
+              <AlertCircle size={30} color="#6B7280" aria-hidden="true" />
+              <h3>
+                {totalCount === 0 ? 'No deliverables configured yet' : 'No matching deliverables'}
+              </h3>
+              <p>
+                {totalCount === 0
+                  ? 'Add checklist items to this docket to collect and export client assets.'
+                  : 'Try adjusting your search query or switching filter tabs.'}
               </p>
+              {(activeFilter !== 'all' || searchQuery.trim()) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveFilter('all');
+                  }}
+                  className="ed-btn-sm is-outline"
+                >
+                  <RotateCcw size={12} aria-hidden="true" />
+                  <span>Reset Filters</span>
+                </button>
+              )}
             </div>
           ) : (
-            <table className="export-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '48px', textAlign: 'center' }}>#</th>
-                  <th style={{ minWidth: '220px' }}>Requirement & Type</th>
-                  <th style={{ minWidth: '130px' }}>Submission Status</th>
-                  <th style={{ minWidth: '320px' }}>Received Content</th>
-                  <th style={{ minWidth: '220px', textAlign: 'right' }}>Quick Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item, idx) => {
-                  const isDone = item.isCompleted;
-                  const isFile = item.type === 'file';
-                  const files = getItemFiles(item);
-                  const text = getItemText(item);
-                  const isTextExpanded = Boolean(expandedTextIds[item.id]);
+            <div className="ed-item-list">
+              {filteredItems.map((item, idx) => {
+                const isDone = item.isCompleted;
+                const isFile = item.type === 'file';
+                const files = getItemFiles(item);
+                const text = getItemText(item);
+                const isTextExpanded = Boolean(expandedTextIds[item.id]);
+                const firstFileCopied = copiedKey === `item-${item.id}`;
+                const textCopied = copiedKey === `item-text-${item.id}`;
 
-                  return (
-                    <tr key={item.id || idx}>
-                      {/* 1. Index & Type Icon */}
-                      <td style={{ textAlign: 'center' }}>
-                        <div style={{
-                          width: '28px', height: '28px',
-                          borderRadius: 'var(--radius-xs)',
-                          background: isDone ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-                          color: isDone ? 'var(--success)' : 'var(--warning)',
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.74rem', fontWeight: 700
-                        }}>
+                return (
+                  <div
+                    key={item.id || idx}
+                    className={`ed-item-card ${isDone ? 'is-done' : 'is-pending'}`}
+                  >
+                    <div className="ed-item-head">
+                      {/* Left: Number + Title + Badges */}
+                      <div className="ed-item-title-cluster">
+                        <div className={`ed-index-badge ${isDone ? 'is-done' : 'is-pending'}`}>
                           {String(idx + 1).padStart(2, '0')}
                         </div>
-                      </td>
 
-                      {/* 2. Title & Type badges */}
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                          <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.875rem' }}>
-                            {item.title}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <span className={`badge ${isFile ? 'badge-accent' : 'badge-violet'}`} style={{ fontSize: '0.66rem', padding: '1px 6px' }}>
-                            {isFile ? 'File' : 'Text'}
-                          </span>
-                          {item.required ? (
-                            <span className="badge badge-neutral" style={{ fontSize: '0.64rem', padding: '1px 5px', color: 'var(--warning-light)' }}>
-                              Required
-                            </span>
-                          ) : (
-                            <span className="badge badge-neutral" style={{ fontSize: '0.64rem', padding: '1px 5px', opacity: 0.7 }}>
-                              Optional
-                            </span>
-                          )}
-                        </div>
-                        {item.description && (
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', marginTop: '4px', lineHeight: 1.4 }}>
-                            {item.description}
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="ed-item-title-row">
+                            <span className="ed-item-title">{item.title}</span>
                           </div>
-                        )}
-                      </td>
 
-                      {/* 3. Status Column */}
-                      <td>
-                        {isDone ? (
-                          <div>
-                            <span className="badge badge-success" style={{ gap: '4px', fontSize: '0.72rem', padding: '3px 8px' }}>
-                              <CheckCircle2 size={12} />
-                              Delivered
+                          <div className="ed-item-badges">
+                            <span className={`ed-micro-pill ${isFile ? 'ed-pill-file' : 'ed-pill-text'}`}>
+                              {isFile ? 'File' : 'Text'}
                             </span>
-                            {item.completedAt && (
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '3px' }}>
-                                {new Date(item.completedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </div>
+                            <span className={`ed-micro-pill ${item.required ? 'ed-pill-req' : 'ed-pill-opt'}`}>
+                              {item.required ? 'Required' : 'Optional'}
+                            </span>
+                            {isDone ? (
+                              <span className="ed-micro-pill ed-pill-delivered">
+                                <CheckCircle2 size={10} aria-hidden="true" />
+                                <span>Delivered</span>
+                              </span>
+                            ) : (
+                              <span className="ed-micro-pill ed-pill-pending">
+                                <Clock size={10} aria-hidden="true" />
+                                <span>Pending Client</span>
+                              </span>
+                            )}
+                            {isDone && item.completedAt && (
+                              <span className="ed-timestamp">
+                                {new Date(item.completedAt).toLocaleDateString('en-US', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
                             )}
                           </div>
-                        ) : (
-                          <div>
-                            <span className="badge badge-warning" style={{ gap: '4px', fontSize: '0.72rem', padding: '3px 8px' }}>
-                              <Clock size={12} />
-                              Pending from client
-                            </span>
-                          </div>
-                        )}
-                      </td>
 
-                      {/* 4. Submitted Content */}
-                      <td>
+                          {item.description && (
+                            <p className="ed-item-desc">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Item Quick Actions */}
+                      <div className="ed-item-actions">
                         {isDone ? (
                           isFile ? (
-                            /* File(s) list */
-                            files.length === 0 ? (
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                                File submitted by client
-                              </div>
-                            ) : (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {files.map((f, fIdx) => {
-                                  const isImg = isImageFile(f.fileName, f.fileType);
-                                  const fileCopyKey = `file-${item.id}-${fIdx}`;
-                                  const isFileCopied = copiedKey === fileCopyKey;
-
-                                  return (
-                                    <div 
-                                      key={f.id || fIdx} 
-                                      className="export-file-chip"
-                                    >
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                                        {/* Image thumbnail or File icon */}
-                                        {isImg && f.url ? (
-                                          <img 
-                                            src={f.url} 
-                                            alt={f.fileName || 'Preview of uploaded image'} 
-                                            style={{
-                                              width: '32px', height: '32px',
-                                              objectFit: 'cover',
-                                              borderRadius: 'var(--radius-xs)',
-                                              border: '1px solid var(--border-subtle)',
-                                              flexShrink: 0
-                                            }} 
-                                          />
-                                        ) : (
-                                          <div style={{
-                                            width: '32px', height: '32px',
-                                            borderRadius: 'var(--radius-xs)',
-                                            background: 'rgba(99, 102, 241, 0.12)',
-                                            color: 'var(--accent-primary)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            flexShrink: 0
-                                          }}>
-                                            {isImg ? <ImageIcon size={15} /> : <File size={15} />}
-                                          </div>
-                                        )}
-
-                                        <div style={{ minWidth: 0 }}>
-                                          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }} className="truncate" title={f.fileName}>
-                                            {f.fileName}
-                                          </div>
-                                          <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-                                            {f.fileSize || 'Unknown size'}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Sub-actions per file if multi */}
-                                      {files.length > 1 && (
-                                        <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleDownloadSingleFile(f)}
-                                            className="btn btn-secondary btn-sm"
-                                            style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                                            title="Download this file"
-                                          >
-                                            <Download size={11} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleCopy(f.url || f.fileName, fileCopyKey, 'File link copied!')}
-                                            className="btn btn-secondary btn-sm"
-                                            style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-                                            title="Copy link to file"
-                                          >
-                                            {isFileCopied ? <Check size={11} color="var(--success)" /> : <Copy size={11} />}
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )
-                          ) : (
-                            /* Text submission */
-                            <div>
-                              <div style={{
-                                background: '#ffffff',
-                                border: '1px solid var(--border-subtle)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '8px 12px',
-                                fontSize: '0.82rem',
-                                color: 'var(--text-primary)',
-                                lineHeight: 1.5,
-                                maxHeight: isTextExpanded ? 'none' : '90px',
-                                overflow: 'hidden',
-                                position: 'relative',
-                                whiteSpace: 'pre-wrap',
-                                fontFamily: 'var(--font-sans)'
-                              }}>
-                                {text || 'Empty text'}
-                              </div>
-                              {text && text.length > 140 && (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleExpandText(item.id)}
-                                  style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--accent-primary-light)',
-                                    fontSize: '0.72rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '3px',
-                                    marginTop: '4px',
-                                    cursor: 'pointer',
-                                    padding: 0
-                                  }}
-                                >
-                                  {isTextExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                  {isTextExpanded ? 'Collapse text' : 'Show full text'}
-                                </button>
-                              )}
-                            </div>
-                          )
-                        ) : (
-                          /* Missing placeholder */
-                          <div style={{
-                            padding: '8px 12px',
-                            background: 'rgba(245, 158, 11, 0.04)',
-                            border: '1px dashed rgba(245, 158, 11, 0.22)',
-                            borderRadius: 'var(--radius-sm)',
-                            color: 'var(--warning-light)',
-                            fontSize: '0.78rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}>
-                            <AlertCircle size={13} />
-                            <span>Not submitted yet</span>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* 5. Actions Column (Download / Copy) */}
-                      <td style={{ textAlign: 'right' }}>
-                        {isDone ? (
-                          isFile ? (
-                            /* Actions for File Item */
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              {/* Download file / archive */}
+                            <>
                               {files.length > 1 ? (
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadItemFilesZip(item)}
-                                  className="btn btn-primary btn-sm"
-                                  style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                                  title={`Download all ${files.length} files for this item`}
+                                  className="ed-btn-sm is-dark"
+                                  title={`Download all ${files.length} files for this item as ZIP`}
                                 >
-                                  <FileArchive size={12} />
-                                  Download files ({files.length})
+                                  <FileArchive size={13} aria-hidden="true" />
+                                  <span>ZIP ({files.length})</span>
                                 </button>
                               ) : (
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadSingleFile(files[0] || item.value)}
-                                  className="btn btn-primary btn-sm"
-                                  style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
+                                  className="ed-btn-sm is-yellow"
                                   title="Download this file"
                                 >
-                                  <Download size={12} />
-                                  Download file
+                                  <Download size={13} aria-hidden="true" />
+                                  <span>Download</span>
                                 </button>
                               )}
 
-                              {/* Copy link */}
                               <button
                                 type="button"
                                 onClick={() => {
                                   const linkToCopy = files[0]?.url || files[0]?.fileName || 'file';
                                   handleCopy(linkToCopy, `item-${item.id}`, 'File link copied!');
                                 }}
-                                className="btn btn-secondary btn-sm"
-                                style={{ fontSize: '0.76rem', padding: '5px 9px', gap: '5px' }}
+                                className={`ed-btn-sm ${firstFileCopied ? 'is-copied' : 'is-outline'}`}
                                 title="Copy download link"
                               >
-                                {copiedKey === `item-${item.id}` ? <Check size={12} color="var(--success)" /> : <Copy size={12} />}
-                                {copiedKey === `item-${item.id}` ? 'Copied!' : 'Copy link'}
+                                {firstFileCopied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+                                <span>{firstFileCopied ? 'Copied!' : 'Copy Link'}</span>
                               </button>
-                            </div>
+                            </>
                           ) : (
-                            /* Actions for Text Item */
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                              {/* Copy text */}
+                            <>
                               <button
                                 type="button"
                                 onClick={() => handleCopy(text, `item-text-${item.id}`, 'Text copied to clipboard!')}
-                                className="btn btn-primary btn-sm"
-                                style={{ fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
+                                className={`ed-btn-sm ${textCopied ? 'is-copied' : 'is-yellow'}`}
                                 title="Copy submitted text to clipboard"
                               >
-                                {copiedKey === `item-text-${item.id}` ? <Check size={12} /> : <Copy size={12} />}
-                                {copiedKey === `item-text-${item.id}` ? 'Copied!' : 'Copy text'}
+                                {textCopied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+                                <span>{textCopied ? 'Copied!' : 'Copy Text'}</span>
                               </button>
 
-                              {/* Download as .txt */}
                               <button
                                 type="button"
                                 onClick={() => handleDownloadTextItem(item)}
-                                className="btn btn-secondary btn-sm"
-                                style={{ fontSize: '0.76rem', padding: '5px 9px', gap: '5px' }}
+                                className="ed-btn-sm is-outline"
                                 title="Download copy as .txt file"
                               >
-                                <FileText size={12} />
-                                Download .txt
+                                <FileText size={12} aria-hidden="true" />
+                                <span>.TXT</span>
                               </button>
+                            </>
+                          )
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              closeExportModal();
+                              openReminderModal(project.id);
+                            }}
+                            className="ed-btn-sm is-remind"
+                            title="Send client a reminder for this requirement"
+                          >
+                            <Send size={12} aria-hidden="true" />
+                            <span>Remind Client</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Item Payload Preview */}
+                    <div className="ed-item-payload">
+                      {isDone ? (
+                        isFile ? (
+                          files.length === 0 ? (
+                            <div className="ed-file-chip">
+                              <span style={{ fontSize: '0.82rem', color: 'var(--ed-ink-secondary)', fontWeight: 600 }}>
+                                File submitted by client
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="ed-file-stack">
+                              {files.map((f, fIdx) => {
+                                const isImg = isImageFile(f.fileName, f.fileType);
+                                const fileCopyKey = `file-${item.id}-${fIdx}`;
+                                const isFileCopied = copiedKey === fileCopyKey;
+
+                                return (
+                                  <div key={f.id || fIdx} className="ed-file-chip">
+                                    <div className="ed-file-info">
+                                      {isImg && f.url ? (
+                                        <img
+                                          src={f.url}
+                                          alt={f.fileName || 'Preview of uploaded image'}
+                                          className="ed-file-thumb"
+                                        />
+                                      ) : (
+                                        <div className="ed-file-icon-tile" aria-hidden="true">
+                                          {isImg ? <ImageIcon size={15} /> : <File size={15} />}
+                                        </div>
+                                      )}
+
+                                      <div style={{ minWidth: 0, flex: 1 }}>
+                                        <div className="ed-file-name" title={f.fileName}>
+                                          {f.fileName}
+                                        </div>
+                                        <div className="ed-file-size">
+                                          {f.fileSize || 'File ready'}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {(f.url || files.length > 1) && (
+                                      <div className="ed-file-mini-actions">
+                                        {f.url && (
+                                          <a
+                                            href={f.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="ed-icon-btn"
+                                            title="Open file in new tab"
+                                            aria-label={`Open ${f.fileName} in new tab`}
+                                          >
+                                            <ExternalLink size={13} aria-hidden="true" />
+                                          </a>
+                                        )}
+
+                                        {files.length > 1 && (
+                                          <>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleDownloadSingleFile(f)}
+                                              className="ed-icon-btn"
+                                              title="Download this file"
+                                              aria-label={`Download ${f.fileName}`}
+                                            >
+                                              <Download size={13} aria-hidden="true" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleCopy(f.url || f.fileName, fileCopyKey, 'File link copied!')}
+                                              className="ed-icon-btn"
+                                              title="Copy link to file"
+                                              aria-label={`Copy link for ${f.fileName}`}
+                                            >
+                                              {isFileCopied ? <Check size={13} color="#065F46" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )
                         ) : (
-                          /* Actions for Missing Item */
-                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                closeExportModal();
-                                openReminderModal(project.id);
-                              }}
-                              className="btn btn-secondary btn-sm"
-                              style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.76rem', padding: '5px 10px', gap: '5px' }}
-                              title="Send client a reminder for this requirement"
-                            >
-                              <Send size={11} />
-                              Remind client
-                            </button>
+                          <div>
+                            <div className={`ed-text-box ${!isTextExpanded && text && text.length > 140 ? 'is-clamped' : ''}`}>
+                              {text || 'Empty text'}
+                            </div>
+                            {text && text.length > 140 && (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandText(item.id)}
+                                className="ed-expand-btn"
+                              >
+                                {isTextExpanded ? <ChevronUp size={13} aria-hidden="true" /> : <ChevronDown size={13} aria-hidden="true" />}
+                                <span>{isTextExpanded ? 'Collapse text' : 'Show full text'}</span>
+                              </button>
+                            )}
                           </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        )
+                      ) : (
+                        <div className="ed-missing-strip">
+                          <AlertCircle size={14} aria-hidden="true" />
+                          <span>Not submitted yet &mdash; waiting on client upload</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
+        </div>
 
-        {/* ── Modal Footer ─────────────────────────────────────── */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          padding: '16px 24px',
-          borderTop: '1px solid var(--border-hairline)',
-          background: 'var(--bg-base)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-            <ShieldCheck size={16} color="var(--success)" />
-            <span>Files are encrypted in EU cloud storage and ready for immediate workflow processing.</span>
+        {/* ── Sticky Action Footer ─────────────────────────────── */}
+        <div className="ed-footer">
+          <div className="ed-trust-note">
+            <ShieldCheck size={16} color="#059669" aria-hidden="true" />
+            <span>EU cloud encrypted &bull; ZIP includes per-item folders, summary &amp; JSON</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="ed-footer-actions">
             <button
               type="button"
               onClick={closeExportModal}
-              className="btn btn-secondary btn-sm btn-pill"
+              className="ed-btn-lg is-secondary"
             >
               Close
             </button>
 
             <button
               type="button"
+              onClick={handleDownloadJson}
+              className="ed-btn-lg is-secondary"
+              title="Download structured project metadata in JSON format"
+            >
+              <Download size={14} aria-hidden="true" />
+              <span>JSON</span>
+            </button>
+
+            <button
+              id="btn-export-download-all-zip"
+              type="button"
               onClick={handleDownloadAllAsFolder}
               disabled={isZipping || completedCount === 0}
-              className="btn btn-primary btn-sm btn-pill"
-              style={{ fontWeight: 700, gap: '6px' }}
+              className="ed-btn-lg is-primary-zip"
+              title="Download all delivered assets neatly organized in a single ZIP folder"
             >
-              {isZipping ? <Loader2 size={14} className="animate-spin" /> : <FolderDown size={14} />}
-              Download All as Folder (.ZIP)
+              {isZipping ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <FolderDown size={15} aria-hidden="true" />}
+              <span>{isZipping ? 'Packing ZIP...' : 'Download All (.ZIP)'}</span>
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );
