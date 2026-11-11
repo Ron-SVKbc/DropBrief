@@ -40,6 +40,7 @@ import {
   Globe,
   UserPlus
 } from 'lucide-react';
+import '../styles/client-portal-brutalist.css';
 
 const isImageFile = (fileName, mimeType) => {
   if (mimeType && mimeType.startsWith('image/')) return true;
@@ -242,26 +243,35 @@ export default function ClientPortal() {
 
   if (!isDemoMode && (!project && (loadingInitial || isLoadingDb || !hasAttemptedFetch))) {
     return (
-      <div className="container" style={{ padding: '120px 20px', textAlign: 'center' }}>
-        <Loader2 size={40} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 18px' }} />
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Preparing client portal...</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.925rem', marginTop: '6px' }}>
-          Securely loading deliverables checklist
-        </p>
+      <div className="client-portal-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="cp-state-card">
+          <Loader2 size={44} className="animate-spin" style={{ color: '#111111', margin: '0 auto 20px' }} />
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 900, textTransform: 'uppercase' }}>
+            Preparing Client Portal...
+          </h2>
+          <p style={{ color: 'var(--ink-secondary)', fontSize: '0.95rem', marginTop: '8px', fontFamily: 'var(--font-mono)' }}>
+            Securely loading deliverables checklist from EU cloud
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Project Not Found</h2>
-        <p style={{ color: 'var(--text-muted)', margin: '14px 0 24px', fontSize: '0.95rem' }}>
-          This project link may have expired or been moved. Please verify the copied link address.
-        </p>
-        <button onClick={openDashboard} className="btn btn-primary btn-pill">
-          Back to DropBrief
-        </button>
+      <div className="client-portal-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="cp-state-card">
+          <AlertCircle size={44} color="#DC2626" style={{ margin: '0 auto 16px' }} />
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.7rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '8px' }}>
+            Project Not Found
+          </h2>
+          <p style={{ color: 'var(--ink-secondary)', margin: '0 0 24px', fontSize: '0.95rem', lineHeight: 1.55 }}>
+            This project link may have expired or been moved. Please verify the copied link address or contact your studio lead.
+          </p>
+          <button onClick={openDashboard} className="cp-btn-primary">
+            Back to DropBrief
+          </button>
+        </div>
       </div>
     );
   }
@@ -283,7 +293,8 @@ export default function ClientPortal() {
       confetti({
         particleCount: 140,
         spread: 90,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
+        colors: ['#FFE500', '#FF4400', '#10B981', '#111111']
       });
       addToast('Awesome! All requested assets have been successfully submitted.', 'success', 'All Done!');
     }
@@ -651,46 +662,46 @@ export default function ClientPortal() {
   };
 
   return (
-    <div style={{ flex: 1, paddingBottom: '70px', position: 'relative' }}>
+    <div className="client-portal-page">
       
-      {/* Interactive Client Sandbox Banner */}
+      {/* ── Context Banners ───────────────────────────────────── */}
       {isDemoMode ? (
-        <div style={{
-          background: 'linear-gradient(90deg, #0b132b 0%, #1c2541 100%)',
-          borderBottom: '1px solid rgba(99, 102, 241, 0.35)',
-          padding: '12px 0',
-          position: 'relative',
-          zIndex: 30,
-          boxShadow: '0 4px 20px rgba(15, 23, 42, 0.25)'
-        }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span className="badge" style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%)',
-                border: '1px solid rgba(165, 180, 252, 0.7)',
-                color: '#ffffff',
-                padding: '4px 11px',
-                fontWeight: 800,
-                fontSize: '0.74rem',
-                letterSpacing: '0.04em',
+        <div className="cp-demo-banner">
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{
+                background: '#FFE500',
+                color: '#111111',
+                border: '1.5px solid #FFE500',
+                padding: '2px 8px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 900,
+                fontSize: '0.72rem',
+                borderRadius: '3px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 0 12px rgba(99, 102, 241, 0.35)'
+                gap: '5px'
               }}>
-                <Sparkles size={13} color="#a5b4fc" aria-hidden="true" />
+                <Sparkles size={12} color="#111111" aria-hidden="true" />
                 LIVE CLIENT EXPERIENCE
               </span>
 
-              <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '3px 8px', gap: '4px' }}>
-                <Check size={11} aria-hidden="true" />
-                100% Ready App
+              <span style={{
+                background: '#10B981',
+                color: '#FFFFFF',
+                padding: '2px 8px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 800,
+                fontSize: '0.7rem',
+                borderRadius: '3px'
+              }}>
+                100% READY APP
               </span>
               
-              <div style={{ fontSize: '0.86rem', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <strong style={{ color: '#ffffff' }}>This is exactly what your client experiences (zero passwords & instant upload).</strong>
-                <span style={{ color: 'rgba(255, 255, 255, 0.78)', fontSize: '0.8rem' }}>
-                  • Test dragging files or saving copy right here in your browser.
+              <div style={{ fontSize: '0.84rem', color: '#F3F4F6', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <strong style={{ color: '#FFFFFF' }}>This is exactly what your client experiences (zero passwords & instant upload).</strong>
+                <span style={{ color: '#D1D5DB', fontSize: '0.8rem' }}>
+                  • Test dragging files or saving copy right in your browser.
                 </span>
               </div>
             </div>
@@ -699,68 +710,61 @@ export default function ClientPortal() {
               <button 
                 id="btn-reset-demo"
                 onClick={handleResetDemo}
-                className="btn btn-secondary btn-sm btn-pill"
-                style={{ padding: '6px 13px', fontSize: '0.78rem', gap: '6px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}
+                className="cp-btn-secondary"
+                style={{ padding: '5px 12px', fontSize: '0.76rem' }}
                 title="Reset interactive preview to initial state"
               >
                 <RotateCcw size={13} aria-hidden="true" />
-                Reset test
+                <span>Reset test</span>
               </button>
 
               <button 
                 id="btn-back-to-dashboard"
                 onClick={openDashboard} 
-                className="btn btn-secondary btn-sm btn-pill"
-                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+                className="cp-btn-secondary"
+                style={{ padding: '5px 12px', fontSize: '0.76rem' }}
                 title="Return to freelancer view"
               >
-                <ArrowLeft size={13} aria-hidden="true" /> {currentFreelancer ? 'Dashboard' : 'Freelancer View'}
+                <ArrowLeft size={13} aria-hidden="true" />
+                <span>{currentFreelancer ? 'Dashboard' : 'Freelancer View'}</span>
               </button>
 
               {!currentFreelancer && (
                 <button
                   id="btn-banner-signup"
                   onClick={() => openAuthModal('register')}
-                  className="btn btn-primary btn-sm btn-pill"
-                  style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px', boxShadow: 'var(--glow-accent)' }}
+                  className="cp-btn-primary"
+                  style={{ padding: '5px 14px', fontSize: '0.76rem' }}
                   title="Create your free freelancer account in 5 seconds"
                 >
                   <UserPlus size={13} aria-hidden="true" />
-                  Sign Up Free
+                  <span>Sign Up Free</span>
                 </button>
               )}
             </div>
           </div>
         </div>
       ) : currentFreelancer ? (
-        <div style={{
-          background: 'rgba(99, 102, 241, 0.14)',
-          borderBottom: '1px solid rgba(99, 102, 241, 0.3)',
-          padding: '12px 0',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          position: 'relative',
-          zIndex: 30
-        }}>
+        <div className="cp-preview-banner">
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <span style={{ color: '#e0e7ff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-              <Lock size={16} color="var(--accent-primary)" />
-              <span><strong>Client Portal Preview (Read-only mode):</strong> As a freelancer, you are viewing the client interface. Uploading files and text is reserved for the client.</span>
+            <span style={{ color: '#111111', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', fontWeight: 600 }}>
+              <Lock size={15} color="#111111" />
+              <span><strong>Client Portal Preview (Read-only mode):</strong> You are previewing the client view. Uploading files and text is reserved for the client.</span>
             </span>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button 
                 id="btn-back-to-project-detail"
                 onClick={() => openProjectDetail(project.slug)} 
-                className="btn btn-primary btn-sm btn-pill"
-                style={{ padding: '6px 14px', fontSize: '0.8rem', gap: '5px' }}
+                className="cp-btn-primary"
+                style={{ padding: '5px 14px', fontSize: '0.78rem' }}
               >
                 <Layers size={13} /> Project Management
               </button>
               <button 
                 id="btn-back-to-dashboard"
                 onClick={openDashboard} 
-                className="btn btn-secondary btn-sm btn-pill"
-                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                className="cp-btn-secondary"
+                style={{ padding: '5px 12px', fontSize: '0.78rem' }}
               >
                 <ArrowLeft size={13} /> Dashboard
               </button>
@@ -769,99 +773,72 @@ export default function ClientPortal() {
         </div>
       ) : null}
 
-      <div className="container" style={{ maxWidth: '880px', marginTop: '36px' }}>
+      <div className="cp-container">
         
-        {/* Client Portal Main Card */}
-        <div className="glass-card" style={{
-          padding: '36px',
-          marginBottom: '28px',
-          borderRadius: 'var(--radius-xl)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+        {/* ── Main Manifest Card (Docket Intake Header) ───────── */}
+        <div className="cp-manifest-card">
           
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '260px',
-            height: '260px',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 45%, transparent 70%)',
-            pointerEvents: 'none',
-            contain: 'strict'
-          }} />
-
-          {/* Header Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                <span className="badge badge-accent">
-                  <Sparkles size={11} /> Client Portal &bull; No Login Required
+          {/* Perforated Top Receipt Header */}
+          <div className="cp-manifest-perforation">
+            <span className="cp-manifest-barcode">
+              ||| |||| || ||||| |||| #DB-{project.slug ? project.slug.slice(0, 8).toUpperCase() : 'INTAKE'}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="cp-manifest-kicker">
+                <Sparkles size={11} aria-hidden="true" />
+                <span>CLIENT PORTAL • ZERO REGISTRATION</span>
+              </span>
+              {isOngoing ? (
+                <span className="cp-manifest-badge-ongoing">
+                  <RefreshCw size={11} aria-hidden="true" />
+                  <span>Recurring Retainer</span>
                 </span>
-                {(project.projectType === 'ongoing' || project.project_type === 'ongoing') ? (
-                  <span className="badge" style={{
-                    background: 'rgba(168, 85, 247, 0.14)',
-                    color: '#c084fc',
-                    border: '1px solid rgba(168, 85, 247, 0.35)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: 700
-                  }}>
-                    <RefreshCw size={11} /> Ongoing
-                  </span>
-                ) : (
-                  <span className="badge" style={{
-                    background: 'rgba(56, 189, 248, 0.14)',
-                    color: '#38bdf8',
-                    border: '1px solid rgba(56, 189, 248, 0.35)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: 700
-                  }}>
-                    <Zap size={11} /> One-off
-                  </span>
-                )}
-                {isDemoMode && (
-                  <span className="badge" style={{
-                    background: 'rgba(245, 158, 11, 0.16)',
-                    color: '#fbbf24',
-                    border: '1px solid rgba(245, 158, 11, 0.45)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    fontWeight: 700
-                  }}>
-                    <FlaskConical size={11} /> Interactive Preview (Changes are not saved to server)
-                  </span>
-                )}
-              </div>
-              <h1 style={{ fontSize: 'clamp(1.7rem, 3.5vw, 2.2rem)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '8px', color: 'var(--text-primary)' }}>
+              ) : (
+                <span className="cp-manifest-badge-oneoff">
+                  <Zap size={11} aria-hidden="true" />
+                  <span>One-Off Docket</span>
+                </span>
+              )}
+              {isDemoMode && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  background: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  color: '#92400E',
+                  padding: '2px 6px',
+                  borderRadius: '3px',
+                  textTransform: 'uppercase'
+                }}>
+                  Interactive Sandbox
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Main Title Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ flex: '1 1 360px' }}>
+              <h1 className="cp-manifest-title">
                 {project.title}
               </h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.975rem', lineHeight: 1.55, maxWidth: '520px' }}>
+              <p className="cp-manifest-desc">
                 {isDemoMode ? (
-                  <>Welcome to the demo, <strong>{project.clientName}</strong>! This is an interactive checklist of deliverables requested by the freelancer. Feel free to upload files or enter copy to test the interface.</>
+                  <>Welcome to the interactive preview, <strong>{project.clientName}</strong>! This is the live asset checklist requested by your studio lead. Upload files or submit copy to test the instant sync experience.</>
                 ) : (
-                  <>Hello <strong>{project.clientName}</strong>, here is the organized checklist of deliverables and information needed to successfully complete your project.</>
+                  <>Hello <strong>{project.clientName}</strong>, below is the organized deliverables checklist needed to kick off your project. Simply drop your files or answers below — no login or account creation required.</>
                 )}
               </p>
             </div>
 
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.03)',
-              padding: '14px 20px',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-subtle)',
-              textAlign: 'right'
-            }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Commissioned by:</span>
-              <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block', marginTop: '1px' }}>
+            <div className="cp-commission-box">
+              <span className="cp-commission-label">Commissioned By</span>
+              <strong className="cp-commission-name">
                 {project.freelancerName}
               </strong>
               {project.deadline && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                <div className="cp-commission-deadline">
                   Target Deadline: <strong>{project.deadline}</strong>
                 </div>
               )}
@@ -870,134 +847,112 @@ export default function ClientPortal() {
 
           {/* Progress / Daily Cadence Tracker */}
           {isOngoing ? (
-            <div style={{ marginTop: '24px' }}>
-              <div style={{
-                padding: '18px 22px',
-                borderRadius: 'var(--radius-lg)',
-                background: isTodayDone ? 'rgba(16, 185, 129, 0.12)' : 'rgba(168, 85, 247, 0.12)',
-                border: isTodayDone ? '1px solid var(--success-border)' : '1px solid rgba(168, 85, 247, 0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '14px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{
-                    width: '42px', height: '42px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isTodayDone ? 'rgba(16, 185, 129, 0.22)' : 'rgba(168, 85, 247, 0.22)',
-                    color: isTodayDone ? 'var(--success)' : '#c084fc',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Calendar size={20} />
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: '1rem', color: '#fff', display: 'block' }}>
-                      {formatDateSlovak(todayDateStr)} – Today's Deliverables
-                    </strong>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      Recurring Collection &bull; {formatCadenceDays(project.cadenceDays || 1)}
-                    </span>
-                  </div>
+            <div className={`cp-cadence-box ${isTodayDone ? 'is-done' : ''}`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '42px', height: '42px',
+                  borderRadius: '6px',
+                  background: isTodayDone ? '#10B981' : '#F5F3FF',
+                  border: '2px solid #111111',
+                  boxShadow: '2px 2px 0px #111111',
+                  color: isTodayDone ? '#FFFFFF' : '#6D28D9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Calendar size={20} />
                 </div>
-
-                {isTodayDone ? (
-                  <span className="badge badge-success" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
-                    <CheckCircle2 size={14} /> Delivered successfully today
+                <div>
+                  <strong style={{ fontSize: '1rem', color: '#111111', display: 'block', fontWeight: 800 }}>
+                    {formatDateSlovak(todayDateStr)} – Today's Deliverables
+                  </strong>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--ink-muted)' }}>
+                    Recurring Collection • {formatCadenceDays(project.cadenceDays || 1)}
                   </span>
-                ) : (
-                  <span className="badge badge-warning" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px' }}>
-                    <Clock size={14} /> Pending today's deliverables
-                  </span>
-                )}
+                </div>
               </div>
 
-              {isTodayDone && (
-                <div style={{
-                  marginTop: '14px',
-                  padding: '14px 18px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.25)',
-                  display: 'flex',
+              {isTodayDone ? (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  background: '#ECFDF5',
+                  color: '#065F46',
+                  border: '1.5px solid #10B981',
+                  boxShadow: '1.5px 1.5px 0px #10B981',
+                  padding: '6px 14px',
+                  borderRadius: '4px',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  fontSize: '0.84rem',
-                  color: 'rgba(255, 255, 255, 0.9)'
+                  gap: '6px'
                 }}>
-                  <Sparkles size={20} color="var(--success)" style={{ flexShrink: 0 }} />
-                  <span>
-                    Thank you! Today's materials were securely received. {project.freelancerName} will process them. The portal will automatically prepare for the next batch according to the schedule ({formatCadenceDays(project.cadenceDays || 1)}).
-                  </span>
-                </div>
+                  <CheckCircle2 size={15} /> Delivered successfully today
+                </span>
+              ) : (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  background: '#FFFBEB',
+                  color: '#92400E',
+                  border: '1.5px solid #F59E0B',
+                  boxShadow: '1.5px 1.5px 0px #F59E0B',
+                  padding: '6px 14px',
+                  borderRadius: '4px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <Clock size={15} /> Pending today's deliverables
+                </span>
               )}
             </div>
           ) : (
-            <>
-              {/* Progress Tracker (One-off) */}
-              <div style={{ marginTop: '28px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', fontSize: '0.925rem' }}>
-                  <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-                    Submission progress: <strong>{completedCount} of {totalCount} items completed</strong>
-                  </span>
-                  <span style={{ fontWeight: 800, color: isAllDone ? 'var(--success)' : 'var(--accent-primary)', fontSize: '1.2rem' }}>
-                    {progressPercent}%
-                  </span>
-                </div>
-                
+            <div className="cp-progress-dock">
+              <div className="cp-progress-label-row">
+                <span style={{ color: 'var(--ink-secondary)' }}>
+                  DELIVERABLES FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                </span>
+                <span style={{ color: isAllDone ? '#059669' : '#111111', fontSize: '1.1rem' }}>
+                  {progressPercent}%
+                </span>
+              </div>
+              
+              <div 
+                className="cp-progress-track" 
+                role="progressbar"
+                aria-valuenow={progressPercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Asset submission progress: ${progressPercent}%`}
+              >
                 <div 
-                  className="progress-track" 
-                  style={{ height: '10px' }}
-                  role="progressbar"
-                  aria-valuenow={progressPercent}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`Asset submission progress: ${progressPercent}%`}
-                >
-                  <div 
-                    className="progress-fill" 
-                    style={{ 
-                      width: `${progressPercent}%`,
-                      background: isAllDone ? 'var(--success)' : 'var(--accent-gradient)'
-                    }} 
-                  />
-                </div>
+                  className={`cp-progress-fill ${isAllDone ? 'is-complete' : ''}`}
+                  style={{ width: `${progressPercent}%` }} 
+                />
               </div>
 
               {/* 100% Celebration Banner */}
               {isAllDone && (
-                <div style={{
-                  marginTop: '24px',
-                  padding: '18px 22px',
-                  borderRadius: 'var(--radius-lg)',
-                  background: 'rgba(16, 185, 129, 0.12)',
-                  border: '1px solid var(--success-border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  color: 'var(--success)',
-                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.15)'
-                }}>
-                  <Sparkles size={26} style={{ flexShrink: 0 }} />
+                <div className="cp-all-done-banner">
+                  <Sparkles size={24} style={{ flexShrink: 0, color: '#059669' }} />
                   <div>
-                    <strong style={{ fontSize: '1rem', display: 'block' }}>
-                      Great job! All requested assets and information are complete.
+                    <strong style={{ fontSize: '0.98rem', display: 'block', fontWeight: 800 }}>
+                      Outstanding! All requested assets and information are 100% complete.
                     </strong>
-                    <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.85)' }}>
-                      {project.freelancerName} has all the materials needed and can proceed with full execution of your project.
+                    <span style={{ fontSize: '0.84rem', color: '#065F46' }}>
+                      {project.freelancerName} has everything needed to execute your deliverables without friction.
                     </span>
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
 
         </div>
 
-        {/* Checklist Items Container */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '36px' }}>
+        {/* ── Checklist Items Stack ───────────────────────────── */}
+        <div className="cp-items-stack">
           {project.items.map((item, index) => {
             const isDone = item.isCompleted;
             const isUploadingThis = uploadingItemId === item.id;
@@ -1005,17 +960,7 @@ export default function ClientPortal() {
             return (
               <div 
                 key={item.id}
-                className="glass-card"
-                style={{
-                  padding: 'clamp(20px, 3vw, 28px)',
-                  borderLeft: isDone ? '4px solid var(--success)' : '4px solid var(--border-medium)',
-                  borderRadius: 'var(--radius-xl)',
-                  background: isDone 
-                    ? 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)' 
-                    : 'var(--bg-card)',
-                  boxShadow: isDone ? '0 10px 30px -10px rgba(5, 150, 105, 0.12), var(--shadow-sm)' : 'var(--shadow-sm)',
-                  transition: 'var(--transition)'
-                }}
+                className={`cp-item-card ${isDone ? 'is-completed' : ''}`}
                 onDragOver={(e) => {
                   if (item.type === 'file') {
                     e.preventDefault();
@@ -1033,36 +978,19 @@ export default function ClientPortal() {
                 }}
               >
                 
-                {/* Item Top Info */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
+                {/* Item Head */}
+                <div className="cp-item-head">
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                    <div style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: 'var(--radius-full)',
-                      background: isDone ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'rgba(255, 255, 255, 0.05)',
-                      border: isDone ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid var(--border-medium)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: isDone ? '#fff' : 'var(--text-muted)',
-                      fontWeight: 700,
-                      fontSize: '0.88rem',
-                      fontFamily: 'var(--font-mono)',
-                      flexShrink: 0,
-                      marginTop: '2px',
-                      boxShadow: isDone ? '0 0 16px rgba(16, 185, 129, 0.45)' : 'none',
-                      transition: 'var(--transition)'
-                    }}>
-                      {isDone ? <Check size={18} strokeWidth={2.5} /> : (index + 1)}
+                    <div className="cp-item-number-box">
+                      {isDone ? <Check size={18} strokeWidth={3} /> : String(index + 1).padStart(2, '0')}
                     </div>
 
                     <div>
-                      <h3 style={{ fontSize: '1.18rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '4px' }}>
+                      <h3 className="cp-item-title">
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.55 }}>
+                        <p className="cp-item-desc">
                           {item.description}
                         </p>
                       )}
@@ -1071,11 +999,11 @@ export default function ClientPortal() {
 
                   <div>
                     {item.required ? (
-                      <span className="badge badge-accent" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
+                      <span className="cp-item-badge-req">
                         Required
                       </span>
                     ) : (
-                      <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>
+                      <span className="cp-item-badge-opt">
                         Optional
                       </span>
                     )}
@@ -1083,9 +1011,9 @@ export default function ClientPortal() {
                 </div>
 
                 {/* Content Input or Upload Area */}
-                <div style={{ marginTop: '16px', paddingLeft: '46px' }}>
+                <div className="cp-item-content">
                   
-                  {/* File Upload Type */}
+                  {/* ── File Upload Section ─────────────────────── */}
                   {item.type === 'file' && (() => {
                     const fileList = Array.isArray(item.value?.files)
                       ? item.value.files
@@ -1104,16 +1032,16 @@ export default function ClientPortal() {
                           <div style={{
                             padding: '28px',
                             textAlign: 'center',
-                            borderRadius: 'var(--radius-lg)',
-                            background: 'rgba(99, 102, 241, 0.1)',
-                            border: '1px dashed var(--accent-primary)'
+                            borderRadius: '8px',
+                            background: '#FEF3C7',
+                            border: '2px dashed #111111'
                           }}>
-                            <Loader2 size={26} className="animate-spin" style={{ color: 'var(--accent-primary)', margin: '0 auto 10px' }} />
-                            <div style={{ fontSize: '0.95rem', color: 'var(--text-primary)', fontWeight: 700 }}>
-                              Uploading files to secure cloud storage...
+                            <Loader2 size={26} className="animate-spin" style={{ color: '#111111', margin: '0 auto 10px' }} />
+                            <div style={{ fontSize: '0.95rem', color: '#111111', fontWeight: 800 }}>
+                              Uploading files to encrypted EU storage...
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              Please wait a moment while all materials are securely saved
+                            <div style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                              Please wait while materials are securely transferred
                             </div>
                           </div>
                         )}
@@ -1121,40 +1049,36 @@ export default function ClientPortal() {
                         {/* 2. Empty Dropzone */}
                         {!isUploadingThis && !hasAny && (
                           isFreelancerReadOnly ? (
-                            <div 
-                              style={{
-                                border: '1.5px dashed var(--border-subtle)',
-                                borderRadius: 'var(--radius-lg)',
-                                padding: '24px 18px',
-                                textAlign: 'center',
-                                background: 'rgba(255, 255, 255, 0.015)',
-                                position: 'relative'
-                              }}
-                            >
+                            <div style={{
+                              border: '2px dashed #9CA3AF',
+                              borderRadius: '8px',
+                              padding: '24px 18px',
+                              textAlign: 'center',
+                              background: '#FAF9F6'
+                            }}>
                               <div style={{
-                                width: '42px',
-                                height: '42px',
-                                borderRadius: 'var(--radius-md)',
-                                background: 'rgba(255, 255, 255, 0.04)',
-                                color: 'var(--text-tertiary)',
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '6px',
+                                background: '#E5E7EB',
+                                border: '1.5px solid #111111',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 margin: '0 auto 10px'
                               }}>
-                                <Lock size={20} />
+                                <Lock size={18} />
                               </div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--ink-primary)', marginBottom: '2px' }}>
                                 Preview Mode: Uploads reserved for client
                               </div>
-                              <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                                Files are uploaded directly by the client through their dedicated link. As a freelancer, you cannot submit files on behalf of the client.
+                              <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>
+                                Files are uploaded directly by your client through their link. As a freelancer, you cannot submit files in preview mode.
                               </span>
                             </div>
                           ) : (
                             <div 
-                              className={`dropzone ${dragActiveId === item.id ? 'active' : ''}`}
-                              style={{ position: 'relative' }}
+                              className={`cp-dropzone ${dragActiveId === item.id ? 'active' : ''}`}
                               onDragEnter={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -1211,24 +1135,14 @@ export default function ClientPortal() {
                                   }
                                 }}
                               />
-                              <div style={{
-                                width: '46px',
-                                height: '46px',
-                                borderRadius: 'var(--radius-md)',
-                                background: 'rgba(99, 102, 241, 0.12)',
-                                color: 'var(--accent-primary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                margin: '0 auto 12px'
-                              }}>
+                              <div className="cp-dropzone-icon">
                                 <Upload size={22} aria-hidden="true" />
                               </div>
-                              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                Drag & drop files here or <span style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</span>
+                              <div className="cp-dropzone-heading">
+                                Drag & drop files here or <span style={{ textDecoration: 'underline' }}>click to browse</span>
                               </div>
-                              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                Select multiple files at once &bull; Supports PDF, PNG, JPG, ZIP, and all standard formats
+                              <span className="cp-dropzone-hint">
+                                Multi-file support • PDF, PNG, JPG, SVG, ZIP, and all standard formats
                               </span>
                             </div>
                           )
@@ -1237,17 +1151,10 @@ export default function ClientPortal() {
                         {/* 3. Unified Container (Uploaded + Staged) */}
                         {!isUploadingThis && hasAny && (
                           <div 
+                            className="cp-file-box"
                             style={{
-                              background: dragActiveId === `zone-${item.id}` 
-                                ? 'rgba(99, 102, 241, 0.16)' 
-                                : (hasStaged ? 'rgba(99, 102, 241, 0.05)' : 'rgba(16, 185, 129, 0.04)'),
-                              border: dragActiveId === `zone-${item.id}`
-                                ? '2px dashed var(--accent-primary)'
-                                : (hasStaged ? '1px solid rgba(99, 102, 241, 0.35)' : '1px solid var(--success-border)'),
-                              borderRadius: 'var(--radius-lg)',
-                              padding: '18px',
-                              position: 'relative',
-                              transition: 'var(--transition)'
+                              borderColor: dragActiveId === `zone-${item.id}` ? '#FF4400' : '#111111',
+                              background: dragActiveId === `zone-${item.id}` ? '#FEF3C7' : '#FAF9F6'
                             }}
                             onDragEnter={(e) => {
                               e.preventDefault();
@@ -1278,69 +1185,46 @@ export default function ClientPortal() {
                               }
                             }}
                           >
-                            {/* Drag Overlay */}
-                            {dragActiveId === `zone-${item.id}` && (
-                              <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: 'rgba(10, 14, 24, 0.92)',
-                                border: '2px dashed var(--accent-primary)',
-                                borderRadius: 'var(--radius-lg)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                color: '#fff',
-                                fontWeight: 700,
-                                fontSize: '0.95rem',
-                                backdropFilter: 'blur(6px)',
-                                zIndex: 20,
-                                pointerEvents: 'none'
-                              }}>
-                                <Upload size={32} style={{ color: 'var(--accent-primary)' }} />
-                                <div>Drop files here to add</div>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
-                                  New files will be appended to existing ones without overwriting
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Common Header */}
+                            {/* Header */}
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               flexWrap: 'wrap',
                               gap: '12px',
-                              marginBottom: '16px',
+                              marginBottom: '14px',
                               paddingBottom: '12px',
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+                              borderBottom: '1.5px solid #E5E7EB'
                             }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                 {hasFiles ? (
-                                  <FileCheck2 size={20} color="var(--success)" style={{ flexShrink: 0 }} />
+                                  <FileCheck2 size={18} color="#059669" style={{ flexShrink: 0 }} />
                                 ) : (
-                                  <span className="badge badge-accent" style={{ fontSize: '0.75rem' }}>
-                                    Ready to upload
+                                  <span style={{
+                                    fontFamily: 'var(--font-mono)',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    background: '#FEF3C7',
+                                    border: '1px solid #111111',
+                                    padding: '2px 6px',
+                                    borderRadius: '3px'
+                                  }}>
+                                    READY TO UPLOAD
                                   </span>
                                 )}
                                 
-                                <strong style={{ fontSize: '0.925rem', color: 'var(--text-primary)' }}>
+                                <strong style={{ fontSize: '0.9rem', color: 'var(--ink-primary)', fontFamily: 'var(--font-mono)' }}>
                                   {hasBoth ? (
                                     <>
-                                      Files: {fileList.length + stagedList.length} total
-                                      <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.825rem', marginLeft: '6px' }}>
-                                        ({fileList.length} in cloud + {stagedList.length} new pending save)
-                                      </span>
+                                      FILES: {fileList.length + stagedList.length} TOTAL ({fileList.length} IN CLOUD + {stagedList.length} NEW)
                                     </>
                                   ) : hasFiles ? (
                                     <>
-                                      {isDemoMode ? 'Uploaded in preview' : 'Saved in cloud'}: {fileList.length} {fileList.length === 1 ? 'file' : 'files'}
+                                      {isDemoMode ? 'PREVIEW FILES' : 'SAVED IN CLOUD'}: {fileList.length} {fileList.length === 1 ? 'FILE' : 'FILES'}
                                     </>
                                   ) : (
                                     <>
-                                      Selected files: {stagedList.length} {stagedList.length === 1 ? 'file' : 'files'}
+                                      SELECTED: {stagedList.length} {stagedList.length === 1 ? 'FILE' : 'FILES'}
                                     </>
                                   )}
                                 </strong>
@@ -1364,22 +1248,22 @@ export default function ClientPortal() {
                                     const input = document.getElementById(`file-input-unified-${item.id}`);
                                     if (input) input.click();
                                   }}
-                                  className="btn btn-secondary btn-sm btn-pill"
-                                  style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                                  className="cp-btn-secondary"
+                                  style={{ fontSize: '0.76rem', padding: '5px 12px' }}
                                   title="Add more files"
                                 >
-                                  <Plus size={14} /> Add files
+                                  <Plus size={13} /> Add files
                                 </button>
 
                                 {hasStaged && (
                                   <button 
                                     type="button"
                                     onClick={() => handleClearStagedFiles(item.id)}
-                                    className="btn btn-secondary btn-sm btn-pill"
-                                    style={{ padding: '6px 12px', color: 'var(--text-muted)', fontSize: '0.8rem' }}
+                                    className="cp-btn-secondary"
+                                    style={{ padding: '5px 10px', color: 'var(--ink-muted)', fontSize: '0.76rem' }}
                                     title="Cancel newly selected files"
                                   >
-                                    <X size={14} /> Cancel new
+                                    <X size={13} /> Cancel
                                   </button>
                                 )}
 
@@ -1391,37 +1275,25 @@ export default function ClientPortal() {
                                         handleRemoveItemValue(item.id);
                                       }
                                     }}
-                                    className="btn btn-secondary btn-sm btn-pill"
-                                    style={{ padding: '6px 12px', color: 'var(--danger)', fontSize: '0.8rem' }}
+                                    className="cp-btn-secondary"
+                                    style={{ padding: '5px 10px', color: '#DC2626', borderColor: '#DC2626', fontSize: '0.76rem' }}
                                     title={isDemoMode ? "Delete files from preview" : "Delete all uploaded files from cloud"}
                                   >
-                                    <Trash2 size={14} /> {isDemoMode ? 'Delete from preview' : 'Delete from cloud'}
+                                    <Trash2 size={13} /> {isDemoMode ? 'Clear preview' : 'Delete all'}
                                   </button>
                                 )}
                               </div>
                             </div>
 
                             {/* Files List */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               
                               {/* 1. Already Uploaded Files */}
                               {hasFiles && fileList.map((f, idx) => {
                                 const isImg = isImageFile(f.fileName, f.fileType);
 
                                 return (
-                                  <div
-                                    key={f.id || idx}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      background: 'var(--bg-base)',
-                                      border: '1px solid var(--border-subtle)',
-                                      borderRadius: 'var(--radius-md)',
-                                      padding: '10px 14px',
-                                      gap: '14px'
-                                    }}
-                                  >
+                                  <div key={f.id || idx} className="cp-file-row">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                                       {/* Thumbnail */}
                                       {isImg && f.url ? (
@@ -1436,52 +1308,30 @@ export default function ClientPortal() {
                                           <img 
                                             src={f.url} 
                                             alt={f.fileName || 'Preview of uploaded image'}
-                                            style={{
-                                              width: '48px',
-                                              height: '48px',
-                                              borderRadius: 'var(--radius-sm)',
-                                              objectFit: 'cover',
-                                              border: '1px solid rgba(255, 255, 255, 0.25)',
-                                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
-                                              display: 'block',
-                                              cursor: 'zoom-in',
-                                              transition: 'transform 0.15s ease'
-                                            }}
-                                            onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
-                                            onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                                            className="cp-file-thumb"
                                           />
                                         </a>
                                       ) : (
-                                        <div style={{
-                                          width: '48px',
-                                          height: '48px',
-                                          borderRadius: 'var(--radius-sm)',
-                                          background: 'rgba(16, 185, 129, 0.12)',
-                                          border: '1px solid rgba(16, 185, 129, 0.25)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          flexShrink: 0
-                                        }}>
-                                          <FileText size={22} color="var(--success)" aria-hidden="true" />
+                                        <div className="cp-file-doc-icon">
+                                          <FileText size={20} aria-hidden="true" />
                                         </div>
                                       )}
 
                                       <div style={{ minWidth: 0 }}>
-                                        <div style={{
-                                          fontSize: '0.875rem',
-                                          fontWeight: 600,
-                                          color: 'var(--text-primary)',
-                                          whiteSpace: 'nowrap',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
-                                        }}>
+                                        <div className="cp-file-name">
                                           {f.fileName || 'File'}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                        <div className="cp-file-meta">
                                           <span>{f.fileSize || ''}</span>
-                                          <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                                            {isDemoMode ? '✓ Simulated save' : '✓ Saved in cloud'}
+                                          <span style={{
+                                            background: '#ECFDF5',
+                                            color: '#065F46',
+                                            border: '1px solid #10B981',
+                                            borderRadius: '3px',
+                                            padding: '1px 6px',
+                                            fontWeight: 800
+                                          }}>
+                                            {isDemoMode ? '✓ SAMPLE SAVE' : '✓ SAVED IN CLOUD'}
                                           </span>
                                         </div>
                                       </div>
@@ -1493,24 +1343,24 @@ export default function ClientPortal() {
                                           href={f.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="btn btn-secondary btn-sm btn-pill"
-                                          style={{ padding: '5px 10px', fontSize: '0.78rem' }}
+                                          className="cp-btn-secondary"
+                                          style={{ padding: '4px 10px', fontSize: '0.74rem' }}
                                           title="Download / View full size file"
                                           aria-label={`Download file ${f.fileName || ''}`}
                                         >
-                                          <Download size={13} aria-hidden="true" /> View
+                                          <Download size={12} aria-hidden="true" /> View
                                         </a>
                                       )}
                                       {!isFreelancerReadOnly && (
                                         <button
                                           type="button"
                                           onClick={() => handleRemoveSingleFile(item.id, f.id || idx)}
-                                          className="btn btn-secondary btn-sm"
-                                          style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
+                                          className="cp-btn-secondary"
+                                          style={{ padding: '5px 8px', color: '#DC2626' }}
                                           title={isDemoMode ? "Remove this file from preview" : "Remove this file from cloud"}
                                           aria-label={`Remove file ${f.fileName || 'from project'}`}
                                         >
-                                          <X size={14} aria-hidden="true" />
+                                          <X size={13} aria-hidden="true" />
                                         </button>
                                       )}
                                     </div>
@@ -1523,29 +1373,16 @@ export default function ClientPortal() {
                                 <div style={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: '12px',
-                                  margin: '8px 0 4px 0',
-                                  padding: '0 4px'
+                                  gap: '10px',
+                                  margin: '6px 0',
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  color: '#92400E'
                                 }}>
-                                  <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    padding: '4px 14px',
-                                    borderRadius: 'var(--radius-full)',
-                                    background: 'var(--accent-primary-bg)',
-                                    border: '1px solid var(--border-accent)',
-                                    fontSize: '0.76rem',
-                                    color: 'var(--accent-primary)',
-                                    fontWeight: 700,
-                                    whiteSpace: 'nowrap'
-                                  }}>
-                                    <Sparkles size={13} color="var(--accent-primary)" />
-                                    <span>Newly added files (pending save)</span>
-                                    <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '0 6px' }}>+{stagedList.length}</span>
-                                  </div>
-                                  <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
+                                  <div style={{ flex: 1, height: '1.5px', background: '#D1D5DB' }} />
+                                  <span>★ NEWLY ADDED FILES (PENDING SAVE: +{stagedList.length})</span>
+                                  <div style={{ flex: 1, height: '1.5px', background: '#D1D5DB' }} />
                                 </div>
                               )}
 
@@ -1557,16 +1394,8 @@ export default function ClientPortal() {
                                 return (
                                   <div
                                     key={idx}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      background: 'rgba(99, 102, 241, 0.12)',
-                                      border: '1px solid rgba(99, 102, 241, 0.35)',
-                                      borderRadius: 'var(--radius-md)',
-                                      padding: '10px 14px',
-                                      gap: '14px'
-                                    }}
+                                    className="cp-file-row"
+                                    style={{ background: '#FFFBEB', borderColor: '#F59E0B' }}
                                   >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                                       {/* Thumbnail */}
@@ -1574,47 +1403,29 @@ export default function ClientPortal() {
                                         <img 
                                           src={previewUrl} 
                                           alt={f.name || 'Preview of selected file'}
-                                          style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            borderRadius: 'var(--radius-sm)',
-                                            objectFit: 'cover',
-                                            border: '1px solid rgba(99, 102, 241, 0.45)',
-                                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
-                                            flexShrink: 0
-                                          }}
+                                          className="cp-file-thumb"
                                         />
                                       ) : (
-                                        <div style={{
-                                          width: '48px',
-                                          height: '48px',
-                                          borderRadius: 'var(--radius-sm)',
-                                          background: 'rgba(99, 102, 241, 0.2)',
-                                          border: '1px solid rgba(99, 102, 241, 0.35)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          flexShrink: 0
-                                        }}>
-                                          <FileText size={22} color="var(--accent-primary)" aria-hidden="true" />
+                                        <div className="cp-file-doc-icon" style={{ background: '#FEF3C7' }}>
+                                          <FileText size={20} aria-hidden="true" />
                                         </div>
                                       )}
 
                                       <div style={{ minWidth: 0 }}>
-                                        <div style={{
-                                          fontSize: '0.875rem',
-                                          fontWeight: 600,
-                                          color: 'var(--text-primary)',
-                                          whiteSpace: 'nowrap',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
-                                        }}>
+                                        <div className="cp-file-name">
                                           {f.name}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                        <div className="cp-file-meta">
                                           <span>{f.size ? (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB') : ''}</span>
-                                          <span className="badge badge-accent" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                                            ★ New file (pending save)
+                                          <span style={{
+                                            background: '#FEF3C7',
+                                            color: '#92400E',
+                                            border: '1px solid #F59E0B',
+                                            borderRadius: '3px',
+                                            padding: '1px 6px',
+                                            fontWeight: 800
+                                          }}>
+                                            ★ NEW FILE
                                           </span>
                                         </div>
                                       </div>
@@ -1623,12 +1434,12 @@ export default function ClientPortal() {
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveStagedFile(item.id, idx)}
-                                      className="btn btn-secondary btn-sm"
-                                      style={{ padding: '6px 8px', color: 'var(--danger)', borderRadius: 'var(--radius-full)' }}
+                                      className="cp-btn-secondary"
+                                      style={{ padding: '5px 8px', color: '#DC2626' }}
                                       title="Remove from selection"
                                       aria-label={`Remove selected file ${f.name}`}
                                     >
-                                      <X size={14} aria-hidden="true" />
+                                      <X size={13} aria-hidden="true" />
                                     </button>
                                   </div>
                                 );
@@ -1652,95 +1463,70 @@ export default function ClientPortal() {
                                     if (input) input.click();
                                   }
                                 }}
-                                onDragEnter={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setDragActiveId(`zone-${item.id}`);
-                                }}
-                                onDragOver={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  e.dataTransfer.dropEffect = 'copy';
-                                  setDragActiveId(`zone-${item.id}`);
-                                }}
-                                onDrop={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setDragActiveId(null);
-                                  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                    handleStageFiles(item.id, e.dataTransfer.files);
-                                  }
-                                }}
                                 style={{
-                                  marginTop: '14px',
-                                  border: '1px dashed rgba(255, 255, 255, 0.2)',
-                                  borderRadius: 'var(--radius-md)',
-                                  padding: '12px 16px',
+                                  marginTop: '12px',
+                                  border: '1.5px dashed #9CA3AF',
+                                  borderRadius: '6px',
+                                  padding: '10px 14px',
                                   textAlign: 'center',
                                   cursor: 'pointer',
-                                  background: 'rgba(255, 255, 255, 0.02)',
-                                  transition: 'var(--transition)',
+                                  background: '#FFFFFF',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  gap: '8px'
-                                }}
-                                onMouseOver={(e) => {
-                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                                  e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
-                                }}
-                                onMouseOut={(e) => {
-                                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                  gap: '8px',
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 700,
+                                  color: 'var(--ink-secondary)'
                                 }}
                               >
-                                <Upload size={16} color="var(--accent-primary)" aria-hidden="true" />
-                                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                  Drag & drop more files here or <strong style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>click to browse</strong>
-                                </span>
+                                <Upload size={14} color="#111111" aria-hidden="true" />
+                                <span>+ DROP OR CLICK TO ADD MORE FILES</span>
                               </div>
                             )}
 
                             {/* Save Confirmation Button */}
                             {hasStaged && (
                               <div style={{
-                                marginTop: '16px',
+                                marginTop: '14px',
                                 paddingTop: '14px',
-                                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderTop: '1.5px solid #E5E7EB',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '10px'
+                                gap: '8px'
                               }}>
                                 <button
                                   type="button"
                                   onClick={() => handleConfirmUpload(item.id)}
-                                  className="btn btn-primary btn-lg btn-pill"
+                                  className="cp-btn-primary"
                                   style={{
                                     width: '100%',
                                     justifyContent: 'center',
-                                    fontWeight: 700,
-                                    fontSize: '0.95rem',
-                                    boxShadow: 'var(--accent-glow)'
+                                    padding: '11px 20px',
+                                    fontSize: '0.88rem'
                                   }}
                                 >
-                                  <Upload size={18} /> {hasFiles 
-                                    ? `Save & add new files to project (+${stagedList.length} ${stagedList.length === 1 ? 'new file' : 'new files'})` 
-                                    : `Upload & submit to project (${stagedList.length} ${stagedList.length === 1 ? 'file' : 'files'})`
-                                  }
+                                  <Upload size={16} /> 
+                                  <span>{hasFiles 
+                                    ? `SAVE & ADD TO DOCKET (+${stagedList.length} ${stagedList.length === 1 ? 'NEW FILE' : 'NEW FILES'})` 
+                                    : `UPLOAD & SUBMIT TO DOCKET (${stagedList.length} ${stagedList.length === 1 ? 'FILE' : 'FILES'})`
+                                  }</span>
                                 </button>
 
                                 {hasFiles && (
                                   <div style={{
                                     textAlign: 'center',
-                                    fontSize: '0.78rem',
-                                    color: 'var(--text-muted)',
+                                    fontSize: '0.74rem',
+                                    fontFamily: 'var(--font-mono)',
+                                    color: 'var(--ink-muted)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '6px'
                                   }}>
-                                    <ShieldCheck size={14} color="var(--success)" />
-                                    <span>Your <strong>{fileList.length} previously saved files</strong> remain intact in the cloud — new files are safely appended.</span>
+                                    <ShieldCheck size={13} color="#059669" />
+                                    <span>Previously saved files remain intact in cloud — new files are safely appended.</span>
                                   </div>
                                 )}
                               </div>
@@ -1753,16 +1539,16 @@ export default function ClientPortal() {
                     );
                   })()}
 
-                  {/* Text Input Type */}
+                  {/* ── Text Input Section ──────────────────────── */}
                   {item.type === 'text' && (
                     <div>
                       {!isDone ? (
                         isFreelancerReadOnly ? (
                           <div style={{
                             padding: '16px 18px',
-                            background: 'rgba(255, 255, 255, 0.015)',
-                            border: '1.5px dashed var(--border-subtle)',
-                            borderRadius: 'var(--radius-lg)',
+                            background: '#FAF9F6',
+                            border: '2px dashed #9CA3AF',
+                            borderRadius: '8px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px'
@@ -1770,22 +1556,23 @@ export default function ClientPortal() {
                             <div style={{
                               width: '36px',
                               height: '36px',
-                              borderRadius: 'var(--radius-sm)',
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              color: 'var(--text-tertiary)',
+                              borderRadius: '6px',
+                              background: '#E5E7EB',
+                              border: '1.5px solid #111111',
+                              color: 'var(--ink-primary)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0
                             }}>
-                              <Lock size={18} />
+                              <Lock size={16} />
                             </div>
                             <div>
-                              <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '2px' }}>
+                              <div style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--ink-primary)' }}>
                                 Preview Mode: Text entry reserved for client
                               </div>
-                              <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                                Text deliverables and answers are provided directly by the client through their dedicated link. As a freelancer, you cannot enter text on behalf of the client.
+                              <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>
+                                Deliverables and text instructions are entered directly by your client through their link.
                               </div>
                             </div>
                           </div>
@@ -1793,46 +1580,56 @@ export default function ClientPortal() {
                           <div>
                             <textarea
                               id={`textarea-${item.id}`}
-                              className="textarea"
+                              className="cp-textarea"
                               rows={3}
-                              placeholder="Type requested details, links, or copy here..."
+                              placeholder="Type requested details, answers, links, or website copy here..."
                               aria-label={`Enter text for item ${item.title}`}
                               value={textInputs[item.id] || ''}
                               onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
-                              style={{ marginBottom: '12px', borderRadius: 'var(--radius-lg)' }}
+                              style={{ marginBottom: '10px' }}
                             />
                             <button 
                               id={`btn-save-text-${item.id}`}
                               onClick={() => handleTextSave(item.id)}
                               aria-label={`Save text for item ${item.title}`}
-                              className="btn btn-primary btn-sm btn-pill"
+                              className="cp-btn-primary"
                             >
-                              <CheckCircle2 size={15} aria-hidden="true" /> Save & Submit Copy
+                              <CheckCircle2 size={15} aria-hidden="true" />
+                              <span>SAVE &amp; SUBMIT COPY</span>
                             </button>
                           </div>
                         )
                       ) : (
-                        <div style={{
-                          background: 'rgba(16, 185, 129, 0.08)',
-                          border: '1px solid var(--success-border)',
-                          borderRadius: 'var(--radius-lg)',
-                          padding: '16px 18px'
-                        }}>
+                        <div className="cp-submitted-text-box">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <CheckCircle2 size={15} /> Submitted copy:
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.78rem',
+                              color: '#065F46',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <CheckCircle2 size={15} /> SUBMITTED COPY:
                             </span>
                             {!isFreelancerReadOnly && (
                               <button 
                                 onClick={() => handleRemoveItemValue(item.id)}
-                                className="btn btn-secondary btn-sm btn-pill"
-                                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                className="cp-btn-secondary"
+                                style={{ padding: '3px 10px', fontSize: '0.74rem' }}
                               >
                                 Edit
                               </button>
                             )}
                           </div>
-                          <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
+                          <p style={{
+                            fontSize: '0.92rem',
+                            color: 'var(--ink-primary)',
+                            whiteSpace: 'pre-wrap',
+                            lineHeight: 1.55,
+                            margin: 0
+                          }}>
                             {typeof item.value === 'string' ? item.value : (item.value?.text || '')}
                           </p>
                         </div>
@@ -1847,23 +1644,17 @@ export default function ClientPortal() {
           })}
         </div>
 
-        {/* Archive of previous submissions (for ongoing projects) */}
+        {/* ── Archive of Previous Submissions (Ongoing Projects) ─ */}
         {isOngoing && getProjectBatches(project).length > 0 && (
-          <div className="glass-card" style={{
-            padding: '24px 28px',
-            marginBottom: '32px',
-            borderRadius: 'var(--radius-xl)',
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid var(--border-subtle)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <Layers size={18} color="#c084fc" />
+          <div className="cp-manifest-card" style={{ padding: '24px 28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <Layers size={20} color="#6D28D9" />
               <div>
-                <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)', display: 'block' }}>
-                  Archive of previous submissions ({getProjectBatches(project).length})
+                <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--ink-primary)', textTransform: 'uppercase' }}>
+                  Archive of Previous Submissions ({getProjectBatches(project).length})
                 </strong>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  All previously submitted batches and files are securely stored with {project.freelancerName}.
+                <span style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', display: 'block' }}>
+                  All previously submitted batches and files are safely stored with {project.freelancerName}.
                 </span>
               </div>
             </div>
@@ -1874,35 +1665,34 @@ export default function ClientPortal() {
                 return (
                   <div 
                     key={batch.id || batch.date}
-                    style={{
-                      padding: '12px 18px',
-                      borderRadius: 'var(--radius-md)',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid var(--border-hairline)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '10px'
-                    }}
+                    className="cp-file-row"
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.84rem', fontWeight: 800, color: 'var(--ink-primary)' }}>
                           {formatDateSlovak(batch.date)}
                         </span>
-                        <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 7px' }}>
-                          {count} {count === 1 ? 'file' : 'files'}
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.68rem',
+                          background: '#ECFDF5',
+                          color: '#065F46',
+                          border: '1px solid #10B981',
+                          padding: '1px 6px',
+                          borderRadius: '3px',
+                          fontWeight: 800
+                        }}>
+                          {count} {count === 1 ? 'FILE' : 'FILES'}
                         </span>
                       </div>
                       {batch.note && (
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
+                        <p style={{ fontSize: '0.8rem', color: 'var(--ink-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
                           {batch.note}
                         </p>
                       )}
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
-                      <CheckCircle2 size={13} /> Securely received
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#065F46', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 800 }}>
+                      <CheckCircle2 size={13} /> SECURELY RECEIVED
                     </span>
                   </div>
                 );
@@ -1911,35 +1701,30 @@ export default function ClientPortal() {
           </div>
         )}
 
-        {/* Security and Trust Footer */}
-        <div className="glass-card" style={{
-          padding: '24px 28px',
-          background: '#ffffff',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-subtle)',
-          boxShadow: 'var(--shadow-card)'
-        }}>
+        {/* ── Security & Trust Card ───────────────────────────── */}
+        <div className="cp-security-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--success-bg)',
-                border: '1px solid var(--success-border)',
-                color: 'var(--success)',
+                width: '44px',
+                height: '44px',
+                borderRadius: '8px',
+                background: '#ECFDF5',
+                border: '2px solid #111111',
+                boxShadow: '2px 2px 0px #111111',
+                color: '#065F46',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0
               }}>
-                <ShieldCheck size={22} />
+                <ShieldCheck size={24} />
               </div>
               <div>
-                <strong style={{ fontSize: '0.925rem', color: 'var(--text-primary)', display: 'block' }}>
-                  Bank-Grade Security & End-to-End Encryption
+                <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--ink-primary)', display: 'block', textTransform: 'uppercase' }}>
+                  Bank-Grade Security &amp; End-to-End Encryption
                 </strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '0.82rem', color: 'var(--ink-secondary)' }}>
                   Deliverables are encrypted at rest and accessible exclusively by {project.freelancerName}.
                 </span>
               </div>
@@ -1949,170 +1734,96 @@ export default function ClientPortal() {
               <button
                 type="button"
                 onClick={() => openLegalModal('privacy')}
-                className="badge"
+                className="cp-security-pill"
                 title="Inspect DropBrief data privacy and encryption details"
-                style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.74rem',
-                  padding: '5px 12px',
-                  gap: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
               >
-                <Lock size={12} color="var(--accent-primary)" /> 256-bit AES SSL
+                <Lock size={12} color="#111111" /> <span>256-BIT SSL</span>
               </button>
               <button
                 type="button"
                 onClick={() => openLegalModal('privacy')}
-                className="badge"
+                className="cp-security-pill"
                 title="Read GDPR compliance and European data hosting policy"
-                style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.74rem',
-                  padding: '5px 12px',
-                  gap: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
               >
-                <Globe size={12} color="var(--success)" /> Ireland EU (GDPR)
+                <Globe size={12} color="#059669" /> <span>IRELAND EU (GDPR)</span>
               </button>
               <button
                 type="button"
                 onClick={() => openLegalModal('retention')}
-                className="badge"
+                className="cp-security-pill"
                 title="Learn about automated 30-day cloud storage purge"
-                style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.74rem',
-                  padding: '5px 12px',
-                  gap: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
               >
-                <Clock size={12} color="var(--warning)" /> Auto-purge 30d
+                <Clock size={12} color="#D97706" /> <span>AUTO-PURGE 30D</span>
               </button>
               <button
                 type="button"
                 onClick={() => openLegalModal('cookies')}
-                className="badge"
+                className="cp-security-pill"
                 title="DropBrief uses zero tracking cookies"
-                style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-hairline)',
-                  color: 'var(--text-secondary)',
-                  fontSize: '0.74rem',
-                  padding: '5px 12px',
-                  gap: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
               >
-                <ShieldCheck size={12} color="var(--emerald, #10B981)" /> 100% Cookie-free
+                <ShieldCheck size={12} color="#10B981" /> <span>100% COOKIE-FREE</span>
               </button>
             </div>
           </div>
 
-          {/* Client Notice and DSA links */}
+          {/* Legal Links Footer */}
           <div style={{
-            marginTop: '14px',
+            marginTop: '16px',
             paddingTop: '12px',
-            borderTop: '1px dashed var(--border-hairline)',
+            borderTop: '1.5px dashed #E5E7EB',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '10px',
             fontSize: '0.74rem',
-            color: 'var(--text-muted)'
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--ink-muted)'
           }}>
             <span>
               Files are stored temporarily and delivered exclusively to your creative lead.
             </span>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '14px' }}>
               <button
                 type="button"
                 onClick={() => openLegalModal('tos')}
-                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--ink-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontFamily: 'inherit', fontWeight: 700 }}
               >
                 Terms of Service
               </button>
               <button
                 type="button"
                 onClick={() => openLegalModal('privacy')}
-                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--ink-primary)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontFamily: 'inherit', fontWeight: 700 }}
               >
                 Privacy &amp; GDPR
               </button>
               <button
                 type="button"
                 onClick={() => openLegalModal('aup')}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontFamily: 'inherit' }}
               >
-                Report suspicious link (DSA)
+                Report link (DSA)
               </button>
             </div>
           </div>
         </div>
 
-        {/* Powered by DropBrief - Elegant Viral Loop Badge */}
-        <div style={{
-          textAlign: 'center',
-          marginTop: '22px',
-          paddingBottom: '20px'
-        }}>
+        {/* ── Powered by DropBrief - Elegant Viral Loop ─────────── */}
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
           <a
             href="https://usedropbrief.xyz"
             target="_blank"
             rel="noopener noreferrer"
             title="Create your own free client asset portal with DropBrief"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '7px',
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary, #475569)',
-              textDecoration: 'none',
-              fontWeight: 500,
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-full, 9999px)',
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle, #e2e8f0)',
-              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
-              transition: 'all var(--transition-fast, 0.15s ease)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--accent-primary, #6366f1)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary, #6366f1)';
-              e.currentTarget.style.boxShadow = '0 3px 8px rgba(99, 102, 241, 0.15)';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-secondary, #475569)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle, #e2e8f0)';
-              e.currentTarget.style.boxShadow = '0 1px 3px rgba(15, 23, 42, 0.04)';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
+            className="cp-viral-pill"
           >
-            <span>Powered by</span>
-            <strong style={{ 
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontWeight: 800 
-            }}>
-              DropBrief
+            <span>POWERED BY</span>
+            <strong style={{ color: '#111111', fontWeight: 900, letterSpacing: '0.04em' }}>
+              DROPBRIEF ⚡
             </strong>
-            <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '0.7rem' }}>•</span>
-            <span style={{ fontSize: '0.73rem', color: 'var(--text-muted, #64748b)' }}>Free Client Portal for Freelancers</span>
+            <span style={{ color: 'var(--ink-muted)' }}>•</span>
+            <span style={{ color: 'var(--ink-secondary)' }}>Free Client Portal for Freelancers</span>
           </a>
         </div>
 

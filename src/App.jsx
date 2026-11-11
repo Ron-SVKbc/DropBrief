@@ -130,8 +130,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Modern SaaS Footer (rendered for internal views; landing page and dashboard have their own Neo-Brutalist footer) */}
-      {!isLandingPage && currentView !== 'dashboard' && (
+      {/* Modern SaaS Footer (rendered for internal views; landing page, dashboard, and client portal have their own Neo-Brutalist footers) */}
+      {!isLandingPage && currentView !== 'dashboard' && currentView !== 'client-portal' && (
         <footer style={{
           borderTop: '1px solid var(--border-hairline)',
           padding: '28px 0 24px',

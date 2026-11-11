@@ -1,0 +1,715 @@
+/* ============================================================
+   DropBrief — Client Portal Tactile Neo-Brutalist Theme
+   Matches Landing Page & Atelier Studio Ledger Aesthetic
+   ============================================================ */
+
+.client-portal-page {
+  /* Physical Color Palette */
+  --paper-bg: #F5F1E8;
+  --card-bg: #FFFFFF;
+  --card-alt: #FAF9F6;
+  --ink-primary: #111111;
+  --ink-secondary: #4B5563;
+  --ink-muted: #6B7280;
+
+  /* Accents */
+  --yellow: #FFE500;
+  --yellow-light: #FEF3C7;
+  --orange: #FF4400;
+  --amber: #F59E0B;
+  --emerald: #10B981;
+  --emerald-light: #ECFDF5;
+  --purple: #8B5CF6;
+  --purple-light: #F5F3FF;
+  --cobalt: #1A56DB;
+
+  /* Tactile Physical Tokens */
+  --border-thick: 2.5px solid #111111;
+  --border-card: 2px solid #111111;
+  --border-medium: 1.5px solid #111111;
+  --border-subtle: 1px solid #E5E7EB;
+  
+  --shadow-sm: 2px 2px 0px #111111;
+  --shadow-md: 4px 4px 0px #111111;
+  --shadow-lg: 6px 6px 0px #111111;
+
+  /* Typography */
+  --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  background-color: var(--paper-bg);
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  line-height: 1.5;
+  background-image: radial-gradient(rgba(17, 17, 17, 0.07) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  padding-bottom: 70px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.client-portal-page * {
+  box-sizing: border-box;
+}
+
+/* ── Top Scrim / Context Banners ───────────────────────────── */
+.cp-demo-banner {
+  background: #111111;
+  color: #FFFFFF;
+  border-bottom: var(--border-thick);
+  padding: 10px 0;
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 2px 0px #111111;
+}
+
+.cp-preview-banner {
+  background: #FEF3C7;
+  color: #111111;
+  border-bottom: var(--border-thick);
+  padding: 10px 0;
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 2px 0px #111111;
+}
+
+/* ── Container Layout ───────────────────────────────────────── */
+.cp-container {
+  max-width: 860px;
+  margin: 32px auto 0;
+  padding: 0 16px;
+}
+
+/* ── Main Manifest / Intake Card ────────────────────────────── */
+.cp-manifest-card {
+  background: var(--card-bg);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-lg);
+  border-radius: 12px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .cp-manifest-card {
+    padding: 22px 18px;
+  }
+}
+
+.cp-manifest-perforation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px dashed #D1D5DB;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-secondary);
+  letter-spacing: 0.05em;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cp-manifest-barcode {
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  color: var(--ink-primary);
+}
+
+.cp-manifest-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--yellow);
+  color: #111111;
+  border: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+  padding: 3px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cp-manifest-badge-ongoing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #F5F3FF;
+  color: #6D28D9;
+  border: 1.5px solid #6D28D9;
+  box-shadow: 1.5px 1.5px 0px #6D28D9;
+  padding: 3px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.cp-manifest-badge-oneoff {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1.5px solid #1D4ED8;
+  box-shadow: 1.5px 1.5px 0px #1D4ED8;
+  padding: 3px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.cp-manifest-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink-primary);
+  margin: 12px 0 10px 0;
+  text-transform: uppercase;
+}
+
+.cp-manifest-desc {
+  font-size: 0.95rem;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  max-width: 580px;
+  margin: 0;
+}
+
+.cp-commission-box {
+  background: var(--card-alt);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  padding: 14px 18px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .cp-commission-box {
+    text-align: left;
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+.cp-commission-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+}
+
+.cp-commission-name {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink-primary);
+  display: block;
+  margin-top: 2px;
+}
+
+.cp-commission-deadline {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1px solid #F59E0B;
+  padding: 2px 8px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 6px;
+}
+
+/* ── Progress & Status Dock ─────────────────────────────────── */
+.cp-progress-dock {
+  background: var(--card-alt);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin-top: 26px;
+}
+
+.cp-progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cp-progress-track {
+  height: 14px;
+  background: #FFFFFF;
+  border: var(--border-card);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cp-progress-fill {
+  height: 100%;
+  background: var(--yellow);
+  border-right: 2px solid #111111;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cp-progress-fill.is-complete {
+  background: var(--emerald);
+  border-right: none;
+}
+
+.cp-all-done-banner {
+  background: var(--emerald-light);
+  border: 2px solid var(--emerald);
+  box-shadow: 3px 3px 0px var(--emerald);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #065F46;
+}
+
+/* Cadence Box for Ongoing Retainers */
+.cp-cadence-box {
+  background: var(--card-alt);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cp-cadence-box.is-done {
+  background: var(--emerald-light);
+  border-color: var(--emerald);
+}
+
+/* ── Checklist Items Stack ──────────────────────────────────── */
+.cp-items-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+.cp-item-card {
+  background: var(--card-bg);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-md);
+  border-radius: 10px;
+  padding: 22px 24px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.cp-item-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translate(-1px, -1px);
+}
+
+.cp-item-card.is-completed {
+  background: #FFFDF9;
+  border-color: #10B981;
+  box-shadow: 4px 4px 0px #10B981;
+}
+
+.cp-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.cp-item-number-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: #FFFFFF;
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-size: 0.92rem;
+  color: var(--ink-primary);
+  flex-shrink: 0;
+}
+
+.cp-item-card.is-completed .cp-item-number-box {
+  background: var(--emerald);
+  color: #FFFFFF;
+  border-color: #065F46;
+  box-shadow: 2px 2px 0px #065F46;
+}
+
+.cp-item-title {
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+  margin: 0 0 4px 0;
+}
+
+.cp-item-desc {
+  font-size: 0.88rem;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.cp-item-badge-req {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #DC2626;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.cp-item-badge-opt {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #D1D5DB;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+/* ── Dropzone & Upload Mechanics ────────────────────────────── */
+.cp-dropzone {
+  border: 2.5px dashed #111111;
+  background: var(--card-alt);
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  outline: none;
+}
+
+.cp-dropzone:hover {
+  background: #FFFBEB;
+  border-color: #111111;
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.cp-dropzone.active {
+  background: #FEF3C7;
+  border-color: #111111;
+  border-style: solid;
+  transform: scale(1.01);
+  box-shadow: var(--shadow-md);
+}
+
+.cp-dropzone-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background: var(--yellow);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.cp-dropzone-heading {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
+}
+
+.cp-dropzone-hint {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--ink-muted);
+}
+
+/* Unified File Management Box */
+.cp-file-box {
+  background: var(--card-alt);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.cp-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: var(--border-medium);
+  box-shadow: 1.5px 1.5px 0px rgba(0,0,0,0.08);
+  border-radius: 6px;
+  padding: 10px 14px;
+  gap: 12px;
+  transition: border-color 0.12s;
+}
+
+.cp-file-row:hover {
+  border-color: #111111;
+}
+
+.cp-file-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1.5px solid #111111;
+  box-shadow: 1px 1px 0px #111111;
+  display: block;
+  flex-shrink: 0;
+  cursor: zoom-in;
+}
+
+.cp-file-doc-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  background: #FEF3C7;
+  border: 1.5px solid #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #111111;
+}
+
+.cp-file-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-file-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* Text Input Area */
+.cp-textarea {
+  width: 100%;
+  border: var(--border-card);
+  border-radius: 8px;
+  background: #FFFFFF;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-family: var(--font-body);
+  color: var(--ink-primary);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  resize: vertical;
+  transition: all 0.12s;
+  box-sizing: border-box;
+}
+
+.cp-textarea:focus {
+  background: #FFFBEB;
+  box-shadow: var(--shadow-md);
+  border-color: #111111;
+}
+
+.cp-submitted-text-box {
+  background: var(--emerald-light);
+  border: 1.5px solid var(--emerald);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+/* ── Tactile Buttons ────────────────────────────────────────── */
+.cp-btn-primary {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 9px 18px;
+  background: var(--yellow);
+  color: #111111;
+  border: var(--border-card);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+  user-select: none;
+}
+
+.cp-btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+  background: #FBBF24;
+}
+
+.cp-btn-primary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #111111;
+}
+
+.cp-btn-secondary {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  background: #FFFFFF;
+  color: var(--ink-primary);
+  border: var(--border-medium);
+  border-radius: 5px;
+  box-shadow: 1.5px 1.5px 0px #111111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: uppercase;
+  transition: all 0.12s;
+  user-select: none;
+}
+
+.cp-btn-secondary:hover {
+  background: var(--card-alt);
+  transform: translate(-1px, -1px);
+  box-shadow: 2.5px 2.5px 0px #111111;
+}
+
+.cp-btn-secondary:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0.5px 0.5px 0px #111111;
+}
+
+/* ── Security & Trust Card ──────────────────────────────────── */
+.cp-security-card {
+  background: var(--card-bg);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-md);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.cp-security-pill {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+  background: var(--card-alt);
+  color: var(--ink-primary);
+  border: var(--border-medium);
+  box-shadow: 1.5px 1.5px 0px #111111;
+  padding: 5px 12px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.cp-security-pill:hover {
+  background: var(--yellow-light);
+  transform: translate(-1px, -1px);
+  box-shadow: 2.5px 2.5px 0px #111111;
+}
+
+/* ── Viral Loop Pill ────────────────────────────────────────── */
+.cp-viral-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  border: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.12s;
+}
+
+.cp-viral-pill:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+}
+
+.cp-item-content {
+  margin-top: 16px;
+  padding-left: 50px;
+}
+
+@media (max-width: 600px) {
+  .cp-item-content {
+    padding-left: 0;
+  }
+}
+
+.cp-state-card {
+  max-width: 540px;
+  margin: 80px auto;
+  background: var(--card-bg);
+  border: var(--border-thick);
+  box-shadow: var(--shadow-lg);
+  border-radius: 12px;
+  padding: 40px 28px;
+  text-align: center;
+}
+
