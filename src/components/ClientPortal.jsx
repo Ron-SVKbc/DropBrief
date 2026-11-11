@@ -38,7 +38,8 @@ import {
   RefreshCw,
   Layers,
   Globe,
-  UserPlus
+  UserPlus,
+  ArrowRight
 } from 'lucide-react';
 import '../styles/client-portal-brutalist.css';
 
@@ -145,6 +146,27 @@ export default function ClientPortal() {
   const [dragActiveId, setDragActiveId] = useState(null);
   const [stagedFiles, setStagedFiles] = useState({}); // { [itemId]: [File, File, ...] }
   const [stagedPreviews, setStagedPreviews] = useState({}); // { [itemId]: [url1, url2, ...] }
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [celebrationCount, setCelebrationCount] = useState(0);
+  const [attentionItemId, setAttentionItemId] = useState(null);
+  const [clientConfirmedDone, setClientConfirmedDone] = useState(false);
+
+  // Reset transient completion state when opening a different docket slug
+  useEffect(() => {
+    setShowCompletionModal(false);
+    setClientConfirmedDone(false);
+    setAttentionItemId(null);
+  }, [activeProjectSlug]);
+
+  // Close completion celebration overlay on Escape key (WCAG 2.1.2)
+  useEffect(() => {
+    if (!showCompletionModal) return;
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setShowCompletionModal(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showCompletionModal]);
 
   // Prevent browser default behavior when dragging files onto the window
   useEffect(() => {
@@ -191,6 +213,8 @@ export default function ClientPortal() {
     setDemoProject(createInitialDemoProject());
     setTextInputs({});
     setStagedFiles({});
+    setShowCompletionModal(false);
+    setClientConfirmedDone(false);
     addToast('Interactive demo preview has been reset to defaults.', 'info', 'Reset');
   };
 
@@ -296,27 +320,64 @@ export default function ClientPortal() {
   const todayBatch = getCurrentBatch(project, todayDateStr);
   const isTodayDone = isBatchSubmitted(todayBatch) || (isOngoing && isRequiredComplete);
 
-  // Trigger confetti when required deliverables (or all items) transition to complete
+  const triggerCompletionCelebration = () => {
+    setCelebrationCount((c) => c + 1);
+    setShowCompletionModal(true);
+    confetti({
+      particleCount: 140,
+      spread: 85,
+      origin: { y: 0.58 },
+      colors: ['#FFE500', '#FF4400', '#10B981', '#111111']
+    });
+  };
+
+  // Trigger celebratory handoff screen & confetti when required items become complete
   const handleCheckCompletion = (nextItems) => {
     const wasReady = isRequiredComplete;
     const isNowReady = areProjectItemsComplete(nextItems);
     const allSubmitted = nextItems.length > 0 && nextItems.every((i) => i.isCompleted);
 
-    if (isNowReady && (!wasReady || allSubmitted)) {
-      confetti({
-        particleCount: 140,
-        spread: 90,
-        origin: { y: 0.6 },
-        colors: ['#FFE500', '#FF4400', '#10B981', '#111111']
-      });
+    if (isNowReady && !wasReady) {
+      triggerCompletionCelebration();
       addToast(
         allSubmitted
           ? 'Awesome! All requested assets have been successfully submitted.'
-          : 'All required deliverables are submitted! Remaining items are optional.',
+          : 'All required deliverables are in! Optional items can remain empty.',
         'success',
         allSubmitted ? 'All Done!' : 'Required Complete!'
       );
+    } else if (wasReady && !isAllDone && allSubmitted) {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.62 },
+        colors: ['#FFE500', '#10B981', '#111111']
+      });
+      addToast('All optional extras delivered too — 100% complete!', 'success', '100% Delivered');
     }
+  };
+
+  const handleDoneClick = () => {
+    const missingRequired = items.filter((i) => i.required !== false && !i.isCompleted);
+
+    if (hasRequiredItems && missingRequired.length > 0) {
+      const firstMissing = missingRequired[0];
+      const targetEl = document.getElementById(`cp-item-card-${firstMissing.id}`);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setAttentionItemId(firstMissing.id);
+      setTimeout(() => setAttentionItemId(null), 1600);
+      addToast(
+        `Please complete the ${missingRequired.length} remaining required item${missingRequired.length === 1 ? '' : 's'} first — optional items can remain empty.`,
+        'warning',
+        'Required Items Remaining'
+      );
+      return;
+    }
+
+    setClientConfirmedDone(true);
+    triggerCompletionCelebration();
   };
 
   const MAX_STAGED_FILES_PER_ITEM = 20;
@@ -990,7 +1051,8 @@ export default function ClientPortal() {
             return (
               <div 
                 key={item.id}
-                className={`cp-item-card ${isDone ? 'is-completed' : ''}`}
+                id={`cp-item-card-${item.id}`}
+                className={`cp-item-card ${isDone ? 'is-completed' : ''} ${attentionItemId === item.id ? 'is-attention' : ''}`}
                 onDragOver={(e) => {
                   if (item.type === 'file') {
                     e.preventDefault();
@@ -1674,6 +1736,72 @@ export default function ClientPortal() {
           })}
         </div>
 
+        {/* ── Bottom Finish / Handoff Action Dock ───────────────── */}
+        {(!isFreelancerReadOnly || isRequiredComplete) && (() => {
+          const canFinishNow = !hasRequiredItems || isRequiredComplete;
+          const missingReqCount = Math.max(0, requiredItems.length - requiredCompletedCount);
+          const unsubmittedOptCount = Math.max(0, optionalItems.length - optionalCompletedCount);
+
+          return (
+            <div className={`cp-done-dock ${canFinishNow ? 'is-ready' : ''}`}>
+              <div className="cp-done-dock-info">
+                <div className="cp-done-icon-box" aria-hidden="true">
+                  {canFinishNow ? <Check size={22} strokeWidth={3} /> : <Clock size={20} />}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <strong style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '1.05rem',
+                    color: 'var(--ink-primary)',
+                    display: 'block',
+                    lineHeight: 1.25
+                  }}>
+                    {!hasRequiredItems
+                      ? 'Ready whenever you are'
+                      : isRequiredComplete
+                        ? (clientConfirmedDone
+                          ? `All set — ${project.freelancerName} takes it from here`
+                          : 'All required deliverables are uploaded!')
+                        : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
+                  </strong>
+                  <span style={{
+                    fontSize: '0.82rem',
+                    color: canFinishNow ? '#065F46' : 'var(--ink-secondary)',
+                    display: 'block',
+                    marginTop: '2px'
+                  }}>
+                    {!hasRequiredItems
+                      ? 'All fields above are optional. Add anything helpful or click Done to wrap up.'
+                      : isRequiredComplete
+                        ? (unsubmittedOptCount > 0
+                          ? `${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} left blank — completely fine, click Done anytime.`
+                          : `Everything is safely stored. Click Done to wrap up and confirm handoff to ${project.freelancerName}.`)
+                        : (optionalItems.length > 0
+                          ? 'Complete the required items above first — optional fields can stay empty.'
+                          : 'Complete the remaining required items above, then click Done.')}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                id="btn-client-done"
+                type="button"
+                onClick={handleDoneClick}
+                className={`cp-btn-done ${canFinishNow ? 'is-ready' : 'is-waiting'}`}
+              >
+                {canFinishNow ? (
+                  <>
+                    <CheckCircle2 size={17} aria-hidden="true" />
+                    <span>Done</span>
+                  </>
+                ) : (
+                  <span>Done ({requiredCompletedCount}/{requiredItems.length})</span>
+                )}
+              </button>
+            </div>
+          );
+        })()}
+
         {/* ── Archive of Previous Submissions (Ongoing Projects) ─ */}
         {isOngoing && getProjectBatches(project).length > 0 && (
           <div className="cp-manifest-card" style={{ padding: '24px 28px' }}>
@@ -1858,6 +1986,156 @@ export default function ClientPortal() {
         </div>
 
       </div>
+
+      {/* ── Completion Handoff Animation Modal ────────────────── */}
+      {showCompletionModal && (() => {
+        const unsubmittedOptCount = Math.max(0, optionalItems.length - optionalCompletedCount);
+
+        return (
+          <div
+            className="cp-celebration-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cp-celebration-heading"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowCompletionModal(false);
+            }}
+          >
+            <div key={`celebration-${celebrationCount}`} className="cp-celebration-card">
+              <button
+                type="button"
+                className="cp-celebration-close"
+                onClick={() => setShowCompletionModal(false)}
+                aria-label="Close completion overlay"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+
+              <div className="cp-celebration-stamp">
+                <Sparkles size={12} aria-hidden="true" />
+                <span>SUBMITTED &bull; IN CREATOR&apos;S HANDS</span>
+              </div>
+
+              {/* Choreographed SVG Studio Seal */}
+              <div className="cp-seal-stage" aria-hidden="true">
+                <svg className="cp-seal-ring" viewBox="0 0 112 112" fill="none">
+                  <circle
+                    cx="56"
+                    cy="56"
+                    r="50"
+                    stroke="#111111"
+                    strokeWidth="2"
+                    strokeDasharray="6 6"
+                    opacity="0.32"
+                  />
+                  <circle
+                    cx="56"
+                    cy="56"
+                    r="44"
+                    stroke="#10B981"
+                    strokeWidth="2.5"
+                    strokeDasharray="18 8"
+                  />
+                </svg>
+
+                <div className="cp-seal-disc">
+                  <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+                    <path
+                      className="cp-seal-check"
+                      d="M8 20L15.5 27.5L30.5 11.5"
+                      stroke="#FFFFFF"
+                      strokeWidth="4.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+
+                {/* Radial Geometric Sparks */}
+                <svg className="cp-seal-spark sp-1" width="16" height="16" viewBox="0 0 16 16">
+                  <rect x="4" y="4" width="8" height="8" rx="1.5" transform="rotate(45 8 8)" fill="#FFE500" stroke="#111111" strokeWidth="1.5" />
+                </svg>
+                <svg className="cp-seal-spark sp-2" width="14" height="14" viewBox="0 0 14 14">
+                  <circle cx="7" cy="7" r="5" fill="#FF4400" stroke="#111111" strokeWidth="1.5" />
+                </svg>
+                <svg className="cp-seal-spark sp-3" width="14" height="14" viewBox="0 0 14 14">
+                  <circle cx="7" cy="7" r="4.5" fill="#10B981" stroke="#111111" strokeWidth="1.5" />
+                </svg>
+                <svg className="cp-seal-spark sp-4" width="16" height="16" viewBox="0 0 16 16">
+                  <rect x="4" y="4" width="8" height="8" rx="1.5" transform="rotate(45 8 8)" fill="#FFE500" stroke="#111111" strokeWidth="1.5" />
+                </svg>
+              </div>
+
+              <h2 id="cp-celebration-heading" className="cp-celebration-title">
+                Everything&apos;s Complete!
+              </h2>
+
+              <p className="cp-celebration-copy">
+                Thanks, <strong>{project.clientName}</strong> — all required files and details have been securely received. From here on, it&apos;s completely up to <strong>{project.freelancerName}</strong> to take over and kick off your project.
+              </p>
+
+              {/* Baton Handoff Relay */}
+              <div className="cp-handoff-relay">
+                <div>
+                  <span className="cp-handoff-node-label">Your Part</span>
+                  <strong className="cp-handoff-node-name">{project.clientName}</strong>
+                  <span
+                    className="cp-handoff-node-status"
+                    style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #10B981' }}
+                  >
+                    {hasRequiredItems
+                      ? `${requiredCompletedCount}/${requiredItems.length} Required ✓`
+                      : `${completedCount}/${totalCount} Sent ✓`}
+                  </span>
+                </div>
+
+                <div className="cp-handoff-arrow" aria-hidden="true">
+                  <ArrowRight size={14} strokeWidth={2.5} />
+                </div>
+
+                <div>
+                  <span className="cp-handoff-node-label">Up Next</span>
+                  <strong className="cp-handoff-node-name">{project.freelancerName}</strong>
+                  <span
+                    className="cp-handoff-node-status"
+                    style={{ background: '#FEF3C7', color: '#92400E', border: '1px solid #F59E0B' }}
+                  >
+                    Handling From Here
+                  </span>
+                </div>
+              </div>
+
+              {unsubmittedOptCount > 0 && (
+                <div className="cp-celebration-opt-note">
+                  Left <strong>{unsubmittedOptCount} optional field{unsubmittedOptCount === 1 ? '' : 's'}</strong> blank — totally fine, {project.freelancerName} already has everything needed to start.
+                </div>
+              )}
+
+              <div className="cp-celebration-actions">
+                <button
+                  id="btn-celebration-confirm"
+                  type="button"
+                  onClick={() => {
+                    setClientConfirmedDone(true);
+                    setShowCompletionModal(false);
+                  }}
+                  className="cp-btn-done is-ready"
+                >
+                  <CheckCircle2 size={17} aria-hidden="true" />
+                  <span>Done &mdash; Looks Great</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCompletionModal(false)}
+                  className="cp-btn-secondary"
+                >
+                  Review Checklist
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
