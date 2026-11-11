@@ -150,11 +150,13 @@ export default function ClientPortal() {
   const [celebrationCount, setCelebrationCount] = useState(0);
   const [attentionItemId, setAttentionItemId] = useState(null);
   const [clientConfirmedDone, setClientConfirmedDone] = useState(false);
+  const [needsReconfirm, setNeedsReconfirm] = useState(false);
 
   // Reset transient completion state when opening a different docket slug
   useEffect(() => {
     setShowCompletionModal(false);
     setClientConfirmedDone(false);
+    setNeedsReconfirm(false);
     setAttentionItemId(null);
   }, [activeProjectSlug]);
 
@@ -224,6 +226,7 @@ export default function ClientPortal() {
     setStagedFiles({});
     setShowCompletionModal(false);
     setClientConfirmedDone(false);
+    setNeedsReconfirm(false);
     addToast('Interactive demo preview has been reset to defaults.', 'info', 'Reset');
   };
 
@@ -319,6 +322,7 @@ export default function ClientPortal() {
   const totalCount = items.length;
   const isAllDone = totalCount > 0 && completedCount === totalCount;
   const isRequiredComplete = areProjectItemsComplete(items);
+  const isGreenComplete = !needsReconfirm && (isAllDone || clientConfirmedDone);
   const progressPercent = hasRequiredItems
     ? Math.round((requiredCompletedCount / requiredItems.length) * 100)
     : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0);
@@ -328,6 +332,15 @@ export default function ClientPortal() {
   const todayDateStr = getTodayDateString();
   const todayBatch = getCurrentBatch(project, todayDateStr);
   const isTodayDone = isBatchSubmitted(todayBatch) || (isOngoing && isRequiredComplete);
+
+  // If the user modifies or clears any field (including optional ones) after confirmation,
+  // un-green the Done dock so they must either refill/submit or manually click Done again.
+  const invalidateConfirmedState = () => {
+    if (clientConfirmedDone || isAllDone) {
+      setClientConfirmedDone(false);
+      setNeedsReconfirm(true);
+    }
+  };
 
   const triggerCompletionCelebration = () => {
     setCelebrationCount((c) => c + 1);
@@ -348,7 +361,9 @@ export default function ClientPortal() {
     const isNowReady = areProjectItemsComplete(nextItems);
     const allSubmitted = nextItems.length > 0 && nextItems.every((i) => i.isCompleted);
 
-    if (allSubmitted && !isAllDone) {
+    setNeedsReconfirm(false);
+
+    if (allSubmitted && (!isAllDone || needsReconfirm)) {
       setClientConfirmedDone(true);
       triggerCompletionCelebration();
       addToast(
@@ -387,6 +402,7 @@ export default function ClientPortal() {
       return;
     }
 
+    setNeedsReconfirm(false);
     setClientConfirmedDone(true);
     triggerCompletionCelebration();
   };
@@ -404,6 +420,8 @@ export default function ClientPortal() {
       filesInput instanceof FileList ? filesInput : (Array.isArray(filesInput) ? filesInput : [filesInput])
     );
     if (fileArray.length === 0) return;
+
+    invalidateConfirmedState();
 
     setStagedFiles((prev) => {
       const current = prev[itemId] || [];
@@ -625,6 +643,8 @@ export default function ClientPortal() {
 
     const filtered = existingFiles.filter((f, idx) => (f.id ? f.id !== fileIdentifier : idx !== fileIdentifier));
 
+    invalidateConfirmedState();
+
     if (isDemoMode) {
       setDemoProject((prev) => {
         const updatedItems = prev.items.map((item) => {
@@ -728,6 +748,8 @@ export default function ClientPortal() {
       addToast('As a freelancer, you cannot edit client text through the client portal.', 'warning', 'Client Only');
       return;
     }
+
+    invalidateConfirmedState();
 
     if (isDemoMode) {
       setDemoProject((prev) => {
@@ -1031,7 +1053,7 @@ export default function ClientPortal() {
               </div>
 
               {/* 100% / Confirmed Done Celebration Banner */}
-              {(isAllDone || clientConfirmedDone) && (
+              {isGreenComplete && (
                 <div className="cp-all-done-banner">
                   <Sparkles size={24} style={{ flexShrink: 0, color: '#059669' }} />
                   <div>
@@ -1688,7 +1710,10 @@ export default function ClientPortal() {
                               placeholder="Type requested details, answers, links, or website copy here..."
                               aria-label={`Enter text for item ${item.title}`}
                               value={textInputs[item.id] || ''}
-                              onChange={(e) => setTextInputs({ ...textInputs, [item.id]: e.target.value })}
+                              onChange={(e) => {
+                                setTextInputs({ ...textInputs, [item.id]: e.target.value });
+                                invalidateConfirmedState();
+                              }}
                               style={{ marginBottom: '10px' }}
                             />
                             <button 
@@ -1750,7 +1775,6 @@ export default function ClientPortal() {
         {/* ── Bottom Finish / Handoff Action Dock ───────────────── */}
         {(!isFreelancerReadOnly || isRequiredComplete) && (() => {
           const canFinishNow = !hasRequiredItems || isRequiredComplete;
-          const isGreenComplete = isAllDone || clientConfirmedDone;
           const missingReqCount = Math.max(0, requiredItems.length - requiredCompletedCount);
           const unsubmittedOptCount = Math.max(0, optionalItems.length - optionalCompletedCount);
 
@@ -1786,7 +1810,9 @@ export default function ClientPortal() {
                       : !hasRequiredItems
                         ? 'Ready whenever you are'
                         : isRequiredComplete
-                          ? 'Required deliverables uploaded — click Done when ready'
+                          ? (unsubmittedOptCount === 0
+                            ? 'Changes in progress — confirm Done when ready'
+                            : 'Required deliverables uploaded — click Done when ready')
                           : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
                   </strong>
                   <span style={{
@@ -1802,7 +1828,9 @@ export default function ClientPortal() {
                       : !hasRequiredItems
                         ? 'All fields above are optional. Add anything helpful or click Done to wrap up.'
                         : isRequiredComplete
-                          ? `${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} still open — fill them if helpful, or click Done to hand off to ${project.freelancerName}.`
+                          ? (unsubmittedOptCount === 0
+                            ? `Submit your pending edits above or click Done to confirm handoff to ${project.freelancerName}.`
+                            : `${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} still open — fill them if helpful, or click Done to hand off to ${project.freelancerName}.`)
                           : (optionalItems.length > 0
                             ? 'Complete the required items above first — optional fields can stay empty.'
                             : 'Complete the remaining required items above to finish.')}
