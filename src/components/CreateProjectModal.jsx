@@ -87,7 +87,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   }, [currentFreelancer]);
 
   const [items, setItems] = useState(() => {
-    return PROJECT_TEMPLATES[0].items.map((i) => ({ ...i }));
+    return PROJECT_TEMPLATES[0].items.map((i) => ({ ...i, required: i.required !== false }));
   });
 
   // Close modal on Escape key press (WCAG 2.1.2)
@@ -102,6 +102,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  const requiredCount = items.filter((i) => i.required !== false).length;
+  const optionalCount = items.length - requiredCount;
+
   const handleSelectTemplate = (tpl) => {
     setSelectedTemplateId(tpl.id);
     if (tpl.id === 'custom') {
@@ -115,7 +118,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     } else if (tpl.projectType === 'ongoing') {
       setCadenceDays(1);
     }
-    setItems(tpl.items.map((i) => ({ ...i })));
+    setItems(tpl.items.map((i) => ({ ...i, required: i.required !== false })));
   };
 
   const handleAddItem = (type = 'file') => {
@@ -636,10 +639,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               {/* Step 4: Checklist Items */}
               <div className="create-step-card" style={{ marginBottom: 0 }}>
                 <div className="create-specs-toolbar">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span className="create-step-tag">04 // CHECKLIST</span>
                     <span className="create-step-title">Requirements</span>
-                    <span className="create-specs-count">{items.length} ITEMS</span>
+                    <span className="create-specs-count">
+                      {items.length} ITEMS &bull; {requiredCount} REQ / {optionalCount} OPT
+                    </span>
                   </div>
 
                   <div className="create-specs-actions">
@@ -663,41 +668,74 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 </div>
 
                 <div className="create-spec-list">
-                  {items.map((item, idx) => (
-                    <div key={item.id || idx} className="create-spec-item">
-                      <div className={`create-spec-type-tag ${item.type === 'file' ? 'type-file' : 'type-text'}`}>
-                        {item.type === 'file' ? <Upload size={12} aria-hidden="true" /> : <FileText size={12} aria-hidden="true" />}
-                        <span>{item.type === 'file' ? 'FILE' : 'TEXT'}</span>
-                      </div>
+                  {items.map((item, idx) => {
+                    const isReq = item.required !== false;
 
-                      <div className="create-spec-inputs">
-                        <input
-                          type="text"
-                          className="create-spec-title-input"
-                          value={item.title}
-                          onChange={(e) => handleUpdateItem(idx, 'title', e.target.value)}
-                          placeholder="Requirement title (e.g. Vector Logo)…"
-                        />
-                        <input
-                          type="text"
-                          className="create-spec-desc-input"
-                          placeholder="Client guidance (e.g. Upload SVG or transparent PNG)…"
-                          value={item.description || ''}
-                          onChange={(e) => handleUpdateItem(idx, 'description', e.target.value)}
-                        />
-                      </div>
+                    return (
+                      <div key={item.id || idx} className={`create-spec-item ${!isReq ? 'is-optional' : ''}`}>
+                        <div className={`create-spec-type-tag ${item.type === 'file' ? 'type-file' : 'type-text'}`}>
+                          {item.type === 'file' ? <Upload size={12} aria-hidden="true" /> : <FileText size={12} aria-hidden="true" />}
+                          <span>{item.type === 'file' ? 'FILE' : 'TEXT'}</span>
+                        </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(idx)}
-                        aria-label={`Remove requirement ${item.title || idx + 1}`}
-                        className="create-spec-delete-btn"
-                        title="Remove requirement"
-                      >
-                        <Trash2 size={15} aria-hidden="true" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="create-spec-inputs">
+                          <input
+                            type="text"
+                            className="create-spec-title-input"
+                            value={item.title}
+                            onChange={(e) => handleUpdateItem(idx, 'title', e.target.value)}
+                            placeholder="Requirement title (e.g. Vector Logo)…"
+                          />
+                          <input
+                            type="text"
+                            className="create-spec-desc-input"
+                            placeholder="Client guidance (e.g. Upload SVG or transparent PNG)…"
+                            value={item.description || ''}
+                            onChange={(e) => handleUpdateItem(idx, 'description', e.target.value)}
+                          />
+                        </div>
+
+                        <div className="create-spec-controls">
+                          <div
+                            className="create-req-toggle"
+                            role="group"
+                            aria-label={`Requirement priority for ${item.title || `requirement ${idx + 1}`}`}
+                          >
+                            <button
+                              type="button"
+                              aria-pressed={isReq}
+                              onClick={() => handleUpdateItem(idx, 'required', true)}
+                              className={`create-req-opt ${isReq ? 'is-req-active' : ''}`}
+                              title="Required: blocks project readiness until client submits"
+                            >
+                              <span className="create-req-dot" aria-hidden="true" />
+                              <span>Required</span>
+                            </button>
+                            <button
+                              type="button"
+                              aria-pressed={!isReq}
+                              onClick={() => handleUpdateItem(idx, 'required', false)}
+                              className={`create-req-opt ${!isReq ? 'is-opt-active' : ''}`}
+                              title="Optional: helpful extra that will not block kickoff"
+                            >
+                              <span className="create-req-dot" aria-hidden="true" />
+                              <span>Optional</span>
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(idx)}
+                            aria-label={`Remove requirement ${item.title || idx + 1}`}
+                            className="create-spec-delete-btn"
+                            title="Remove requirement"
+                          >
+                            <Trash2 size={15} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

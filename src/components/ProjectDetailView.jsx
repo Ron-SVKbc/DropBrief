@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, getChecklistStats } from '../context/AppContext';
 import { 
   getTodayDateString, 
   formatDateSlovak, 
@@ -146,11 +146,20 @@ export default function ProjectDetailView() {
   const items = project.items || [];
   const completedItems = items.filter((i) => i.isCompleted);
   const missingItems = items.filter((i) => !i.isCompleted);
-  const totalCount = items.length;
-  const completedCount = completedItems.length;
-  const missingCount = missingItems.length;
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const isCompleted = project.status === 'completed' || (totalCount > 0 && missingCount === 0);
+  const {
+    totalCount,
+    completedCount,
+    missingTotalCount: missingCount,
+    hasRequiredItems,
+    requiredCompletedCount,
+    requiredTotalCount,
+    optionalTotalCount,
+    missingRequiredCount,
+    progressPercent,
+    isReady,
+    isAllDone,
+  } = getChecklistStats(items);
+  const isCompleted = project.status === 'completed' || isReady;
 
   // Filter items for display
   const displayedItems = activeFilter === 'completed' 
@@ -323,12 +332,14 @@ export default function ProjectDetailView() {
               isCompleted ? (
                 <span className="pdv-stamp-badge" style={{ background: '#ECFDF5', color: '#065F46', borderColor: '#10B981' }}>
                   <CheckCircle2 size={12} aria-hidden="true" />
-                  <span>100% Complete</span>
+                  <span>{isAllDone ? '100% Complete' : 'Ready (Required Met)'}</span>
                 </span>
               ) : (
                 <span className="pdv-stamp-badge" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#F59E0B' }}>
                   <Clock size={12} aria-hidden="true" />
-                  <span>Waiting ({missingCount} pending)</span>
+                  <span>
+                    Waiting ({hasRequiredItems && optionalTotalCount > 0 ? `${missingRequiredCount} req pending` : `${missingCount} pending`})
+                  </span>
                 </span>
               )
             )}
@@ -808,7 +819,9 @@ export default function ProjectDetailView() {
                 {completedCount} <span style={{ fontSize: '1.1rem', color: 'var(--ink-muted)', fontWeight: 700 }}>/ {totalCount}</span>
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', fontWeight: 600 }}>
-                {progressPercent}% fulfillment rate
+                {hasRequiredItems && optionalTotalCount > 0
+                  ? `${progressPercent}% required (${requiredCompletedCount}/${requiredTotalCount} req)`
+                  : `${progressPercent}% fulfillment rate`}
               </div>
             </div>
             
@@ -838,7 +851,11 @@ export default function ProjectDetailView() {
                 {missingCount}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', fontWeight: 600 }}>
-                {missingCount === 0 ? 'All deliverables received!' : 'Awaiting client upload'}
+                {missingCount === 0
+                  ? 'All deliverables received!'
+                  : (hasRequiredItems && missingRequiredCount === 0
+                    ? 'All required met (optional open)'
+                    : 'Awaiting client upload')}
               </div>
             </div>
 

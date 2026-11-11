@@ -113,6 +113,54 @@ function mapDbToProject(proj) {
   };
 }
 
+/**
+ * Evaluates whether a project's checklist satisfies completion rules:
+ * - When required items exist, all required items must be submitted (optional items may stay open).
+ * - When all items are optional, every item must be submitted; empty checklists are never complete.
+ */
+export function areProjectItemsComplete(itemsList) {
+  if (!Array.isArray(itemsList) || itemsList.length === 0) return false;
+  const requiredItems = itemsList.filter((i) => i.required !== false);
+  if (requiredItems.length > 0) {
+    return requiredItems.every((i) => Boolean(i.isCompleted));
+  }
+  return itemsList.every((i) => Boolean(i.isCompleted));
+}
+
+export function getChecklistStats(itemsList) {
+  const items = Array.isArray(itemsList) ? itemsList : [];
+  const requiredItems = items.filter((i) => i.required !== false);
+  const optionalItems = items.filter((i) => i.required === false);
+  const completedCount = items.filter((i) => i.isCompleted).length;
+  const requiredCompletedCount = requiredItems.filter((i) => i.isCompleted).length;
+  const optionalCompletedCount = optionalItems.filter((i) => i.isCompleted).length;
+  const totalCount = items.length;
+  const hasRequiredItems = requiredItems.length > 0;
+  const isReady = areProjectItemsComplete(items);
+  const isAllDone = totalCount > 0 && completedCount === totalCount;
+  const progressPercent = hasRequiredItems
+    ? Math.round((requiredCompletedCount / requiredItems.length) * 100)
+    : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0);
+
+  return {
+    items,
+    requiredItems,
+    optionalItems,
+    hasRequiredItems,
+    totalCount,
+    completedCount,
+    requiredTotalCount: requiredItems.length,
+    requiredCompletedCount,
+    optionalTotalCount: optionalItems.length,
+    optionalCompletedCount,
+    missingRequiredCount: requiredItems.length - requiredCompletedCount,
+    missingTotalCount: totalCount - completedCount,
+    progressPercent,
+    isReady,
+    isAllDone,
+  };
+}
+
 export function AppProvider({ children }) {
   // Freelancer session state
   const [currentFreelancer, setCurrentFreelancer] = useState(() => {
@@ -1595,9 +1643,7 @@ export function AppProvider({ children }) {
           };
         });
 
-        const requiredCompleted = updatedItems
-          .filter((i) => i.required)
-          .every((i) => i.isCompleted);
+        const requiredCompleted = areProjectItemsComplete(updatedItems);
 
         return {
           ...proj,
@@ -1623,9 +1669,8 @@ export function AppProvider({ children }) {
 
         const currentProj = projects.find((p) => p.slug?.toLowerCase() === cleanSlug.toLowerCase() || p.id === cleanSlug);
         if (currentProj) {
-          const reqDone = currentProj.items
-            .filter((i) => i.required)
-            .every((i) => (i.id === itemId ? isCompleted : i.isCompleted));
+          const nextItems = currentProj.items.map((i) => (i.id === itemId ? { ...i, isCompleted } : i));
+          const reqDone = areProjectItemsComplete(nextItems);
           
           await supabase
             .from('projects')
@@ -1771,11 +1816,12 @@ export function AppProvider({ children }) {
       prev.map((p) => {
         if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
         const updatedItems = [...p.items, newItem];
-        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        const reqDone = areProjectItemsComplete(updatedItems);
         return {
           ...p,
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
+          completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
         };
       })
     );
@@ -1809,10 +1855,13 @@ export function AppProvider({ children }) {
           );
         }
 
-        const currentReqDone = [...targetProject.items, newItem].filter((i) => i.required).every((i) => i.isCompleted);
+        const currentReqDone = areProjectItemsComplete([...targetProject.items, newItem]);
         await supabase
           .from('projects')
-          .update({ status: currentReqDone ? 'completed' : 'pending' })
+          .update({
+            status: currentReqDone ? 'completed' : 'pending',
+            completed_at: currentReqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+          })
           .eq('id', targetProject.id);
       } catch (err) {
         console.error('Failed to sync added item with cloud:', err);
@@ -1841,11 +1890,12 @@ export function AppProvider({ children }) {
             required: updatedFields.required !== undefined ? updatedFields.required : i.required,
           };
         });
-        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        const reqDone = areProjectItemsComplete(updatedItems);
         return {
           ...p,
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
+          completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
         };
       })
     );
@@ -1862,8 +1912,14 @@ export function AppProvider({ children }) {
         await supabase.from('project_items').update(updatePayload).eq('id', itemId);
 
         const currentItems = targetProject.items.map((i) => (i.id === itemId ? { ...i, ...updatePayload } : i));
-        const reqDone = currentItems.filter((i) => i.required).every((i) => i.isCompleted);
-        await supabase.from('projects').update({ status: reqDone ? 'completed' : 'pending' }).eq('id', targetProject.id);
+        const reqDone = areProjectItemsComplete(currentItems);
+        await supabase
+          .from('projects')
+          .update({
+            status: reqDone ? 'completed' : 'pending',
+            completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+          })
+          .eq('id', targetProject.id);
       } catch (err) {
         console.error('Failed to update item in Supabase:', err);
       }
@@ -1883,11 +1939,12 @@ export function AppProvider({ children }) {
       prev.map((p) => {
         if (p.id !== targetProject.id && p.slug !== targetProject.slug) return p;
         const updatedItems = p.items.filter((i) => i.id !== itemId);
-        const reqDone = updatedItems.length > 0 ? updatedItems.filter((i) => i.required).every((i) => i.isCompleted) : false;
+        const reqDone = areProjectItemsComplete(updatedItems);
         return {
           ...p,
           items: updatedItems,
           status: reqDone ? 'completed' : 'pending',
+          completedAt: reqDone ? (p.completedAt || new Date().toISOString()) : null,
         };
       })
     );
@@ -1898,8 +1955,14 @@ export function AppProvider({ children }) {
         await supabase.from('project_items').delete().eq('id', itemId);
 
         const remainingItems = targetProject.items.filter((i) => i.id !== itemId);
-        const reqDone = remainingItems.length > 0 ? remainingItems.filter((i) => i.required).every((i) => i.isCompleted) : false;
-        await supabase.from('projects').update({ status: reqDone ? 'completed' : 'pending' }).eq('id', targetProject.id);
+        const reqDone = areProjectItemsComplete(remainingItems);
+        await supabase
+          .from('projects')
+          .update({
+            status: reqDone ? 'completed' : 'pending',
+            completed_at: reqDone ? (targetProject.completedAt || new Date().toISOString()) : null,
+          })
+          .eq('id', targetProject.id);
       } catch (err) {
         console.error('Failed to delete item from Supabase:', err);
       }

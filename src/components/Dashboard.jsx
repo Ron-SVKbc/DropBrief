@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, getChecklistStats } from '../context/AppContext';
 import { formatCadenceBadge, isTodaySubmitted, getRetentionStatus } from '../utils/cadenceUtils';
 import { 
   FolderSync, 
@@ -633,9 +633,16 @@ export default function Dashboard({ onOpenCreateModal }) {
               </thead>
               <tbody>
                 {filteredProjects.map((proj) => {
-                  const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
-                  const totalCount = (proj.items || []).length;
-                  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                  const stats = getChecklistStats(proj.items);
+                  const {
+                    completedCount,
+                    totalCount,
+                    progressPercent,
+                    hasRequiredItems,
+                    requiredCompletedCount,
+                    requiredTotalCount,
+                    optionalTotalCount,
+                  } = stats;
                   const isCompleted = proj.status === 'completed';
                   const isLinkCopied = copiedSlug === proj.slug;
                   const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
@@ -688,9 +695,13 @@ export default function Dashboard({ onOpenCreateModal }) {
                       </td>
 
                       {/* Fulfillment */}
-                      <td style={{ minWidth: '130px' }}>
+                      <td style={{ minWidth: '130px' }} title={`${completedCount}/${totalCount} total delivered (${requiredTotalCount} required, ${optionalTotalCount} optional)`}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', fontFamily: 'var(--font-mono)', fontWeight: 800, marginBottom: '4px' }}>
-                          <span>{completedCount}/{totalCount}</span>
+                          <span>
+                            {hasRequiredItems && optionalTotalCount > 0
+                              ? `${requiredCompletedCount}/${requiredTotalCount} REQ`
+                              : `${completedCount}/${totalCount}`}
+                          </span>
                           <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)' }}>{progressPercent}%</span>
                         </div>
                         <div className="docket-track-meter">
@@ -822,9 +833,15 @@ export default function Dashboard({ onOpenCreateModal }) {
           /* ── Dossier Cards Grid (2-Columns on wide screen) ── */
           <div className="dash-dockets-grid">
             {filteredProjects.map((proj) => {
-              const completedCount = (proj.items || []).filter((i) => i.isCompleted).length;
-              const totalCount = (proj.items || []).length;
-              const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+              const {
+                completedCount,
+                totalCount,
+                progressPercent,
+                hasRequiredItems,
+                requiredCompletedCount,
+                requiredTotalCount,
+                optionalTotalCount,
+              } = getChecklistStats(proj.items);
               const isCompleted = proj.status === 'completed';
               const isLinkCopied = copiedSlug === proj.slug;
               const isOngoing = proj.projectType === 'ongoing' || proj.project_type === 'ongoing';
@@ -965,7 +982,16 @@ export default function Dashboard({ onOpenCreateModal }) {
                     <div className="docket-progress-section">
                       <div className="docket-progress-labels">
                         <span>
-                          FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                          {hasRequiredItems && optionalTotalCount > 0 ? (
+                            <>
+                              REQUIRED: <strong>{requiredCompletedCount} OF {requiredTotalCount} DELIVERED</strong>
+                              <span style={{ opacity: 0.72 }}> &bull; {completedCount}/{totalCount} total</span>
+                            </>
+                          ) : (
+                            <>
+                              FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                            </>
+                          )}
                         </span>
                         <span style={{ color: isCompleted ? '#065F46' : 'var(--orange)' }}>
                           {progressPercent}%
@@ -998,7 +1024,10 @@ export default function Dashboard({ onOpenCreateModal }) {
                           <div 
                             key={item.id} 
                             className={`docket-item-pill ${item.isCompleted ? 'done' : ''}`}
-                            title={item.isCompleted ? `Delivered: ${item.title}` : `Pending: ${item.title}`}
+                            title={
+                              `${item.isCompleted ? 'Delivered' : 'Pending'}: ${item.title}` +
+                              (item.required === false ? ' (Optional)' : ' (Required)')
+                            }
                           >
                             <div className="docket-checkbox-icon" aria-hidden="true">
                               {item.isCompleted ? '✓' : '–'}
@@ -1012,6 +1041,12 @@ export default function Dashboard({ onOpenCreateModal }) {
                             }}>
                               {item.title}
                             </span>
+
+                            {item.required === false && (
+                              <span className="opt-badge-nb" title="Optional item">
+                                OPT
+                              </span>
+                            )}
 
                             {fileCount > 1 && (
                               <span className="file-count-badge-nb">

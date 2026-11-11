@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, areProjectItemsComplete } from '../context/AppContext';
 import confetti from 'canvas-confetti';
 import { uploadClientFile, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -276,27 +276,46 @@ export default function ClientPortal() {
     );
   }
 
-  const completedCount = project.items.filter((i) => i.isCompleted).length;
-  const totalCount = project.items.length;
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const items = project.items || [];
+  const requiredItems = items.filter((i) => i.required !== false);
+  const optionalItems = items.filter((i) => i.required === false);
+  const hasRequiredItems = requiredItems.length > 0;
+  const completedCount = items.filter((i) => i.isCompleted).length;
+  const requiredCompletedCount = requiredItems.filter((i) => i.isCompleted).length;
+  const optionalCompletedCount = optionalItems.filter((i) => i.isCompleted).length;
+  const totalCount = items.length;
   const isAllDone = totalCount > 0 && completedCount === totalCount;
+  const isRequiredComplete = areProjectItemsComplete(items);
+  const progressPercent = hasRequiredItems
+    ? Math.round((requiredCompletedCount / requiredItems.length) * 100)
+    : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0);
 
   // Cadence & Batches (ongoing projects)
   const isOngoing = Boolean(project.projectType === 'ongoing' || project.project_type === 'ongoing');
   const todayDateStr = getTodayDateString();
   const todayBatch = getCurrentBatch(project, todayDateStr);
-  const isTodayDone = isBatchSubmitted(todayBatch) || (isOngoing && isAllDone);
+  const isTodayDone = isBatchSubmitted(todayBatch) || (isOngoing && isRequiredComplete);
 
-  // Trigger confetti when 100% completed
-  const handleCheckCompletion = (newPercent) => {
-    if (newPercent === 100) {
+  // Trigger confetti when required deliverables (or all items) transition to complete
+  const handleCheckCompletion = (nextItems) => {
+    const wasReady = isRequiredComplete;
+    const isNowReady = areProjectItemsComplete(nextItems);
+    const allSubmitted = nextItems.length > 0 && nextItems.every((i) => i.isCompleted);
+
+    if (isNowReady && (!wasReady || allSubmitted)) {
       confetti({
         particleCount: 140,
         spread: 90,
         origin: { y: 0.6 },
         colors: ['#FFE500', '#FF4400', '#10B981', '#111111']
       });
-      addToast('Awesome! All requested assets have been successfully submitted.', 'success', 'All Done!');
+      addToast(
+        allSubmitted
+          ? 'Awesome! All requested assets have been successfully submitted.'
+          : 'All required deliverables are submitted! Remaining items are optional.',
+        'success',
+        allSubmitted ? 'All Done!' : 'Required Complete!'
+      );
     }
   };
 
@@ -418,7 +437,7 @@ export default function ClientPortal() {
               completedAt: new Date().toISOString(),
             };
           });
-          const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+          const reqDone = areProjectItemsComplete(updatedItems);
           return {
             ...prev,
             items: updatedItems,
@@ -436,9 +455,8 @@ export default function ClientPortal() {
           'Assets Simulated'
         );
 
-        const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
-        const newPercent = Math.round((newCompleted / totalCount) * 100);
-        handleCheckCompletion(newPercent);
+        const nextItems = project.items.map((i) => (i.id === itemId ? { ...i, isCompleted: true } : i));
+        handleCheckCompletion(nextItems);
         return;
       }
 
@@ -507,9 +525,8 @@ export default function ClientPortal() {
         'Assets Saved'
       );
 
-      const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
-      const newPercent = Math.round((newCompleted / totalCount) * 100);
-      handleCheckCompletion(newPercent);
+      const nextItems = project.items.map((i) => (i.id === itemId ? { ...i, isCompleted: true } : i));
+      handleCheckCompletion(nextItems);
     } catch (err) {
       console.error('File upload error:', err);
       addToast(err.message || 'File upload failed.', 'warning', 'Upload Error');
@@ -554,7 +571,7 @@ export default function ClientPortal() {
             isCompleted: true,
           };
         });
-        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        const reqDone = areProjectItemsComplete(updatedItems);
         return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
       });
       addToast(filtered.length === 0 ? 'All files removed from sample preview.' : 'File removed from sample preview.', 'info', 'Simulation');
@@ -599,14 +616,13 @@ export default function ClientPortal() {
             completedAt: new Date().toISOString(),
           };
         });
-        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        const reqDone = areProjectItemsComplete(updatedItems);
         return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
       });
 
       addToast('Copy recorded in sample preview!', 'success', 'Text Simulation');
-      const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
-      const newPercent = Math.round((newCompleted / totalCount) * 100);
-      handleCheckCompletion(newPercent);
+      const nextItems = project.items.map((i) => (i.id === itemId ? { ...i, isCompleted: true } : i));
+      handleCheckCompletion(nextItems);
       return;
     }
 
@@ -631,9 +647,8 @@ export default function ClientPortal() {
 
     addToast('Copy successfully saved!', 'success', 'Text Saved');
 
-    const newCompleted = project.items.filter((i) => (i.id === itemId ? true : i.isCompleted)).length;
-    const newPercent = Math.round((newCompleted / totalCount) * 100);
-    handleCheckCompletion(newPercent);
+    const nextItems = project.items.map((i) => (i.id === itemId ? { ...i, isCompleted: true } : i));
+    handleCheckCompletion(nextItems);
   };
 
   const handleRemoveItemValue = async (itemId) => {
@@ -648,7 +663,7 @@ export default function ClientPortal() {
           if (item.id !== itemId) return item;
           return { ...item, value: null, isCompleted: false, completedAt: null };
         });
-        const reqDone = updatedItems.filter((i) => i.required).every((i) => i.isCompleted);
+        const reqDone = areProjectItemsComplete(updatedItems);
         return { ...prev, items: updatedItems, status: reqDone ? 'completed' : 'pending' };
       });
       setTextInputs((prev) => ({ ...prev, [itemId]: '' }));
@@ -911,9 +926,20 @@ export default function ClientPortal() {
             <div className="cp-progress-dock">
               <div className="cp-progress-label-row">
                 <span style={{ color: 'var(--ink-secondary)' }}>
-                  DELIVERABLES FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                  {hasRequiredItems && optionalItems.length > 0 ? (
+                    <>
+                      REQUIRED DELIVERABLES: <strong>{requiredCompletedCount} OF {requiredItems.length} DELIVERED</strong>
+                      <span style={{ opacity: 0.72, marginLeft: '6px' }}>
+                        ({optionalCompletedCount}/{optionalItems.length} optional)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      DELIVERABLES FULFILLMENT: <strong>{completedCount} OF {totalCount} DELIVERED</strong>
+                    </>
+                  )}
                 </span>
-                <span style={{ color: isAllDone ? '#059669' : '#111111', fontSize: '1.1rem' }}>
+                <span style={{ color: isRequiredComplete ? '#059669' : '#111111', fontSize: '1.1rem' }}>
                   {progressPercent}%
                 </span>
               </div>
@@ -927,21 +953,25 @@ export default function ClientPortal() {
                 aria-label={`Asset submission progress: ${progressPercent}%`}
               >
                 <div 
-                  className={`cp-progress-fill ${isAllDone ? 'is-complete' : ''}`}
+                  className={`cp-progress-fill ${isRequiredComplete ? 'is-complete' : ''}`}
                   style={{ width: `${progressPercent}%` }} 
                 />
               </div>
 
-              {/* 100% Celebration Banner */}
-              {isAllDone && (
+              {/* 100% / Required Complete Celebration Banner */}
+              {isRequiredComplete && (
                 <div className="cp-all-done-banner">
                   <Sparkles size={24} style={{ flexShrink: 0, color: '#059669' }} />
                   <div>
                     <strong style={{ fontSize: '0.98rem', display: 'block', fontWeight: 800 }}>
-                      Outstanding! All requested assets and information are 100% complete.
+                      {isAllDone
+                        ? 'Outstanding! All requested assets and information are 100% complete.'
+                        : 'All required deliverables are submitted! Ready for kickoff.'}
                     </strong>
                     <span style={{ fontSize: '0.84rem', color: '#065F46' }}>
-                      {project.freelancerName} has everything needed to execute your deliverables without friction.
+                      {isAllDone
+                        ? `${project.freelancerName} has everything needed to execute your deliverables without friction.`
+                        : `${project.freelancerName} can now start right away — remaining open items below are optional extras.`}
                     </span>
                   </div>
                 </div>

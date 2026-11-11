@@ -864,6 +864,19 @@
   border-radius: 3px;
 }
 
+.nb-dashboard-page .opt-badge-nb {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid #D1D5DB;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
 /* Docket Action Footer */
 .nb-dashboard-page .docket-action-footer {
   background: #FAF9F6;
@@ -1715,8 +1728,15 @@
   box-shadow: 2px 2px 0px rgba(0,0,0,0.06);
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  transition: border-color 0.12s;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+
+.create-spec-item.is-optional {
+  background: #FCFCFA;
+  border-color: #D4D4D8;
+  box-shadow: none;
 }
 
 .create-spec-item:hover {
@@ -1806,13 +1826,115 @@
   align-items: center;
   justify-content: center;
   transition: all 0.12s;
-  margin-top: 2px;
 }
 
 .create-spec-delete-btn:hover {
   background: #FEE2E2;
   border-color: #EF4444;
   color: #DC2626;
+}
+
+.create-spec-item:focus-within {
+  border-color: #18181B;
+}
+
+.create-spec-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.create-req-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1.5px solid #18181B;
+  border-radius: 5px;
+  background: #FFFFFF;
+  overflow: hidden;
+  box-shadow: 1.5px 1.5px 0px #18181B;
+}
+
+.create-req-opt {
+  appearance: none;
+  border: none;
+  border-right: 1.5px solid #18181B;
+  background: #FFFFFF;
+  color: #9CA3AF;
+  padding: 5px 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.create-req-opt:last-child {
+  border-right: none;
+}
+
+.create-req-opt:hover {
+  color: #18181B;
+  background: #FAF9F6;
+}
+
+.create-req-opt.is-req-active {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.create-req-opt.is-req-active:hover {
+  background: #FECACA;
+  color: #7F1D1D;
+}
+
+.create-req-opt.is-opt-active {
+  background: #F3F4F6;
+  color: #18181B;
+}
+
+.create-req-opt.is-opt-active:hover {
+  background: #E5E7EB;
+  color: #111827;
+}
+
+.create-req-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #D4D4D8;
+  border: 1px solid rgba(24, 24, 27, 0.2);
+}
+
+.create-req-opt.is-req-active .create-req-dot {
+  background: #DC2626;
+  border-color: #991B1B;
+}
+
+.create-req-opt.is-opt-active .create-req-dot {
+  background: #6B7280;
+  border-color: #374151;
+}
+
+@media (max-width: 620px) {
+  .create-spec-inputs {
+    flex: 1 1 calc(100% - 76px);
+  }
+  .create-spec-controls {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px dashed #E5E7EB;
+    margin-top: 0;
+  }
 }
 
 /* Modal Footer */
