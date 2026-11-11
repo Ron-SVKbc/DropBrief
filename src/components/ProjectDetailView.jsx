@@ -22,8 +22,6 @@ import {
   Edit3, 
   Clock, 
   CheckCircle2, 
-  FileCheck, 
-  FileX, 
   FileText, 
   Upload, 
   Calendar, 
@@ -39,9 +37,9 @@ import {
   File, 
   Image as ImageIcon, 
   X,
-  BellRing,
-  Info
+  BellRing
 } from 'lucide-react';
+import '../styles/project-detail-brutalist.css';
 
 const isImageFile = (fileName, mimeType) => {
   if (mimeType && mimeType.startsWith('image/')) return true;
@@ -126,19 +124,19 @@ export default function ProjectDetailView() {
 
   if (!project || !isOwner) {
     return (
-      <div className="container" style={{ padding: '48px 24px', flex: 1 }}>
-        <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
-          <AlertCircle size={40} color="var(--warning)" style={{ marginBottom: '12px' }} />
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>
+      <div className="pdv-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="pdv-hero-card" style={{ maxWidth: '500px', textAlign: 'center', margin: '24px' }}>
+          <AlertCircle size={42} color="#D97706" style={{ margin: '0 auto 12px' }} />
+          <h2 className="pdv-hero-title" style={{ fontSize: '1.4rem' }}>
             {!project ? 'Project Not Found' : 'Access Denied'}
           </h2>
-          <p style={{ color: 'var(--text-tertiary)', fontSize: '0.875rem', marginBottom: '20px' }}>
+          <p style={{ color: 'var(--ink-secondary)', fontSize: '0.9rem', marginBottom: '22px', lineHeight: 1.55 }}>
             {!project 
-              ? 'Selected project does not exist or has been removed.' 
-              : 'You do not have permission to manage this project. It belongs to another account.'}
+              ? 'Selected project docket does not exist or has been removed.' 
+              : 'You do not have permission to manage this docket. It belongs to another studio account.'}
           </p>
-          <button onClick={openDashboard} className="btn btn-primary btn-pill">
-            <ArrowLeft size={16} /> Back to Dashboard
+          <button onClick={openDashboard} className="pdv-btn-primary">
+            <ArrowLeft size={15} /> Back to Dashboard
           </button>
         </div>
       </div>
@@ -269,987 +267,885 @@ export default function ProjectDetailView() {
     }
   };
 
+  const retention = getRetentionStatus(project);
+
   return (
-    <div className="container" style={{ padding: 'clamp(16px, 3vw, 32px) clamp(12px, 2vw, 24px) 72px', flex: 1 }}>
+    <div className="pdv-page" role="region" aria-label="Project Management Inspector">
+      <div className="pdv-container">
 
-      {/* ── Breadcrumb & Top Bar ──────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: '20px'
-      }}>
-        <button 
-          id="btn-back-to-dashboard"
-          onClick={openDashboard}
-          className="btn btn-secondary btn-sm btn-pill"
-          style={{ gap: '6px' }}
-          aria-label="Back to Dashboard"
-        >
-          <ArrowLeft size={14} aria-hidden="true" />
-          Back to Dashboard
-        </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Ongoing / One-off toggle */}
+        {/* ── Breadcrumb & Top Status Strip ────────────────────── */}
+        <div className="pdv-top-bar">
           <button 
-            type="button"
-            id={`btn-toggle-type-${project.id}`}
-            onClick={() => toggleProjectType(project.id)}
-            className="badge" 
-            style={{ 
-              background: project.projectType === 'ongoing' ? 'rgba(168, 85, 247, 0.16)' : 'rgba(56, 189, 248, 0.16)', 
-              color: project.projectType === 'ongoing' ? '#c084fc' : '#38bdf8', 
-              border: project.projectType === 'ongoing' ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid rgba(56, 189, 248, 0.35)',
-              gap: '5px',
-              fontWeight: 700,
-              fontSize: '0.74rem',
-              padding: '4px 10px',
-              cursor: 'pointer',
-              transition: 'all 0.18s ease'
-            }}
-            title="Click to toggle project type"
-            aria-label="Toggle project type between One-off and Ongoing Retainer"
+            id="btn-back-to-dashboard"
+            onClick={openDashboard}
+            className="pdv-btn-secondary"
+            aria-label="Back to Dashboard"
           >
-            {project.projectType === 'ongoing' ? <RefreshCw size={11} aria-hidden="true" /> : <Zap size={11} aria-hidden="true" />}
-            {project.projectType === 'ongoing' ? `Ongoing Retainer (${formatCadenceBadge(project.cadenceDays || 1)})` : 'One-off Project'}
+            <ArrowLeft size={14} aria-hidden="true" />
+            <span>Back to Dashboard</span>
           </button>
 
-          {/* Status badge */}
-          {project.projectType === 'ongoing' ? (
-            isTodaySubmitted(project) ? (
-              <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
-                <CheckCircle2 size={12} aria-hidden="true" />
-                Delivered today (Ready)
-              </span>
-            ) : (
-              <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
-                <Clock size={12} aria-hidden="true" />
-                Pending for today
-              </span>
-            )
-          ) : (
-            isCompleted ? (
-              <span className="badge badge-success" style={{ padding: '4px 10px', gap: '5px' }}>
-                <CheckCircle2 size={12} aria-hidden="true" />
-                Complete (100% submitted)
-              </span>
-            ) : (
-              <span className="badge badge-warning" style={{ padding: '4px 10px', gap: '5px' }}>
-                <Clock size={12} aria-hidden="true" />
-                Waiting on client ({missingCount} pending)
-              </span>
-            )
-          )}
-
-          <span className="badge badge-neutral" style={{ padding: '4px 10px', gap: '5px' }}>
-            <BellRing size={11} aria-hidden="true" />
-            Reminder: every {project.reminderFrequency || 3} days
-          </span>
-
-          {/* Retention / Purge badge */}
-          {(() => {
-            const retention = getRetentionStatus(project);
-            if (!retention) return null;
-            return (
-              <span 
-                className="badge" 
-                style={{ 
-                  padding: '4px 10px', 
-                  gap: '5px',
-                  background: retention.isPurged ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.12)',
-                  color: retention.isPurged ? '#f87171' : 'var(--success)',
-                  border: retention.isPurged ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--success-border)',
-                  fontWeight: 600,
-                  fontSize: '0.74rem'
-                }}
-                title={retention.isPurged ? 'Files were permanently purged in compliance with 30-day GDPR policy' : 'Automated 30-day retention purge'}
-              >
-                <ShieldCheck size={11} aria-hidden="true" />
-                {retention.badgeText}
-              </span>
-            );
-          })()}
-
-          {/* Purge now button if completed and not yet purged */}
-          {isCompleted && !project.filesPurged && !project.purgedAt && (
-            <button
+          <div className="pdv-status-group">
+            {/* Ongoing / One-off toggle */}
+            <button 
               type="button"
-              onClick={async () => {
-                if (window.confirm('Are you sure you want to permanently purge all uploaded files for this project from cloud storage now? (Ensure you have downloaded the ZIP archive first)')) {
-                  await purgeProjectFilesNow(project.slug);
-                }
-              }}
-              className="btn btn-secondary btn-sm"
+              id={`btn-toggle-type-${project.id}`}
+              onClick={() => toggleProjectType(project.id)}
+              className="pdv-stamp-badge is-button"
               style={{
-                padding: '3px 8px',
-                fontSize: '0.72rem',
-                gap: '4px',
-                color: 'var(--text-muted)',
-                borderColor: 'rgba(239, 68, 68, 0.25)'
+                background: project.projectType === 'ongoing' ? '#F5F3FF' : '#EFF6FF',
+                color: project.projectType === 'ongoing' ? '#6D28D9' : '#1D4ED8',
+                borderColor: project.projectType === 'ongoing' ? '#6D28D9' : '#1D4ED8'
               }}
-              title="Immediately purge project files from cloud storage (GDPR)"
-              aria-label="Immediately purge project files from cloud storage (GDPR)"
+              title="Click to switch between One-off Docket and Recurring Retainer"
+              aria-label="Toggle project type between One-off and Ongoing Retainer"
             >
-              <Trash2 size={11} color="var(--danger)" aria-hidden="true" />
-              Purge files now
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Main Project Header Card ─────────────────────────── */}
-      <div className="glass-card" style={{
-        padding: 'clamp(20px, 3vw, 28px)',
-        marginBottom: '24px',
-        borderLeft: `4px solid ${isCompleted ? 'var(--success)' : 'var(--warning)'}`,
-        boxShadow: 'var(--shadow-lg), var(--shadow-inner-highlight)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Subtle Ambient Radial Highlight */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '260px',
-          height: '260px',
-          background: isCompleted 
-            ? 'radial-gradient(circle at top right, rgba(16, 185, 129, 0.12) 0%, transparent 70%)'
-            : 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.14) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          contain: 'strict'
-        }} />
-
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '20px',
-          position: 'relative',
-          zIndex: 1
-        }}>
-          <div style={{ flex: '1 1 360px' }}>
-            <h1 style={{
-              fontSize: 'clamp(1.5rem, 3vw, 2.1rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.035em',
-              marginBottom: '10px',
-              color: 'var(--text-primary)',
-              lineHeight: 1.2
-            }}>
-              {project.title}
-            </h1>
-
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-hairline)'
-              }}>
-                <User size={13} color="var(--accent-primary)" aria-hidden="true" />
-                <strong style={{ color: 'var(--text-secondary)' }}>{project.clientName}</strong>
+              {project.projectType === 'ongoing' ? <RefreshCw size={12} aria-hidden="true" /> : <Zap size={12} aria-hidden="true" />}
+              <span>
+                {project.projectType === 'ongoing' ? `Ongoing (${formatCadenceBadge(project.cadenceDays || 1)})` : 'One-off Docket'}
               </span>
+            </button>
 
-              <button 
-                type="button"
-                onClick={copyClientEmail}
+            {/* Completion / Today status */}
+            {project.projectType === 'ongoing' ? (
+              isTodaySubmitted(project) ? (
+                <span className="pdv-stamp-badge" style={{ background: '#ECFDF5', color: '#065F46', borderColor: '#10B981' }}>
+                  <CheckCircle2 size={12} aria-hidden="true" />
+                  <span>Delivered Today</span>
+                </span>
+              ) : (
+                <span className="pdv-stamp-badge" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#F59E0B' }}>
+                  <Clock size={12} aria-hidden="true" />
+                  <span>Pending Today</span>
+                </span>
+              )
+            ) : (
+              isCompleted ? (
+                <span className="pdv-stamp-badge" style={{ background: '#ECFDF5', color: '#065F46', borderColor: '#10B981' }}>
+                  <CheckCircle2 size={12} aria-hidden="true" />
+                  <span>100% Complete</span>
+                </span>
+              ) : (
+                <span className="pdv-stamp-badge" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#F59E0B' }}>
+                  <Clock size={12} aria-hidden="true" />
+                  <span>Waiting ({missingCount} pending)</span>
+                </span>
+              )
+            )}
+
+            {/* Reminder interval */}
+            <span className="pdv-stamp-badge" style={{ background: '#FFFFFF', color: '#4B5563' }}>
+              <BellRing size={12} aria-hidden="true" />
+              <span>Follow-up: {project.reminderFrequency || 3}d</span>
+            </span>
+
+            {/* Retention / Purge badge */}
+            {retention && (
+              <span 
+                className="pdv-stamp-badge"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid var(--border-hairline)',
-                  borderRadius: 'var(--radius-full)',
-                  color: 'var(--text-tertiary)',
-                  fontSize: '0.85rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  cursor: 'pointer',
-                  padding: '4px 10px',
-                  transition: 'var(--transition)'
+                  background: retention.isPurged ? '#FEF2F2' : '#ECFDF5',
+                  color: retention.isPurged ? '#B91C1C' : '#065F46',
+                  borderColor: retention.isPurged ? '#EF4444' : '#10B981'
                 }}
-                title="Copy client email"
-                aria-label={`Copy client email: ${project.clientEmail}`}
+                title={retention.isPurged ? 'Files purged per 30-day GDPR policy' : 'Automated 30-day retention purge'}
               >
-                <Mail size={13} color="var(--accent-primary)" aria-hidden="true" />
-                <span>{project.clientEmail}</span>
-                {copiedEmail ? <Check size={12} color="var(--success)" aria-hidden="true" /> : <Copy size={11} style={{ opacity: 0.7 }} aria-hidden="true" />}
+                <ShieldCheck size={12} aria-hidden="true" />
+                <span>{retention.badgeText}</span>
+              </span>
+            )}
+
+            {/* Purge now button if completed and not yet purged */}
+            {isCompleted && !project.filesPurged && !project.purgedAt && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (window.confirm('Are you sure you want to permanently purge all uploaded files for this project from cloud storage now? (Ensure you have downloaded the ZIP archive first)')) {
+                    await purgeProjectFilesNow(project.slug);
+                  }
+                }}
+                className="pdv-stamp-badge is-button"
+                style={{ background: '#FEF2F2', color: '#DC2626', borderColor: '#DC2626' }}
+                title="Immediately purge project files from cloud storage (GDPR)"
+                aria-label="Immediately purge project files from cloud storage (GDPR)"
+              >
+                <Trash2 size={12} aria-hidden="true" />
+                <span>Purge Files Now</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Main Project Ledger Card ─────────────────────────── */}
+        <div className="pdv-hero-card" style={{ borderTop: `6px solid ${isCompleted ? '#10B981' : '#F59E0B'}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ flex: '1 1 380px' }}>
+              <div className="pdv-hero-kicker">
+                <span>DOCKET INSPECTOR // COMMISSION RECORD</span>
+              </div>
+              <h1 className="pdv-hero-title">
+                {project.title}
+              </h1>
+
+              <div className="pdv-meta-chips">
+                <span className="pdv-meta-chip">
+                  <User size={13} color="#18181B" aria-hidden="true" />
+                  <strong style={{ color: '#111827' }}>{project.clientName}</strong>
+                </span>
+
+                <button 
+                  type="button"
+                  onClick={copyClientEmail}
+                  className="pdv-meta-chip is-clickable"
+                  title="Copy client email"
+                  aria-label={`Copy client email: ${project.clientEmail}`}
+                >
+                  <Mail size={13} color="#18181B" aria-hidden="true" />
+                  <span>{project.clientEmail}</span>
+                  {copiedEmail ? <Check size={12} color="#059669" aria-hidden="true" /> : <Copy size={11} style={{ opacity: 0.6 }} aria-hidden="true" />}
+                </button>
+
+                <span className="pdv-meta-chip">
+                  <Calendar size={13} color="#18181B" aria-hidden="true" />
+                  <span>Deadline: <strong style={{ color: '#111827' }}>{project.deadline || 'Not set'}</strong></span>
+                </span>
+
+                {project.lastReminderSent && (
+                  <span className="pdv-meta-chip" style={{ background: '#FFFBEB', borderColor: '#F59E0B', color: '#92400E' }}>
+                    <Send size={12} aria-hidden="true" />
+                    <span>Last reminder: {project.lastReminderSent}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions Deck */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {!isCompleted ? (
+                <button
+                  id="btn-detail-send-reminder"
+                  onClick={() => openReminderModal(project.id)}
+                  className="pdv-btn-primary"
+                  title="Send reminder to client"
+                  aria-label={`Send reminder to client (${missingCount} pending)`}
+                >
+                  <Send size={14} aria-hidden="true" />
+                  <span>Send Reminder ({missingCount})</span>
+                </button>
+              ) : (
+                <button
+                  id="btn-detail-send-again"
+                  onClick={() => openReminderModal(project.id)}
+                  className="pdv-btn-secondary"
+                  title="Message client"
+                  aria-label="Message client"
+                >
+                  <Send size={13} aria-hidden="true" />
+                  <span>Message Client</span>
+                </button>
+              )}
+
+              <button
+                id="btn-detail-export"
+                onClick={handleDownloadAll}
+                className="pdv-btn-secondary"
+                title="Download all delivered assets as ZIP"
+                aria-label={`Download all delivered assets (${completedCount} completed)`}
+              >
+                <Download size={14} aria-hidden="true" />
+                <span>Export ZIP ({completedCount})</span>
               </button>
 
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-hairline)'
-              }}>
-                <Calendar size={13} color="var(--text-muted)" aria-hidden="true" />
-                <span>Deadline: <strong style={{ color: 'var(--text-secondary)' }}>{project.deadline || 'Not set'}</strong></span>
-              </span>
+              <button
+                id="btn-detail-add-item"
+                onClick={handleOpenAddItemModal}
+                className="pdv-btn-dark"
+                title="Add new checklist requirement"
+                aria-label="Add new checklist requirement"
+              >
+                <Plus size={14} aria-hidden="true" />
+                <span>Add Item</span>
+              </button>
+            </div>
+          </div>
 
-              {project.lastReminderSent && (
-                <span style={{ color: 'var(--warning-light)', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                  <Send size={12} aria-hidden="true" />
-                  Last reminder: {project.lastReminderSent}
+          {/* Private Client Portal Link Console */}
+          <div className="pdv-link-console">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: '1 1 280px' }}>
+              <div className="pdv-link-icon" aria-hidden="true">
+                <ExternalLink size={17} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  color: 'var(--ink-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Private Client Portal Link &bull; Zero Login Required
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  color: 'var(--ink)'
+                }} className="truncate">
+                  {window.location.origin.includes('localhost') ? 'https://usedropbrief.xyz' : window.location.origin}/?p={project.slug}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+              <button
+                id="btn-detail-copy-link"
+                onClick={copyClientLink}
+                className="pdv-btn-yellow"
+                style={{
+                  background: copiedLink ? '#DCFCE7' : 'var(--yellow)',
+                  borderColor: copiedLink ? '#10B981' : '#18181B'
+                }}
+                aria-label="Copy private client portal link"
+              >
+                {copiedLink ? <Check size={14} color="#065F46" aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
+              </button>
+
+              <button
+                id="btn-detail-preview-portal"
+                onClick={() => openClientPortal(project.slug)}
+                className="pdv-btn-secondary"
+                title="Preview client portal"
+                aria-label="Preview client portal"
+              >
+                <Eye size={14} aria-hidden="true" />
+                <span>Client Preview</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Recurring Collection (Cadence Hub & Daily Batches) ── */}
+        {project.projectType === 'ongoing' && (
+          <div className="pdv-ongoing-hub">
+            {/* Header Row: Cadence Switcher */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '14px',
+              marginBottom: '18px',
+              paddingBottom: '16px',
+              borderBottom: '1.5px dashed #D8B4FE'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span className="pdv-stamp-badge" style={{ background: '#F5F3FF', color: '#6D28D9', borderColor: '#6D28D9' }}>
+                    <RefreshCw size={11} aria-hidden="true" />
+                    <span>Ongoing Retainer</span>
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', color: 'var(--ink-muted)' }}>
+                    Permanent client upload link
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 900, color: 'var(--ink)', margin: '4px 0 0' }}>
+                  DELIVERABLES CADENCE: <span style={{ color: '#6D28D9' }}>{formatCadenceDays(project.cadenceDays || 1).toUpperCase()}</span>
+                </h3>
+              </div>
+
+              {/* Quick cadence selector buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="group" aria-label="Cadence frequency options">
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', fontWeight: 700, color: 'var(--ink-muted)', marginRight: '4px' }}>
+                  CADENCE:
                 </span>
+                {[
+                  { days: 1, label: 'Daily' },
+                  { days: 2, label: 'Every 2d' },
+                  { days: 3, label: 'Every 3d' },
+                  { days: 7, label: 'Weekly' },
+                  { days: 30, label: 'Monthly' },
+                ].map((opt) => {
+                  const isActive = (project.cadenceDays || 1) === opt.days;
+                  return (
+                    <button
+                      key={opt.days}
+                      type="button"
+                      onClick={() => updateProjectCadence(project.id, opt.days)}
+                      className={`pdv-cadence-pill ${isActive ? 'is-active' : ''}`}
+                      aria-label={`Set cadence to: ${opt.label}`}
+                      aria-pressed={isActive}
+                    >
+                      {isActive && <Check size={11} aria-hidden="true" />}
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Today status / Today batch */}
+            {(() => {
+              const todayStr = getTodayDateString();
+              const todayBatch = getCurrentBatch(project, todayStr);
+              const isDelivered = Boolean(todayBatch && (todayBatch.status === 'completed' || todayBatch.files?.length > 0 || todayBatch.note));
+              
+              return (
+                <div style={{
+                  padding: '16px 20px',
+                  borderRadius: '8px',
+                  background: isDelivered ? '#ECFDF5' : '#FFFBEB',
+                  border: isDelivered ? '1.5px solid #10B981' : '1.5px solid #F59E0B',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '42px', height: '42px',
+                      borderRadius: '6px',
+                      background: isDelivered ? '#10B981' : '#F59E0B',
+                      border: '1.5px solid #18181B',
+                      boxShadow: '2px 2px 0px #18181B',
+                      color: isDelivered ? '#FFFFFF' : '#111827',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0
+                    }} aria-hidden="true">
+                      {isDelivered ? <CheckCircle2 size={22} /> : <Clock size={22} />}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: '#111827' }}>
+                          {formatDateSlovak(todayStr)}
+                        </strong>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '3px',
+                          background: isDelivered ? '#DCFCE7' : '#FEF3C7',
+                          color: isDelivered ? '#065F46' : '#92400E',
+                          border: isDelivered ? '1px solid #10B981' : '1px solid #F59E0B'
+                        }}>
+                          {isDelivered ? 'ASSETS READY FOR PROCESSING' : 'WAITING FOR TODAY DELIVERABLES'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--ink-secondary)', marginTop: '4px' }}>
+                        {isDelivered ? (
+                          <>Client submitted today batch: <strong>{todayBatch.files?.length || 0} files</strong> {todayBatch.note ? `• ${todayBatch.note.substring(0, 60)}...` : ''}</>
+                        ) : (
+                          <>Client has not uploaded today deliverables yet. You can send a 1-click reminder.</>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    {isDelivered ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleDownloadAll}
+                          className="pdv-btn-primary"
+                          aria-label="Download today submitted assets"
+                        >
+                          <Download size={13} aria-hidden="true" />
+                          <span>Download Today</span>
+                        </button>
+                        {todayBatch?.note && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(todayBatch.note);
+                              addToast('Today note copied to clipboard!', 'success', 'Copied');
+                            }}
+                            className="pdv-btn-secondary"
+                            aria-label="Copy today note from client"
+                          >
+                            <Copy size={13} aria-hidden="true" />
+                            <span>Copy Note</span>
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openReminderModal(project.id)}
+                        className="pdv-btn-primary"
+                        aria-label="Send reminder to client for today"
+                      >
+                        <Send size={13} aria-hidden="true" />
+                        <span>Remind for Today</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Submission history / Batches feed */}
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', textTransform: 'uppercase' }}>
+                <Layers size={15} color="#6D28D9" aria-hidden="true" />
+                <span>Submission History ({getProjectBatches(project).length})</span>
+              </div>
+
+              {getProjectBatches(project).length === 0 ? (
+                <div style={{
+                  padding: '20px',
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  background: '#FAF9F6',
+                  border: '1.5px dashed #D1D5DB',
+                  color: 'var(--ink-muted)',
+                  fontSize: '0.84rem'
+                }}>
+                  No previous batches recorded yet. When the client submits today deliverables, they will be archived here automatically.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {getProjectBatches(project).map((batch) => {
+                    const filesCount = batch.files?.length || 0;
+                    const batchId = batch.id || batch.date;
+                    return (
+                      <div 
+                        key={batchId}
+                        className="pdv-file-entry"
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                          <div style={{
+                            width: '32px', height: '32px',
+                            borderRadius: '6px',
+                            background: '#F5F3FF',
+                            border: '1px solid #8B5CF6',
+                            color: '#6D28D9',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0
+                          }} aria-hidden="true">
+                            <Calendar size={15} />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--ink)' }}>
+                                {formatDateSlovak(batch.date)}
+                              </strong>
+                              <span style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                background: '#ECFDF5',
+                                color: '#065F46',
+                                border: '1px solid #10B981',
+                                padding: '1px 6px',
+                                borderRadius: '3px'
+                              }}>
+                                {filesCount} {filesCount === 1 ? 'FILE' : 'FILES'}
+                              </span>
+                            </div>
+                            {batch.note && (
+                              <p style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
+                                {batch.note}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          {batch.note && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(batch.note);
+                                setCopiedBatchTextId(batchId);
+                                addToast('Batch note copied to clipboard!', 'success', 'Copied');
+                                setTimeout(() => setCopiedBatchTextId(null), 2000);
+                              }}
+                              className="pdv-btn-secondary"
+                              style={{ padding: '4px 10px', fontSize: '0.72rem' }}
+                              title="Copy note"
+                              aria-label={`Copy note for batch ${batch.date}`}
+                            >
+                              {copiedBatchTextId === batchId ? <Check size={11} color="#059669" /> : <Copy size={11} />}
+                              <span>{copiedBatchTextId === batchId ? 'Copied' : 'Copy Note'}</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleDownloadAll}
+                            className="pdv-btn-secondary"
+                            style={{ padding: '4px 10px', fontSize: '0.72rem' }}
+                            title="Download assets"
+                            aria-label={`Download assets for batch ${batch.date}`}
+                          >
+                            <Download size={11} aria-hidden="true" /> <span>Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── 3-Column Bento Metrics ───────────────────────────── */}
+        <div className="pdv-bento-grid">
+          
+          {/* Metric 1 — Delivered */}
+          <div className="pdv-metric-card">
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pdv-metric-label">Delivered by Client</span>
+                <CheckCircle2 size={18} color="#10B981" aria-hidden="true" />
+              </div>
+              <div className="pdv-metric-num" style={{ color: '#059669' }}>
+                {completedCount} <span style={{ fontSize: '1.1rem', color: 'var(--ink-muted)', fontWeight: 700 }}>/ {totalCount}</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', fontWeight: 600 }}>
+                {progressPercent}% fulfillment rate
+              </div>
+            </div>
+            
+            <div 
+              className="pdv-progress-track"
+              role="progressbar"
+              aria-valuenow={progressPercent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Progress of client deliverables: ${progressPercent}%`}
+            >
+              <div 
+                className={`pdv-progress-fill ${isCompleted ? 'is-done' : ''}`}
+                style={{ width: `${progressPercent}%` }} 
+              />
+            </div>
+          </div>
+
+          {/* Metric 2 — Pending */}
+          <div className="pdv-metric-card">
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pdv-metric-label">Pending Deliverables</span>
+                <Clock size={18} color={missingCount > 0 ? '#D97706' : '#10B981'} aria-hidden="true" />
+              </div>
+              <div className="pdv-metric-num" style={{ color: missingCount > 0 ? '#D97706' : 'var(--ink)' }}>
+                {missingCount}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', fontWeight: 600 }}>
+                {missingCount === 0 ? 'All deliverables received!' : 'Awaiting client upload'}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '12px' }}>
+              {missingCount > 0 ? (
+                <button 
+                  onClick={() => openReminderModal(project.id)}
+                  className="pdv-btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', background: '#FFFBEB', borderColor: '#F59E0B', color: '#92400E', fontSize: '0.76rem' }}
+                  aria-label="Send reminder to client for missing deliverables"
+                >
+                  <Send size={12} aria-hidden="true" /> <span>Send Reminder to Client</span>
+                </button>
+              ) : (
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  color: '#065F46',
+                  background: '#ECFDF5',
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid #10B981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CheckCircle2 size={14} aria-hidden="true" /> READY FOR PRODUCTION
+                </div>
               )}
             </div>
           </div>
 
-          {/* Quick Actions in Header */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Reminder Button */}
-            {!isCompleted ? (
-              <button
-                id="btn-detail-send-reminder"
-                onClick={() => openReminderModal(project.id)}
-                className="btn btn-primary btn-sm btn-pill"
-                style={{
-                  boxShadow: '0 0 16px rgba(245, 158, 11, 0.3)',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  border: 'none',
-                  color: '#fff',
-                  fontWeight: 700
-                }}
-                title="Send reminder to client"
-                aria-label={`Send reminder to client (${missingCount} pending)`}
-              >
-                <Send size={14} aria-hidden="true" />
-                Send Reminder ({missingCount} pending)
-              </button>
-            ) : (
-              <button
-                id="btn-detail-send-again"
-                onClick={() => openReminderModal(project.id)}
-                className="btn btn-secondary btn-sm btn-pill"
-                style={{ fontSize: '0.8rem' }}
-                title="Message client"
-                aria-label="Message client"
-              >
-                <Send size={13} aria-hidden="true" />
-                Message Client
-              </button>
-            )}
-
-            {/* Export Assets Button */}
-            <button
-              id="btn-detail-export"
-              onClick={handleDownloadAll}
-              className="btn btn-secondary btn-sm btn-pill"
-              title="Download all delivered assets"
-              aria-label={`Download all delivered assets (${completedCount} completed)`}
-            >
-              <Download size={14} aria-hidden="true" />
-              Export Assets ({completedCount})
-            </button>
-
-            {/* Add New Item Button */}
-            <button
-              id="btn-detail-add-item"
-              onClick={handleOpenAddItemModal}
-              className="btn btn-secondary btn-sm btn-pill"
-              style={{ borderColor: 'var(--accent-primary-light, #1d4ed8)', color: 'var(--accent-primary-light, #1d4ed8)', fontWeight: 600 }}
-              title="Add new checklist requirement"
-              aria-label="Add new checklist requirement"
-            >
-              <Plus size={14} color="var(--accent-primary-light, #1d4ed8)" aria-hidden="true" />
-              Add Item
-            </button>
-          </div>
-        </div>
-
-        {/* ── Client Portal Link Row ───────────────────────────── */}
-        <div style={{
-          background: 'var(--bg-base)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '14px 18px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          boxShadow: 'var(--shadow-xs)',
-          position: 'relative',
-          zIndex: 1
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
-            <div style={{
-              width: '34px', height: '34px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(99, 102, 241, 0.18)',
-              color: 'var(--accent-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 0 12px rgba(99, 102, 241, 0.25)'
-            }} aria-hidden="true">
-              <ExternalLink size={16} />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                Private Client Portal Link &bull; Zero Login Required
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.01em' }} className="truncate">
-                {window.location.origin.includes('localhost') ? 'https://usedropbrief.xyz' : window.location.origin}/?p={project.slug}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-            <button
-              id="btn-detail-copy-link"
-              onClick={copyClientLink}
-              className="btn btn-primary btn-sm btn-pill"
-              style={{
-                padding: '6px 16px',
-                fontSize: '0.82rem',
-                gap: '6px',
-                boxShadow: copiedLink ? '0 0 16px rgba(16, 185, 129, 0.4)' : 'var(--accent-glow)'
-              }}
-              aria-label="Copy private client portal link"
-            >
-              {copiedLink ? <Check size={13} color="#fff" aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
-              {copiedLink ? 'Link Copied!' : 'Copy Link'}
-            </button>
-
-            <button
-              id="btn-detail-preview-portal"
-              onClick={() => openClientPortal(project.slug)}
-              className="btn btn-secondary btn-sm btn-pill"
-              style={{ padding: '6px 12px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
-              title="Preview client portal"
-              aria-label="Preview client portal"
-            >
-              <Eye size={13} aria-hidden="true" />
-              Client Preview
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Recurring Collection (Cadence Hub & Daily Batches) ─────────────────── */}
-      {project.projectType === 'ongoing' && (
-        <div className="glass-card" style={{
-          padding: '24px 28px',
-          marginBottom: '26px',
-          borderRadius: 'var(--radius-xl)',
-          background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)',
-          border: '1px solid rgba(124, 58, 237, 0.25)',
-          boxShadow: 'var(--shadow-card)'
-        }}>
-          {/* Header Row: Cadence Switcher */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)' }}>
+          {/* Metric 3 — Zero-Friction Info */}
+          <div className="pdv-metric-card" style={{ background: '#FAF9F6' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.25)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.4)', fontWeight: 700 }}>
-                  <RefreshCw size={11} aria-hidden="true" /> Ongoing Retainer
-                </span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-                  Permanent client upload link
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <ShieldCheck size={18} color="#18181B" aria-hidden="true" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', fontWeight: 800, color: '#111827', textTransform: 'uppercase' }}>
+                  Zero-Friction Collection
                 </span>
               </div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Deliverables cadence: <span style={{ color: '#c084fc' }}>{formatCadenceDays(project.cadenceDays || 1)}</span>
-              </h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--ink-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Files and copy are uploaded exclusively by your client via their link. Manage checklist requirements and download submitted ZIPs here.
+              </p>
             </div>
-
-            {/* Quick cadence selector buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} role="group" aria-label="Cadence frequency options">
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: '4px' }}>Change cadence:</span>
-              {[
-                { days: 1, label: 'Every day' },
-                { days: 2, label: 'Every 2 days' },
-                { days: 3, label: 'Every 3 days' },
-                { days: 7, label: 'Every week' },
-                { days: 30, label: 'Every month' },
-              ].map((opt) => {
-                const isActive = (project.cadenceDays || 1) === opt.days;
-                return (
-                  <button
-                    key={opt.days}
-                    type="button"
-                    onClick={() => updateProjectCadence(project.id, opt.days)}
-                    className="badge"
-                    style={{
-                      padding: '5px 10px',
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      background: isActive ? 'rgba(168, 85, 247, 0.35)' : 'rgba(255, 255, 255, 0.04)',
-                      color: isActive ? '#fff' : 'var(--text-secondary)',
-                      border: isActive ? '1px solid #c084fc' : '1px solid var(--border-subtle)',
-                      transition: 'all 0.15s ease'
-                    }}
-                    aria-label={`Set cadence to: ${opt.label}`}
-                    aria-pressed={isActive}
-                  >
-                    {isActive && <Check size={11} color="#c084fc" style={{ marginRight: '4px' }} aria-hidden="true" />}
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Today status / Today batch */}
-          {(() => {
-            const todayStr = getTodayDateString();
-            const todayBatch = getCurrentBatch(project, todayStr);
-            const isDelivered = Boolean(todayBatch && (todayBatch.status === 'completed' || todayBatch.files?.length > 0 || todayBatch.note));
-            
-            return (
-              <div style={{
-                padding: '18px 22px',
-                borderRadius: 'var(--radius-lg)',
-                background: isDelivered ? 'rgba(168, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.08)',
-                border: isDelivered ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '16px',
-                marginBottom: '20px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{
-                    width: '44px', height: '44px',
-                    borderRadius: 'var(--radius-md)',
-                    background: isDelivered ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                    color: isDelivered ? 'var(--success)' : 'var(--warning)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0
-                  }} aria-hidden="true">
-                    {isDelivered ? <CheckCircle2 size={24} /> : <Clock size={24} />}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <strong style={{ fontSize: '1rem', color: '#fff' }}>
-                        {formatDateSlovak(todayStr)}
-                      </strong>
-                      <span className={`badge ${isDelivered ? 'badge-success' : 'badge-warning'}`}>
-                        {isDelivered ? 'Assets ready for processing' : 'Waiting for today deliverables'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '3px' }}>
-                      {isDelivered ? (
-                        <>Client submitted today batch: <strong>{todayBatch.files?.length || 0} files</strong> {todayBatch.note ? `• ${todayBatch.note.substring(0, 60)}...` : ''}</>
-                      ) : (
-                        <>Client has not uploaded today deliverables yet. You can send a 1-click reminder.</>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {isDelivered ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleDownloadAll}
-                        className="btn btn-primary btn-sm btn-pill"
-                        style={{ gap: '6px' }}
-                        aria-label="Download today submitted assets"
-                      >
-                        <Download size={13} aria-hidden="true" />
-                        Download Today Assets
-                      </button>
-                      {todayBatch?.note && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(todayBatch.note);
-                            addToast('Today note copied to clipboard!', 'success', 'Copied');
-                          }}
-                          className="btn btn-secondary btn-sm btn-pill"
-                          style={{ gap: '6px' }}
-                          aria-label="Copy today note from client"
-                        >
-                          <Copy size={13} aria-hidden="true" />
-                          Copy Note
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => openReminderModal(project.id)}
-                      className="btn btn-primary btn-sm btn-pill"
-                      style={{
-                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                        border: 'none',
-                        color: '#fff',
-                        fontWeight: 700,
-                        gap: '6px'
-                      }}
-                      aria-label="Send reminder to client for today"
-                    >
-                      <Send size={13} aria-hidden="true" />
-                      Send Reminder for Today
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* Submission history / Batches feed */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Layers size={15} color="#c084fc" aria-hidden="true" />
-                Submission History ({getProjectBatches(project).length})
-              </div>
-            </div>
-
-            {getProjectBatches(project).length === 0 ? (
-              <div style={{
-                padding: '24px',
-                textAlign: 'center',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px dashed var(--border-subtle)',
-                color: 'var(--text-tertiary)',
-                fontSize: '0.85rem'
-              }}>
-                No previous batches recorded yet. When the client submits today deliverables, they will be archived here automatically.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {getProjectBatches(project).map((batch) => {
-                  const filesCount = batch.files?.length || 0;
-                  return (
-                    <div 
-                      key={batch.id || batch.date}
-                      style={{
-                        padding: '14px 18px',
-                        borderRadius: 'var(--radius-md)',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid var(--border-subtle)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '12px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
-                        <div style={{
-                          width: '32px', height: '32px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(168, 85, 247, 0.15)',
-                          color: '#c084fc',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0
-                        }} aria-hidden="true">
-                          <Calendar size={15} />
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                              {formatDateSlovak(batch.date)}
-                            </strong>
-                            <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
-                              {filesCount} {filesCount === 1 ? 'file' : 'files'}
-                            </span>
-                          </div>
-                          {batch.note && (
-                            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', marginBottom: 0 }} className="truncate">
-                              {batch.note}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {batch.note && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(batch.note);
-                              addToast('Batch note copied to clipboard!', 'success', 'Copied');
-                            }}
-                            className="btn btn-secondary btn-sm"
-                            style={{ padding: '4px 10px', fontSize: '0.74rem' }}
-                            title="Copy note"
-                            aria-label={`Copy note for batch ${batch.date}`}
-                          >
-                            <Copy size={12} aria-hidden="true" /> Copy Note
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={handleDownloadAll}
-                          className="btn btn-secondary btn-sm"
-                          style={{ padding: '4px 10px', fontSize: '0.74rem' }}
-                          title="Download assets"
-                          aria-label={`Download assets for batch ${batch.date}`}
-                        >
-                          <Download size={12} aria-hidden="true" /> Download
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Bento Metrics & Zero-Friction Info ─────────────────── */}
-      <div className="bento-grid bento-grid-3" style={{ marginBottom: '28px' }}>
-        
-        {/* Metric 1 — Delivered */}
-        <div className="glass-card" style={{ padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <span className="metric-label">Delivered by client</span>
             <div style={{
-              width: '32px', height: '32px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--success-bg)',
-              color: 'var(--success)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid var(--success-border)',
-              flexShrink: 0
-            }} aria-hidden="true">
-              <CheckCircle2 size={16} />
+              marginTop: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.72rem',
+              color: '#059669',
+              fontWeight: 800
+            }}>
+              <Sparkles size={13} aria-hidden="true" /> NO CLIENT PASSWORDS NEEDED
             </div>
           </div>
-          <div className="metric-value" style={{ color: 'var(--success-light)' }}>
-            {completedCount} <span style={{ fontSize: '1rem', color: 'var(--text-tertiary)', fontWeight: 500 }}>/ {totalCount}</span>
-          </div>
-          <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-            {progressPercent}% of deliverables completed
-          </div>
-          
-          <div 
-            className="progress-track" 
-            style={{ marginTop: '12px' }}
-            role="progressbar"
-            aria-valuenow={progressPercent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Progress of client deliverables: ${progressPercent}%`}
-          >
-            <div 
-              className="progress-fill" 
-              style={{ 
-                width: `${progressPercent}%`,
-                background: isCompleted ? 'var(--success)' : 'var(--gradient-brand)'
-              }} 
-            />
-          </div>
+
         </div>
 
-        {/* Metric 2 — Missing */}
-        <div className="glass-card" style={{ padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <span className="metric-label">Pending from client (Missing)</span>
-            <div style={{
-              width: '32px', height: '32px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--warning-bg)',
-              color: 'var(--warning)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid var(--warning-border)',
-              flexShrink: 0
-            }} aria-hidden="true">
-              <Clock size={16} />
-            </div>
-          </div>
-          <div className="metric-value" style={{ color: missingCount > 0 ? 'var(--warning-light)' : 'var(--text-secondary)' }}>
-            {missingCount}
-          </div>
-          <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
-            {missingCount === 0 ? 'No missing deliverables' : 'Requires client attention & upload'}
-          </div>
-
-          <div style={{ marginTop: '12px' }}>
-            {missingCount > 0 ? (
-              <button 
-                onClick={() => openReminderModal(project.id)}
-                className="btn btn-secondary btn-sm"
-                style={{ width: '100%', fontSize: '0.76rem', color: 'var(--warning-light)', borderColor: 'var(--warning-border)', padding: '5px 10px' }}
-                aria-label="Send reminder to client for missing deliverables"
-              >
-                <Send size={12} aria-hidden="true" /> Send reminder to client
-              </button>
-            ) : (
-              <div style={{ fontSize: '0.76rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <CheckCircle2 size={13} aria-hidden="true" /> All deliverables received
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Metric 3 — Client Submission Rule Info */}
-        <div className="glass-card" style={{ padding: '18px 20px', background: 'var(--bg-card)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <ShieldCheck size={18} color="var(--accent-primary)" aria-hidden="true" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Secure Deliverables Collection</span>
-          </div>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
-            Files and text are submitted exclusively by the client through their dedicated link. As a freelancer, you manage the list of requirements here and review submitted deliverables.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--accent-primary-light)', fontWeight: 600 }}>
-            <Sparkles size={12} aria-hidden="true" /> Zero-friction: client needs no password or login
-          </div>
-        </div>
-
-      </div>
-
-      {/* ── Checklist Items Section ───────────────────────────── */}
-      <div style={{ marginBottom: '24px' }}>
-        
-        {/* Section Header & Filters */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          marginBottom: '16px'
-        }}>
-          <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '3px' }}>
-              Project Deliverables Checklist
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              Detailed overview of received deliverables and missing items for this project.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Filter pills */}
-            <div className="segmented-control" role="group" aria-label="Filter checklist items">
-              <button
-                onClick={() => setActiveFilter('all')}
-                className={`btn btn-sm btn-pill ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700 }}
-                aria-pressed={activeFilter === 'all'}
-              >
-                All &bull; {totalCount}
-              </button>
-              <button
-                onClick={() => setActiveFilter('missing')}
-                className={`btn btn-sm btn-pill ${activeFilter === 'missing' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'missing' ? '#fff' : 'var(--warning-light)' }}
-                aria-pressed={activeFilter === 'missing'}
-              >
-                Missing &bull; {missingCount}
-              </button>
-              <button
-                onClick={() => setActiveFilter('completed')}
-                className={`btn btn-sm btn-pill ${activeFilter === 'completed' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ border: 'none', padding: '5px 12px', fontSize: 'var(--text-xs)', fontWeight: 700, color: activeFilter === 'completed' ? '#fff' : 'var(--success-light)' }}
-                aria-pressed={activeFilter === 'completed'}
-              >
-                Delivered &bull; {completedCount}
-              </button>
+        {/* ── Checklist Items Ledger ──────────────────────────── */}
+        <div>
+          <div className="pdv-checklist-head">
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', margin: '0 0 2px 0', letterSpacing: '-0.02em' }}>
+                Project Deliverables Checklist
+              </h2>
+              <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)', margin: 0 }}>
+                Detailed inspector view of received assets and pending requirements.
+              </p>
             </div>
 
-            {/* Add Item Button */}
-            <button
-              id="btn-add-item-checklist"
-              onClick={handleOpenAddItemModal}
-              className="btn btn-primary btn-sm btn-pill"
-              style={{ gap: '6px' }}
-              aria-label="Add new checklist requirement"
-            >
-              <Plus size={14} aria-hidden="true" />
-              Add Requirement
-            </button>
-          </div>
-        </div>
-
-        {/* Items List */}
-        {displayedItems.length === 0 ? (
-          <div className="glass-card empty-state" style={{ padding: '48px 24px' }}>
-            <CheckCircle2 size={36} color="var(--accent-primary)" style={{ marginBottom: '8px' }} aria-hidden="true" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '6px' }}>
-              {activeFilter === 'missing' ? 'All items have been submitted! 🎉' : activeFilter === 'completed' ? 'No deliverables submitted yet.' : 'This project has no requirements yet.'}
-            </h3>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.825rem', maxWidth: '420px', lineHeight: 1.5, marginBottom: '16px' }}>
-              {activeFilter === 'missing' 
-                ? 'The client has successfully submitted all requested deliverables.' 
-                : activeFilter === 'completed' 
-                  ? 'Send the client a reminder or share their link so they can upload required files.' 
-                  : 'Add your first requirement by clicking the button below.'}
-            </p>
-            {activeFilter === 'all' && (
-              <button onClick={handleOpenAddItemModal} className="btn btn-primary btn-sm btn-pill" aria-label="Add first requirement">
-                <Plus size={14} aria-hidden="true" /> Add First Requirement
-              </button>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {displayedItems.map((item, index) => {
-              const isItemDone = item.isCompleted;
-              const isFile = item.type === 'file';
-              const fileList = Array.isArray(item.value?.files) 
-                ? item.value.files 
-                : (item.value?.fileName ? [item.value] : []);
-
-              return (
-                <div 
-                  key={item.id || index}
-                  className="glass-card"
-                  style={{
-                    padding: '20px 24px',
-                    borderLeft: `4px solid ${isItemDone ? 'var(--success)' : 'rgba(180, 83, 9, 0.7)'}`,
-                    borderRadius: 'var(--radius-xl)',
-                    background: isItemDone 
-                      ? 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)' 
-                      : 'var(--bg-card)',
-                    boxShadow: isItemDone ? '0 8px 24px -8px rgba(5, 150, 105, 0.12)' : 'var(--shadow-sm)',
-                    transition: 'var(--transition)'
-                  }}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Filter Tabs */}
+              <div className="pdv-filter-tabs" role="group" aria-label="Filter checklist items">
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  className={`pdv-filter-tab ${activeFilter === 'all' ? 'is-active' : ''}`}
+                  aria-pressed={activeFilter === 'all'}
                 >
-                  {/* Top Item Row */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    marginBottom: '12px'
-                  }}>
-                    <div style={{ flex: 1, minWidth: '240px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                        {/* Status Icon */}
-                        {isItemDone ? (
+                  All • {totalCount}
+                </button>
+                <button
+                  onClick={() => setActiveFilter('missing')}
+                  className={`pdv-filter-tab ${activeFilter === 'missing' ? 'is-active' : ''}`}
+                  aria-pressed={activeFilter === 'missing'}
+                >
+                  Missing • {missingCount}
+                </button>
+                <button
+                  onClick={() => setActiveFilter('completed')}
+                  className={`pdv-filter-tab ${activeFilter === 'completed' ? 'is-active' : ''}`}
+                  aria-pressed={activeFilter === 'completed'}
+                >
+                  Delivered • {completedCount}
+                </button>
+              </div>
+
+              <button
+                id="btn-add-item-checklist"
+                onClick={handleOpenAddItemModal}
+                className="pdv-btn-primary"
+                aria-label="Add new checklist requirement"
+              >
+                <Plus size={14} aria-hidden="true" />
+                <span>Add Requirement</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Items List */}
+          {displayedItems.length === 0 ? (
+            <div className="pdv-hero-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+              <CheckCircle2 size={38} color="#10B981" style={{ margin: '0 auto 10px' }} aria-hidden="true" />
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '6px' }}>
+                {activeFilter === 'missing' ? 'All items have been submitted! 🎉' : activeFilter === 'completed' ? 'No deliverables submitted yet.' : 'This project has no requirements yet.'}
+              </h3>
+              <p style={{ color: 'var(--ink-secondary)', fontSize: '0.86rem', maxWidth: '420px', margin: '0 auto 18px', lineHeight: 1.5 }}>
+                {activeFilter === 'missing' 
+                  ? 'The client has successfully submitted all requested deliverables.' 
+                  : activeFilter === 'completed' 
+                    ? 'Send the client a reminder or share their link so they can upload required files.' 
+                    : 'Add your first requirement by clicking the button below.'}
+              </p>
+              {activeFilter === 'all' && (
+                <button onClick={handleOpenAddItemModal} className="pdv-btn-primary" aria-label="Add first requirement">
+                  <Plus size={14} aria-hidden="true" /> Add First Requirement
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="pdv-items-list">
+              {displayedItems.map((item, index) => {
+                const isItemDone = item.isCompleted;
+                const isFile = item.type === 'file';
+                const fileList = Array.isArray(item.value?.files) 
+                  ? item.value.files 
+                  : (item.value?.fileName ? [item.value] : []);
+
+                return (
+                  <div 
+                    key={item.id || index}
+                    className={`pdv-item-card ${isItemDone ? 'is-done' : ''}`}
+                  >
+                    {/* Top Item Row */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      flexWrap: 'wrap',
+                      gap: '12px'
+                    }}>
+                      <div style={{ flex: 1, minWidth: '240px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                          {/* Status Icon Box */}
                           <div style={{
-                            width: '28px', height: '28px',
-                            borderRadius: 'var(--radius-sm)',
-                            background: 'rgba(16, 185, 129, 0.15)',
-                            border: '1px solid rgba(16, 185, 129, 0.35)',
-                            color: 'var(--success)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: '0 0 10px rgba(16, 185, 129, 0.25)'
-                          }} aria-hidden="true">
-                            <CheckCircle2 size={16} />
-                          </div>
-                        ) : (
-                          <div style={{
-                            width: '28px', height: '28px',
-                            borderRadius: 'var(--radius-sm)',
-                            background: 'rgba(245, 158, 11, 0.12)',
-                            border: '1px solid rgba(245, 158, 11, 0.3)',
-                            color: 'var(--warning)',
+                            width: '32px', height: '32px',
+                            borderRadius: '6px',
+                            background: isItemDone ? '#10B981' : '#FEF3C7',
+                            border: '1.5px solid #18181B',
+                            boxShadow: '1.5px 1.5px 0px #18181B',
+                            color: isItemDone ? '#FFFFFF' : '#92400E',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0
                           }} aria-hidden="true">
-                            <Clock size={16} />
+                            {isItemDone ? <Check size={17} strokeWidth={3} /> : <Clock size={16} />}
                           </div>
+
+                          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, color: 'var(--ink)', margin: 0 }}>
+                            {item.title}
+                          </h3>
+
+                          {/* Badges */}
+                          <span style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            padding: '2px 7px',
+                            borderRadius: '3px',
+                            background: isFile ? '#EFF6FF' : '#F5F3FF',
+                            color: isFile ? '#1D4ED8' : '#6D28D9',
+                            border: isFile ? '1px solid #93C5FD' : '1px solid #DDD6FE',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            {isFile ? <Upload size={10} aria-hidden="true" /> : <FileText size={10} aria-hidden="true" />}
+                            {isFile ? 'FILE' : 'TEXT'}
+                          </span>
+
+                          <span style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.66rem',
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            background: item.required ? '#FEE2E2' : '#F3F4F6',
+                            color: item.required ? '#991B1B' : '#6B7280',
+                            border: item.required ? '1px solid #FECACA' : '1px solid #E5E7EB'
+                          }}>
+                            {item.required ? 'REQUIRED' : 'OPTIONAL'}
+                          </span>
+
+                          {item.purged || project.filesPurged ? (
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '3px',
+                              background: '#FEF2F2',
+                              color: '#DC2626',
+                              border: '1px solid #FECACA',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Trash2 size={10} aria-hidden="true" /> PURGED (GDPR 30D)
+                            </span>
+                          ) : isItemDone ? (
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '3px',
+                              background: '#ECFDF5',
+                              color: '#065F46',
+                              border: '1px solid #10B981',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Check size={10} aria-hidden="true" /> SUBMITTED
+                            </span>
+                          ) : (
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '3px',
+                              background: '#FFFBEB',
+                              color: '#92400E',
+                              border: '1px solid #F59E0B',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Clock size={10} aria-hidden="true" /> PENDING
+                            </span>
+                          )}
+                        </div>
+
+                        {item.description && (
+                          <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)', marginLeft: '42px', marginBottom: '4px', marginTop: '4px', lineHeight: 1.5 }}>
+                            {item.description}
+                          </p>
                         )}
 
-                        <h3 style={{ fontSize: '1.025rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.015em' }}>
-                          {item.title}
-                        </h3>
-
-                        {/* Badges */}
-                        <span className={`badge ${isFile ? 'badge-accent' : 'badge-violet'}`} style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                          {isFile ? <Upload size={10} aria-hidden="true" /> : <FileText size={10} aria-hidden="true" />}
-                          {isFile ? 'File' : 'Text / Details'}
-                        </span>
-
-                        {item.required ? (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.65rem', padding: '2px 6px', color: 'var(--warning-light)' }}>
-                            Required
-                          </span>
-                        ) : (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.65rem', padding: '2px 6px', opacity: 0.7 }}>
-                            Optional
-                          </span>
-                        )}
-
-                        {item.purged || project.filesPurged ? (
-                          <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '2px 7px', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                            <Trash2 size={10} aria-hidden="true" /> Purged (GDPR 30d)
-                          </span>
-                        ) : isItemDone ? (
-                          <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Check size={10} aria-hidden="true" /> Submitted by client
-                          </span>
-                        ) : (
-                          <span className="badge badge-warning" style={{ fontSize: '0.68rem', padding: '2px 7px' }}>
-                            <Clock size={10} aria-hidden="true" /> Missing &bull; Pending
-                          </span>
+                        {isItemDone && item.completedAt && (
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--ink-muted)', marginLeft: '42px', marginTop: '4px' }}>
+                            SUBMITTED AT: <strong style={{ color: 'var(--ink)' }}>{new Date(item.completedAt).toLocaleString('en-US')}</strong>
+                          </div>
                         )}
                       </div>
 
-                      {/* Item Description / Instructions for client */}
-                      {item.description && (
-                        <p style={{ fontSize: '0.825rem', color: 'var(--text-tertiary)', marginLeft: '32px', marginBottom: '4px', lineHeight: 1.5 }}>
-                          {item.description}
-                        </p>
-                      )}
+                      {/* Edit & Delete Buttons */}
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+                        <button
+                          id={`btn-edit-item-${item.id}`}
+                          onClick={() => handleOpenEditItemModal(item)}
+                          className="pdv-btn-secondary"
+                          style={{ padding: '5px 10px', fontSize: '0.74rem' }}
+                          title="Edit title, instructions, or requirement type"
+                          aria-label={`Edit requirement: ${item.title}`}
+                        >
+                          <Edit3 size={13} aria-hidden="true" />
+                          <span>Edit</span>
+                        </button>
 
-                      {/* Completed Timestamp */}
-                      {isItemDone && item.completedAt && (
-                        <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', marginLeft: '32px', marginTop: '4px' }}>
-                          Submitted: <strong style={{ color: 'var(--text-secondary)' }}>{new Date(item.completedAt).toLocaleString('en-US')}</strong>
-                        </div>
-                      )}
+                        <button
+                          id={`btn-delete-item-${item.id}`}
+                          onClick={() => handleDeleteItem(item)}
+                          className="pdv-btn-secondary"
+                          style={{ padding: '5px 8px', color: '#DC2626', borderColor: '#DC2626' }}
+                          title="Delete requirement from project"
+                          aria-label={`Delete requirement: ${item.title}`}
+                        >
+                          <Trash2 size={13} aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Action buttons for item */}
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                      <button
-                        id={`btn-edit-item-${item.id}`}
-                        onClick={() => handleOpenEditItemModal(item)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ padding: '5px 10px', fontSize: '0.78rem', borderRadius: 'var(--radius-sm)' }}
-                        title="Edit title, instructions, or requirement type"
-                        aria-label={`Edit requirement: ${item.title}`}
-                      >
-                        <Edit3 size={13} aria-hidden="true" />
-                        Edit
-                      </button>
-
-                      <button
-                        id={`btn-delete-item-${item.id}`}
-                        onClick={() => handleDeleteItem(item)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ padding: '5px 8px', fontSize: '0.78rem', color: 'var(--danger)', borderRadius: 'var(--radius-sm)' }}
-                        title="Delete requirement from project"
-                        aria-label={`Delete requirement: ${item.title}`}
-                      >
-                        <Trash2 size={13} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ── Submitted Content Box (Read-only for Freelancer) ───── */}
-                  <div style={{ marginLeft: '32px', marginTop: '12px' }}>
+                    {/* Submitted Content vs Missing Notice */}
                     {isItemDone ? (
-                      /* Content has been delivered by client */
-                      <div style={{
-                        background: 'var(--bg-base)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '14px 16px'
-                      }}>
+                      <div className="pdv-item-content-box">
                         {isFile ? (
-                          /* Files delivered */
                           <div>
-                            <div style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>
-                              Files delivered by client ({fileList.length}):
+                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--ink-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
+                              Files Delivered by Client ({fileList.length}):
                             </div>
 
                             {fileList.length === 0 ? (
-                              <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
+                              <div style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)' }}>
                                 File submitted: {item.value?.fileName || 'File'} ({item.value?.fileSize || 'N/A'})
                               </div>
                             ) : (
@@ -1257,40 +1153,29 @@ export default function ProjectDetailView() {
                                 {fileList.map((f, fIdx) => {
                                   const isImg = isImageFile(f.fileName, f.fileType);
                                   return (
-                                    <div 
-                                      key={f.id || fIdx}
-                                      style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        flexWrap: 'wrap',
-                                        gap: '10px',
-                                        padding: '8px 12px',
-                                        background: '#ffffff',
-                                        border: '1px solid var(--border-subtle)',
-                                        borderRadius: 'var(--radius-sm)'
-                                      }}
-                                    >
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                                        {/* Thumbnail or File icon */}
+                                    <div key={f.id || fIdx} className="pdv-file-entry">
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                                         {isImg && f.url ? (
-                                          <img 
-                                            src={f.url} 
-                                            alt={f.fileName || 'Preview of client upload'} 
-                                            style={{
-                                              width: '36px', height: '36px',
-                                              objectFit: 'cover',
-                                              borderRadius: 'var(--radius-xs)',
-                                              border: '1px solid var(--border-subtle)',
-                                              flexShrink: 0
-                                            }} 
-                                          />
+                                          <a href={f.url} target="_blank" rel="noreferrer" title="Open full size">
+                                            <img 
+                                              src={f.url} 
+                                              alt={f.fileName || 'Preview of client upload'} 
+                                              style={{
+                                                width: '40px', height: '40px',
+                                                objectFit: 'cover',
+                                                borderRadius: '4px',
+                                                border: '1.5px solid #18181B',
+                                                flexShrink: 0
+                                              }} 
+                                            />
+                                          </a>
                                         ) : (
                                           <div style={{
-                                            width: '36px', height: '36px',
-                                            borderRadius: 'var(--radius-xs)',
-                                            background: 'rgba(99, 102, 241, 0.12)',
-                                            color: 'var(--accent-primary)',
+                                            width: '40px', height: '40px',
+                                            borderRadius: '4px',
+                                            background: '#FEF3C7',
+                                            border: '1.5px solid #18181B',
+                                            color: '#111827',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             flexShrink: 0
                                           }} aria-hidden="true">
@@ -1299,19 +1184,18 @@ export default function ProjectDetailView() {
                                         )}
 
                                         <div style={{ minWidth: 0 }}>
-                                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }} className="truncate">
+                                          <div style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--ink)' }} className="truncate">
                                             {f.fileName}
                                           </div>
-                                          <div style={{ fontSize: '0.73rem', color: 'var(--text-tertiary)' }}>
+                                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--ink-muted)' }}>
                                             {f.fileSize || 'Size unknown'} {f.uploadedAt ? `• ${f.uploadedAt}` : ''}
                                           </div>
                                         </div>
                                       </div>
 
-                                      {/* Download Link */}
                                       {project.filesPurged || f.purged ? (
-                                        <span style={{ fontSize: '0.74rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(239,68,68,0.1)', padding: '4px 8px', borderRadius: 'var(--radius-xs)' }}>
-                                          <Trash2 size={11} aria-hidden="true" /> Purged (GDPR 30d)
+                                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', fontWeight: 800, color: '#DC2626', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FEF2F2', border: '1px solid #FECACA', padding: '4px 8px', borderRadius: '4px' }}>
+                                          <Trash2 size={11} aria-hidden="true" /> PURGED (GDPR 30D)
                                         </span>
                                       ) : f.url ? (
                                         <a 
@@ -1319,14 +1203,14 @@ export default function ProjectDetailView() {
                                           target="_blank" 
                                           rel="noreferrer"
                                           download={f.fileName}
-                                          className="btn btn-secondary btn-sm"
-                                          style={{ fontSize: '0.78rem', padding: '5px 12px', gap: '5px' }}
+                                          className="pdv-btn-secondary"
+                                          style={{ fontSize: '0.74rem', padding: '5px 12px' }}
                                           aria-label={`Download file ${f.fileName}`}
                                         >
-                                          <Download size={12} aria-hidden="true" /> Download file
+                                          <Download size={12} aria-hidden="true" /> <span>Download</span>
                                         </a>
                                       ) : (
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--ink-muted)' }}>
                                           Local demo file
                                         </span>
                                       )}
@@ -1337,11 +1221,10 @@ export default function ProjectDetailView() {
                             )}
                           </div>
                         ) : (
-                          /* Text delivered */
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <span style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                Text / Information submitted by client:
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: 'var(--ink-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                Text / Information Submitted by Client:
                               </span>
                               <button
                                 onClick={() => {
@@ -1349,23 +1232,22 @@ export default function ProjectDetailView() {
                                   navigator.clipboard.writeText(textVal);
                                   addToast('Text copied to clipboard!', 'success', 'Copied');
                                 }}
-                                className="btn btn-secondary btn-sm"
-                                style={{ padding: '3px 8px', fontSize: '0.74rem', gap: '4px' }}
+                                className="pdv-btn-secondary"
+                                style={{ padding: '3px 10px', fontSize: '0.72rem' }}
                                 aria-label={`Copy submitted text for ${item.title}`}
                               >
-                                <Copy size={11} aria-hidden="true" /> Copy text
+                                <Copy size={11} aria-hidden="true" /> <span>Copy text</span>
                               </button>
                             </div>
                             <div style={{
-                              background: '#ffffff',
-                              border: '1px solid var(--border-subtle)',
-                              borderRadius: 'var(--radius-sm)',
+                              background: '#FFFFFF',
+                              border: '1.5px solid #18181B',
+                              borderRadius: '6px',
                               padding: '12px 14px',
-                              fontSize: '0.86rem',
-                              color: 'var(--text-primary)',
+                              fontSize: '0.88rem',
+                              color: 'var(--ink)',
                               lineHeight: 1.6,
-                              whiteSpace: 'pre-wrap',
-                              fontFamily: 'var(--font-sans)'
+                              whiteSpace: 'pre-wrap'
                             }}>
                               {typeof item.value === 'string' ? item.value : JSON.stringify(item.value, null, 2)}
                             </div>
@@ -1373,79 +1255,79 @@ export default function ProjectDetailView() {
                         )}
                       </div>
                     ) : (
-                      /* Item is missing - client hasn't uploaded yet */
-                      <div style={{
-                        background: 'rgba(245, 158, 11, 0.05)',
-                        border: '1px dashed rgba(245, 158, 11, 0.25)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '14px 16px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '12px'
-                      }}>
+                      <div className="pdv-missing-notice">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <AlertCircle size={16} color="var(--warning)" style={{ flexShrink: 0 }} aria-hidden="true" />
-                          <div style={{ fontSize: '0.825rem', color: 'var(--warning-light)' }}>
-                            <strong>Client has not submitted this deliverable yet.</strong>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                              This item will be available here as soon as the client uploads it via their private link.
-                            </div>
+                          <AlertCircle size={18} color="#D97706" style={{ flexShrink: 0 }} aria-hidden="true" />
+                          <div>
+                            <strong style={{ fontSize: '0.85rem', color: '#92400E', display: 'block' }}>
+                              Client has not submitted this deliverable yet.
+                            </strong>
+                            <span style={{ fontSize: '0.76rem', color: 'var(--ink-secondary)' }}>
+                              Assets appear automatically here as soon as the client uploads them.
+                            </span>
                           </div>
                         </div>
 
                         <button
                           onClick={() => openReminderModal(project.id)}
-                          className="btn btn-secondary btn-sm btn-pill"
-                          style={{ color: 'var(--warning-light)', borderColor: 'var(--warning-border)', fontSize: '0.76rem', padding: '4px 12px' }}
+                          className="pdv-btn-primary"
+                          style={{ padding: '6px 14px', fontSize: '0.74rem' }}
                           aria-label={`Remind client for ${item.title}`}
                         >
-                          <Send size={11} aria-hidden="true" /> Remind client
+                          <Send size={12} aria-hidden="true" /> <span>Remind Client</span>
                         </button>
                       </div>
                     )}
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-                </div>
-              );
-            })}
+        {/* ── Quick Footer Action Bar ───────────────────────────── */}
+        <div className="pdv-action-footer">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.86rem', fontWeight: 700, color: 'var(--ink)' }}>
+            <Sparkles size={16} color="#D97706" aria-hidden="true" />
+            <span>Overall status: <strong>{completedCount} of {totalCount}</strong> requirements completed ({progressPercent}%)</span>
           </div>
-        )}
 
-      </div>
-
-      {/* ── Quick Footer Action Bar ───────────────────────────── */}
-      <div className="glass-card" style={{
-        padding: '16px 20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          <Sparkles size={16} color="var(--accent-primary)" aria-hidden="true" />
-          <span>Overall status: <strong>{completedCount} of {totalCount}</strong> requirements completed ({progressPercent}%)</span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={openDashboard} 
+              className="pdv-btn-secondary"
+              aria-label="Back to Dashboard"
+            >
+              <ArrowLeft size={13} aria-hidden="true" /> <span>Back to Dashboard</span>
+            </button>
+            
+            <button
+              onClick={handleOpenAddItemModal}
+              className="pdv-btn-primary"
+              aria-label="Add another requirement"
+            >
+              <Plus size={14} aria-hidden="true" /> <span>Add Another Requirement</span>
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button 
-            onClick={openDashboard} 
-            className="btn btn-secondary btn-sm btn-pill"
-            aria-label="Back to Dashboard"
-          >
-            <ArrowLeft size={13} aria-hidden="true" /> Back to Dashboard
-          </button>
-          
-          <button
-            onClick={handleOpenAddItemModal}
-            className="btn btn-primary btn-sm btn-pill"
-            aria-label="Add another requirement"
-          >
-            <Plus size={14} aria-hidden="true" /> Add Another Requirement
-          </button>
-        </div>
+        {/* ── Studio Telemetry Strip Footer ─────────────────────── */}
+        <footer className="pdv-studio-footer" role="contentinfo">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--orange)', fontWeight: 900 }}>⚡</span>
+            <span>DROPBRIEF STUDIO INSPECTOR</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span>ZERO PASSWORDS &bull; REALTIME SYNC</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span>ENCRYPTED AES-256</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span>IRELAND EU STORAGE</span>
+            <span style={{ opacity: 0.35 }} aria-hidden="true">•</span>
+            <span style={{ color: '#059669' }}>GDPR ART. 5 (30-DAY PURGE)</span>
+          </div>
+        </footer>
+
       </div>
 
       {/* ══════════════════════════════════════════════════════════
@@ -1453,70 +1335,33 @@ export default function ProjectDetailView() {
           ══════════════════════════════════════════════════════════ */}
       {isAddItemModalOpen && (
         <div 
-          className="modal-overlay" 
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(3, 4, 9, 0.85)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '16px'
-          }}
+          className="pdv-modal-overlay" 
           onClick={() => setIsAddItemModalOpen(false)}
         >
           <div 
-            className="auth-modal-card animate-fade-in"
+            className="pdv-modal-window"
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-item-modal-title"
-            style={{
-              width: '100%',
-              maxWidth: '620px',
-              maxHeight: '92vh',
-              display: 'flex',
-              flexDirection: 'column',
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)'
-            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '18px 24px',
-              borderBottom: '1px solid var(--border-hairline)',
-              background: 'var(--bg-base)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '34px', height: '34px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--accent-gradient)',
-                  color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }} aria-hidden="true">
-                  <Plus size={18} />
+            <div className="pdv-modal-header">
+              <div>
+                <div className="pdv-modal-kicker">
+                  <span>STAMP // ADD REQUIREMENT</span>
                 </div>
-                <div>
-                  <h3 id="add-item-modal-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Add Requirement to Project
-                  </h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Specify what deliverables the client needs to submit through their link.
-                  </p>
-                </div>
+                <h3 id="add-item-modal-title" className="pdv-modal-title">
+                  Add Requirement to Docket
+                </h3>
+                <p className="pdv-modal-sub">
+                  Specify deliverables the client needs to provide via their link.
+                </p>
               </div>
 
               <button 
                 onClick={() => setIsAddItemModalOpen(false)}
-                className="btn btn-secondary btn-sm"
-                style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
+                className="pdv-modal-close"
                 aria-label="Close dialog"
               >
                 <X size={16} aria-hidden="true" />
@@ -1524,124 +1369,114 @@ export default function ProjectDetailView() {
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSubmitAddItem} style={{ padding: '22px 24px', overflowY: 'auto', flex: 1 }}>
-              
-              {/* Presets */}
-              <div style={{ marginBottom: '18px' }}>
-                <label style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700, display: 'block', marginBottom: '8px' }}>
-                  Quick 1-click presets:
-                </label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {QUICK_PRESETS.map((p, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleApplyPreset(p)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.74rem', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}
-                      aria-label={`Apply preset: ${p.title}`}
+            <form onSubmit={handleSubmitAddItem} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="pdv-modal-body">
+                
+                {/* Presets */}
+                <div style={{ marginBottom: '18px' }}>
+                  <label className="pdv-field-label">
+                    Quick 1-Click Presets
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {QUICK_PRESETS.map((p, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleApplyPreset(p)}
+                        className="pdv-preset-pill"
+                        aria-label={`Apply preset: ${p.title}`}
+                      >
+                        + {p.title.split('(')[0].trim()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label htmlFor="new-item-title-input" className="pdv-field-label">
+                    Requirement Title *
+                  </label>
+                  <input
+                    id="new-item-title-input"
+                    type="text"
+                    className="pdv-input"
+                    placeholder="e.g. Vector logo (SVG, AI) or Website copy"
+                    value={newItemTitle}
+                    onChange={(e) => setNewItemTitle(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label htmlFor="new-item-desc-input" className="pdv-field-label">
+                    Instructions &amp; Details for Client
+                  </label>
+                  <textarea
+                    id="new-item-desc-input"
+                    className="pdv-textarea"
+                    rows={3}
+                    placeholder="Explain what the client should submit (e.g. Transparent background SVG or high-resolution PNG)..."
+                    value={newItemDesc}
+                    onChange={(e) => setNewItemDesc(e.target.value)}
+                  />
+                </div>
+
+                {/* Type and Required row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+                  <div>
+                    <label htmlFor="new-item-type-select" className="pdv-field-label">
+                      Deliverable Type
+                    </label>
+                    <select 
+                      id="new-item-type-select"
+                      className="pdv-select"
+                      value={newItemType}
+                      onChange={(e) => setNewItemType(e.target.value)}
                     >
-                      {p.title.split('(')[0]}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      <option value="file">📁 File (Photos, PDF, Logo, ZIP)</option>
+                      <option value="text">📝 Text / Copy (Answers, credentials)</option>
+                    </select>
+                  </div>
 
-              {/* Title */}
-              <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="new-item-title-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Requirement Title *
-                </label>
-                <input
-                  id="new-item-title-input"
-                  type="text"
-                  className="input"
-                  placeholder="e.g. Vector logo (SVG, AI) or Website copy"
-                  value={newItemTitle}
-                  onChange={(e) => setNewItemTitle(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="new-item-desc-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Instructions & details for client
-                </label>
-                <textarea
-                  id="new-item-desc-input"
-                  className="textarea"
-                  rows={3}
-                  placeholder="Explain the requirement to the client (e.g. Transparent background logo, SVG or high-resolution PNG)..."
-                  value={newItemDesc}
-                  onChange={(e) => setNewItemDesc(e.target.value)}
-                />
-              </div>
-
-              {/* Type and Required row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
-                <div>
-                  <label htmlFor="new-item-type-select" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Deliverable Type
-                  </label>
-                  <select 
-                    id="new-item-type-select"
-                    className="select"
-                    value={newItemType}
-                    onChange={(e) => setNewItemType(e.target.value)}
-                  >
-                    <option value="file">📁 File (Photos, PDF, Logo, ZIP)</option>
-                    <option value="text">📝 Text / Content (Descriptions, credentials, copy)</option>
-                  </select>
+                  <div>
+                    <label className="pdv-field-label">
+                      Requirement Status
+                    </label>
+                    <label className="pdv-checkbox-box">
+                      <input 
+                        type="checkbox"
+                        checked={newItemRequired}
+                        onChange={(e) => setNewItemRequired(e.target.checked)}
+                        style={{ accentColor: '#18181B', width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: '0.84rem', color: '#111827', fontWeight: 700 }}>
+                        Required item
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Requirement Status
-                  </label>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    height: '42px',
-                    padding: '0 12px',
-                    background: 'var(--bg-input-filled)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer'
-                  }}>
-                    <input 
-                      type="checkbox"
-                      checked={newItemRequired}
-                      onChange={(e) => setNewItemRequired(e.target.checked)}
-                      style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      Required item
-                    </span>
-                  </label>
-                </div>
               </div>
 
               {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid var(--border-hairline)' }}>
+              <div className="pdv-modal-footer">
                 <button 
                   type="button" 
                   onClick={() => setIsAddItemModalOpen(false)} 
-                  className="btn btn-secondary btn-sm btn-pill"
+                  className="pdv-btn-secondary"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="btn btn-primary btn-sm btn-pill"
-                  style={{ gap: '6px' }}
+                  className="pdv-btn-primary"
                 >
-                  <Plus size={14} aria-hidden="true" /> Add to Project
+                  <Plus size={14} aria-hidden="true" /> <span>Add to Project</span>
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -1652,70 +1487,33 @@ export default function ProjectDetailView() {
           ══════════════════════════════════════════════════════════ */}
       {isEditItemModalOpen && editingItem && (
         <div 
-          className="modal-overlay" 
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(3, 4, 9, 0.85)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '16px'
-          }}
+          className="pdv-modal-overlay" 
           onClick={() => setIsEditItemModalOpen(false)}
         >
           <div 
-            className="auth-modal-card animate-fade-in"
+            className="pdv-modal-window"
             role="dialog"
             aria-modal="true"
             aria-labelledby="edit-item-modal-title"
-            style={{
-              width: '100%',
-              maxWidth: '560px',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-              background: '#ffffff',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)'
-            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '18px 24px',
-              borderBottom: '1px solid var(--border-hairline)',
-              background: 'var(--bg-base)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '34px', height: '34px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(99, 102, 241, 0.15)',
-                  color: 'var(--accent-primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }} aria-hidden="true">
-                  <Edit3 size={17} />
+            <div className="pdv-modal-header">
+              <div>
+                <div className="pdv-modal-kicker">
+                  <span>STAMP // EDIT REQUIREMENT</span>
                 </div>
-                <div>
-                  <h3 id="edit-item-modal-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Edit Requirement
-                  </h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Update title, instructions, and client settings.
-                  </p>
-                </div>
+                <h3 id="edit-item-modal-title" className="pdv-modal-title">
+                  Edit Requirement
+                </h3>
+                <p className="pdv-modal-sub">
+                  Update requirement title, instructions, and client specifications.
+                </p>
               </div>
 
               <button 
                 onClick={() => setIsEditItemModalOpen(false)}
-                className="btn btn-secondary btn-sm"
-                style={{ borderRadius: 'var(--radius-full)', padding: '6px' }}
+                className="pdv-modal-close"
                 aria-label="Close dialog"
               >
                 <X size={16} aria-hidden="true" />
@@ -1723,99 +1521,91 @@ export default function ProjectDetailView() {
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSubmitEditItem} style={{ padding: '22px 24px', overflowY: 'auto', flex: 1 }}>
-              
-              {/* Title */}
-              <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="edit-item-title-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Requirement Title *
-                </label>
-                <input
-                  id="edit-item-title-input"
-                  type="text"
-                  className="input"
-                  value={editItemTitle}
-                  onChange={(e) => setEditItemTitle(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="edit-item-desc-input" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                  Instructions & details for client
-                </label>
-                <textarea
-                  id="edit-item-desc-input"
-                  className="textarea"
-                  rows={3}
-                  value={editItemDesc}
-                  onChange={(e) => setEditItemDesc(e.target.value)}
-                />
-              </div>
-
-              {/* Type and Required row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '22px' }}>
-                <div>
-                  <label htmlFor="edit-item-type-select" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Deliverable Type
+            <form onSubmit={handleSubmitEditItem} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="pdv-modal-body">
+                
+                {/* Title */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label htmlFor="edit-item-title-input" className="pdv-field-label">
+                    Requirement Title *
                   </label>
-                  <select 
-                    id="edit-item-type-select"
-                    className="select"
-                    value={editItemType}
-                    onChange={(e) => setEditItemType(e.target.value)}
-                  >
-                    <option value="file">📁 File</option>
-                    <option value="text">📝 Text / Copy</option>
-                  </select>
+                  <input
+                    id="edit-item-title-input"
+                    type="text"
+                    className="pdv-input"
+                    value={editItemTitle}
+                    onChange={(e) => setEditItemTitle(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-                    Requirement Status
+                {/* Description */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label htmlFor="edit-item-desc-input" className="pdv-field-label">
+                    Instructions &amp; Details for Client
                   </label>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    height: '42px',
-                    padding: '0 12px',
-                    background: 'var(--bg-input-filled)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer'
-                  }}>
-                    <input 
-                      type="checkbox"
-                      checked={editItemRequired}
-                      onChange={(e) => setEditItemRequired(e.target.checked)}
-                      style={{ accentColor: 'var(--accent-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      Required item
-                    </span>
-                  </label>
+                  <textarea
+                    id="edit-item-desc-input"
+                    className="pdv-textarea"
+                    rows={3}
+                    value={editItemDesc}
+                    onChange={(e) => setEditItemDesc(e.target.value)}
+                  />
                 </div>
+
+                {/* Type and Required row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+                  <div>
+                    <label htmlFor="edit-item-type-select" className="pdv-field-label">
+                      Deliverable Type
+                    </label>
+                    <select 
+                      id="edit-item-type-select"
+                      className="pdv-select"
+                      value={editItemType}
+                      onChange={(e) => setEditItemType(e.target.value)}
+                    >
+                      <option value="file">📁 File</option>
+                      <option value="text">📝 Text / Copy</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="pdv-field-label">
+                      Requirement Status
+                    </label>
+                    <label className="pdv-checkbox-box">
+                      <input 
+                        type="checkbox"
+                        checked={editItemRequired}
+                        onChange={(e) => setEditItemRequired(e.target.checked)}
+                        style={{ accentColor: '#18181B', width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: '0.84rem', color: '#111827', fontWeight: 700 }}>
+                        Required item
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
               </div>
 
               {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '16px', borderTop: '1px solid var(--border-hairline)' }}>
+              <div className="pdv-modal-footer">
                 <button 
                   type="button" 
                   onClick={() => setIsEditItemModalOpen(false)} 
-                  className="btn btn-secondary btn-sm btn-pill"
+                  className="pdv-btn-secondary"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="btn btn-primary btn-sm btn-pill"
+                  className="pdv-btn-primary"
                 >
-                  Save Changes
+                  <Check size={14} aria-hidden="true" /> <span>Save Changes</span>
                 </button>
               </div>
-
             </form>
           </div>
         </div>
