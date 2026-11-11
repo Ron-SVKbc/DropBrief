@@ -745,6 +745,12 @@
   transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
+.cp-done-dock.is-actionable {
+  background: #FFFDF7;
+  border: var(--border-thick);
+  box-shadow: 5px 5px 0px #111111;
+}
+
 .cp-done-dock.is-ready {
   background: var(--emerald-light);
   border: var(--border-thick);
@@ -774,6 +780,11 @@
   transition: background-color 0.22s ease, color 0.22s ease;
 }
 
+.cp-done-dock.is-actionable .cp-done-icon-box {
+  background: var(--yellow);
+  color: #111111;
+}
+
 .cp-done-dock.is-ready .cp-done-icon-box {
   background: var(--emerald);
   color: #FFFFFF;
@@ -795,6 +806,24 @@
   transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
   user-select: none;
   flex-shrink: 0;
+}
+
+.cp-btn-done.is-actionable {
+  background: var(--yellow);
+  color: #111111;
+  border: var(--border-thick);
+  box-shadow: 3px 3px 0px #111111;
+}
+
+.cp-btn-done.is-actionable:hover {
+  background: #FBBF24;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5px 5px 0px #111111;
+}
+
+.cp-btn-done.is-actionable:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0px #111111;
 }
 
 .cp-btn-done.is-ready {

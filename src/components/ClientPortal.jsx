@@ -1750,14 +1750,28 @@ export default function ClientPortal() {
         {/* ── Bottom Finish / Handoff Action Dock ───────────────── */}
         {(!isFreelancerReadOnly || isRequiredComplete) && (() => {
           const canFinishNow = !hasRequiredItems || isRequiredComplete;
+          const isGreenComplete = isAllDone || clientConfirmedDone;
           const missingReqCount = Math.max(0, requiredItems.length - requiredCompletedCount);
           const unsubmittedOptCount = Math.max(0, optionalItems.length - optionalCompletedCount);
 
+          const dockStateClass = isGreenComplete
+            ? 'is-ready'
+            : (canFinishNow ? 'is-actionable' : '');
+          const btnStateClass = isGreenComplete
+            ? 'is-ready'
+            : (canFinishNow ? 'is-actionable' : 'is-waiting');
+
           return (
-            <div className={`cp-done-dock ${canFinishNow ? 'is-ready' : ''}`}>
+            <div className={`cp-done-dock ${dockStateClass}`}>
               <div className="cp-done-dock-info">
                 <div className="cp-done-icon-box" aria-hidden="true">
-                  {canFinishNow ? <Check size={22} strokeWidth={3} /> : <Clock size={20} />}
+                  {isGreenComplete ? (
+                    <Check size={22} strokeWidth={3} />
+                  ) : canFinishNow ? (
+                    <Sparkles size={20} />
+                  ) : (
+                    <Clock size={20} />
+                  )}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <strong style={{
@@ -1767,29 +1781,31 @@ export default function ClientPortal() {
                     display: 'block',
                     lineHeight: 1.25
                   }}>
-                    {!hasRequiredItems
-                      ? 'Ready whenever you are'
-                      : isRequiredComplete
-                        ? (clientConfirmedDone
-                          ? `All set — ${project.freelancerName} takes it from here`
-                          : 'All required deliverables are uploaded!')
-                        : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
+                    {isGreenComplete
+                      ? `Ready — waiting on ${project.freelancerName} now`
+                      : !hasRequiredItems
+                        ? 'Ready whenever you are'
+                        : isRequiredComplete
+                          ? 'Required deliverables uploaded — click Done when ready'
+                          : `${missingReqCount} required item${missingReqCount === 1 ? '' : 's'} remaining`}
                   </strong>
                   <span style={{
                     fontSize: '0.82rem',
-                    color: canFinishNow ? '#065F46' : 'var(--ink-secondary)',
+                    color: isGreenComplete ? '#065F46' : 'var(--ink-secondary)',
                     display: 'block',
                     marginTop: '2px'
                   }}>
-                    {!hasRequiredItems
-                      ? 'All fields above are optional. Add anything helpful or click Done to wrap up.'
-                      : isRequiredComplete
-                        ? (unsubmittedOptCount > 0
-                          ? `${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} left blank — completely fine, click Done anytime.`
-                          : `Everything is safely stored. Click Done to wrap up and confirm handoff to ${project.freelancerName}.`)
-                        : (optionalItems.length > 0
-                          ? 'Complete the required items above first — optional fields can stay empty.'
-                          : 'Complete the remaining required items above, then click Done.')}
+                    {isGreenComplete
+                      ? (isAllDone
+                        ? `All deliverables are safely stored. Only ${project.freelancerName}'s part remains from here.`
+                        : `Everything required is handed off (${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} skipped). Only ${project.freelancerName}'s part remains from here.`)
+                      : !hasRequiredItems
+                        ? 'All fields above are optional. Add anything helpful or click Done to wrap up.'
+                        : isRequiredComplete
+                          ? `${unsubmittedOptCount} optional field${unsubmittedOptCount === 1 ? '' : 's'} still open — fill them if helpful, or click Done to hand off to ${project.freelancerName}.`
+                          : (optionalItems.length > 0
+                            ? 'Complete the required items above first — optional fields can stay empty.'
+                            : 'Complete the remaining required items above to finish.')}
                   </span>
                 </div>
               </div>
@@ -1798,9 +1814,14 @@ export default function ClientPortal() {
                 id="btn-client-done"
                 type="button"
                 onClick={handleDoneClick}
-                className={`cp-btn-done ${canFinishNow ? 'is-ready' : 'is-waiting'}`}
+                className={`cp-btn-done ${btnStateClass}`}
               >
-                {canFinishNow ? (
+                {isGreenComplete ? (
+                  <>
+                    <CheckCircle2 size={17} aria-hidden="true" />
+                    <span>Ready &bull; Waiting on Creator</span>
+                  </>
+                ) : canFinishNow ? (
                   <>
                     <CheckCircle2 size={17} aria-hidden="true" />
                     <span>Done</span>
