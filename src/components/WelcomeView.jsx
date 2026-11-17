@@ -52,57 +52,60 @@ export default function WelcomeView({ onOpenCreateModal }) {
           <button 
             type="button"
             onClick={() => openLegalModal('overview')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'var(--yellow)', 
-              fontWeight: 800, 
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontSize: 'inherit',
-              padding: '0 2px',
-              letterSpacing: 'inherit',
-              display: 'inline-flex',
-              alignItems: 'center'
-            }}
+            className="ticker-brand-tag"
             title="Open comprehensive EU Legal & Compliance Dossier"
           >
             DOC_SPEC:
           </button>
-          <button 
-            type="button" 
-            className="ticker-link"
-            onClick={() => openLegalModal('tos')}
-            id="ticker-btn-tos"
-            title="Read DropBrief Terms of Service & Liability"
+
+          <div className="ticker-desktop-items">
+            <button 
+              type="button" 
+              className="ticker-link"
+              onClick={() => openLegalModal('tos')}
+              id="ticker-btn-tos"
+              title="Read DropBrief Terms of Service & Liability"
+            >
+              TERMS OF SERVICE (TOS)
+            </button>
+            <span className="ticker-sep" aria-hidden="true">•</span>
+            <button 
+              type="button" 
+              className="ticker-link"
+              onClick={() => openLegalModal('privacy')}
+              id="ticker-btn-privacy"
+              title="Read GDPR & Data Privacy Policy"
+            >
+              PRIVACY &amp; GDPR
+            </button>
+            <span className="ticker-sep" aria-hidden="true">•</span>
+            <button 
+              type="button" 
+              className="ticker-link"
+              onClick={() => openLegalModal('cookies')}
+              id="ticker-btn-cookies"
+              title="100% Cookie-free & zero third-party tracking policy"
+            >
+              100% COOKIE-FREE
+            </button>
+          </div>
+
+          {/* Mobile concise compliance summary */}
+          <button
+            type="button"
+            className="ticker-mobile-pill"
+            onClick={() => openLegalModal('overview')}
+            title="100% GDPR Compliant & Zero Cookies (EU Law)"
           >
-            TERMS OF SERVICE (TOS)
-          </button>
-          <span className="ticker-sep" aria-hidden="true">•</span>
-          <button 
-            type="button" 
-            className="ticker-link"
-            onClick={() => openLegalModal('privacy')}
-            id="ticker-btn-privacy"
-            title="Read GDPR & Data Privacy Policy"
-          >
-            PRIVACY &amp; GDPR
-          </button>
-          <span className="ticker-sep" aria-hidden="true">•</span>
-          <button 
-            type="button" 
-            className="ticker-link"
-            onClick={() => openLegalModal('cookies')}
-            id="ticker-btn-cookies"
-            title="100% Cookie-free & zero third-party tracking policy"
-          >
-            100% COOKIE-FREE
+            <span className="status-dot status-dot-live" style={{ width: '6px', height: '6px' }} aria-hidden="true" />
+            <span>100% GDPR • ZERO COOKIES</span>
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+        <div className="ticker-right">
           <button 
             type="button" 
-            className="ticker-link"
+            className="ticker-link ticker-desktop-retention"
             onClick={() => openLegalModal('retention')}
             id="ticker-btn-retention"
             title="Automated 30-day cloud storage purge policy"
@@ -137,11 +140,12 @@ export default function WelcomeView({ onOpenCreateModal }) {
         <div className="nav-actions">
           <button 
             type="button"
-            className="ticker-link"
+            className="ticker-link nav-pricing-link"
             onClick={() => document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' })}
             style={{ color: 'var(--ink)', fontWeight: 800, fontSize: '0.8rem', marginRight: '6px' }}
           >
-            PRICING &amp; VIP
+            <span className="pricing-text-desktop">PRICING &amp; VIP</span>
+            <span className="pricing-text-mobile">PRICING</span>
           </button>
           <button 
             type="button"
@@ -157,7 +161,8 @@ export default function WelcomeView({ onOpenCreateModal }) {
             onClick={() => openAuthModal('register')}
             id="nav-btn-register"
           >
-            CLAIM VIP PRO (15 SEATS)
+            <span className="cta-full-text">CLAIM VIP PRO (15 SEATS)</span>
+            <span className="cta-short-text">VIP PRO ⚡</span>
           </button>
         </div>
       </nav>

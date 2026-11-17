@@ -138,6 +138,51 @@
   color: #fff;
 }
 
+/* Ticker Desktop vs Mobile Toggles */
+.neo-brutalist-page .ticker-brand-tag {
+  background: none;
+  border: none;
+  color: var(--yellow);
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0 2px;
+  letter-spacing: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.neo-brutalist-page .ticker-desktop-items {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.neo-brutalist-page .ticker-mobile-pill {
+  display: none;
+}
+
+.neo-brutalist-page .ticker-desktop-retention {
+  display: inline-flex;
+}
+
+.neo-brutalist-page .pricing-text-mobile {
+  display: none;
+}
+
+.neo-brutalist-page .pricing-text-desktop {
+  display: inline;
+}
+
+.neo-brutalist-page .cta-short-text {
+  display: none;
+}
+
+.neo-brutalist-page .cta-full-text {
+  display: inline;
+}
+
 .neo-brutalist-page .ticker-sep {
   color: var(--ink-dim);
   opacity: 0.7;
@@ -1364,37 +1409,125 @@
 
 /* Mobile & Tablet Responsiveness */
 @media (max-width: 640px) {
+  /* Top Ticker on Mobile - Crisp Single-Row Header */
   .neo-brutalist-page .top-ticker {
-    font-size: 0.68rem;
-    padding: 8px 12px;
-    justify-content: center;
-    text-align: center;
-  }
-  .neo-brutalist-page .ticker-left {
-    justify-content: center;
-    gap: 6px 8px;
-  }
-  .neo-brutalist-page .nav-bar {
-    padding: 10px 14px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .neo-brutalist-page .brand-stamp {
-    font-size: 1.05rem;
-    padding: 4px 10px;
-  }
-  .neo-brutalist-page .nav-actions {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .neo-brutalist-page .btn-nav-login {
-    padding: 6px 10px;
-    font-size: 0.78rem;
-  }
-  .neo-brutalist-page .btn-nav-cta {
+    font-size: 0.72rem;
     padding: 7px 12px;
-    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    height: auto;
+    min-height: 36px;
+    box-sizing: border-box;
+    text-align: left;
+  }
+
+  .neo-brutalist-page .ticker-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .neo-brutalist-page .ticker-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .neo-brutalist-page .ticker-desktop-items {
+    display: none !important;
+  }
+
+  .neo-brutalist-page .ticker-desktop-retention {
+    display: none !important;
+  }
+
+  .neo-brutalist-page .ticker-mobile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .neo-brutalist-page .ticker-pill-btn {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  /* Navigation Bar on Mobile - Unified Single-Row Layout */
+  .neo-brutalist-page .nav-bar {
+    padding: 8px 12px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .neo-brutalist-page .brand-logo {
+    flex-shrink: 0;
+  }
+
+  .neo-brutalist-page .brand-stamp {
+    font-size: 0.95rem;
+    padding: 4px 8px;
+    letter-spacing: 0.02em;
+    transform: none;
+  }
+
+  .neo-brutalist-page .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
+  .neo-brutalist-page .pricing-text-desktop {
+    display: none !important;
+  }
+
+  .neo-brutalist-page .pricing-text-mobile {
+    display: inline !important;
+  }
+
+  .neo-brutalist-page .cta-full-text {
+    display: none !important;
+  }
+
+  .neo-brutalist-page .cta-short-text {
+    display: inline-flex !important;
+    align-items: center;
+  }
+
+  .neo-brutalist-page .btn-nav-login {
+    padding: 6px 8px;
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+
+  .neo-brutalist-page .btn-nav-cta {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+    white-space: nowrap;
   }
   .neo-brutalist-page .container {
     padding: 16px 14px 0;
@@ -1472,6 +1605,27 @@
     flex-direction: column;
     align-items: flex-start;
     padding: 20px 14px;
+  }
+}
+
+@media (max-width: 440px) {
+  .neo-brutalist-page .ticker-brand-tag {
+    display: none !important;
+  }
+  .neo-brutalist-page .nav-pricing-link {
+    display: none !important;
+  }
+  .neo-brutalist-page .brand-stamp {
+    font-size: 0.88rem;
+    padding: 4px 6px;
+  }
+  .neo-brutalist-page .btn-nav-login {
+    padding: 5px 6px;
+    font-size: 0.72rem;
+  }
+  .neo-brutalist-page .btn-nav-cta {
+    padding: 5px 8px;
+    font-size: 0.74rem;
   }
 }
 
