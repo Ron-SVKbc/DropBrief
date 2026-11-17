@@ -82,6 +82,13 @@
   padding: 0 16px;
 }
 
+@media (max-width: 640px) {
+  .cp-container {
+    margin: 16px auto 0;
+    padding: 0 12px;
+  }
+}
+
 /* ── Main Manifest / Intake Card ────────────────────────────── */
 .cp-manifest-card {
   background: var(--card-bg);
@@ -173,13 +180,15 @@
 
 .cp-manifest-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+  font-size: clamp(1.35rem, 5.5vw, 2.5rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--ink-primary);
   margin: 12px 0 10px 0;
   text-transform: uppercase;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .cp-manifest-desc {
@@ -493,6 +502,13 @@
   padding: 10px 14px;
   gap: 12px;
   transition: border-color 0.12s;
+}
+
+@media (max-width: 500px) {
+  .cp-file-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 
 .cp-file-row:hover {
@@ -864,6 +880,8 @@
   }
   .cp-btn-done {
     width: 100%;
+    justify-content: center;
+    text-align: center;
   }
 }
 

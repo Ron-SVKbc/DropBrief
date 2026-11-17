@@ -70,6 +70,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .neo-brutalist-page .status-dot {
@@ -268,12 +269,14 @@
 
 .neo-brutalist-page .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-size: clamp(1.75rem, 6.5vw, 4.2rem);
   font-weight: 900;
   line-height: 1.05;
   letter-spacing: -0.035em;
   text-transform: uppercase;
   margin-bottom: 20px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .neo-brutalist-page .highlight-badge {
@@ -530,6 +533,8 @@
   font-size: 0.8rem;
   font-weight: 800;
   margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .neo-brutalist-page .dock-track {
@@ -827,11 +832,13 @@
 
 .neo-brutalist-page .pricing-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.8vw, 2.9rem);
+  font-size: clamp(1.45rem, 5vw, 2.9rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1.08;
   margin-bottom: 12px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .neo-brutalist-page .pricing-subtitle {
@@ -1172,11 +1179,13 @@
 
 .neo-brutalist-page .ref-main-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+  font-size: clamp(1.35rem, 5.5vw, 2.7rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1.1;
   margin-bottom: 12px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .neo-brutalist-page .ref-main-title .badge-storage,
@@ -1353,14 +1362,42 @@
   box-shadow: 2px 2px 0 var(--ink);
 }
 
-/* Mobile Tweaks */
+/* Mobile & Tablet Responsiveness */
 @media (max-width: 640px) {
   .neo-brutalist-page .top-ticker {
     font-size: 0.68rem;
-    padding: 8px 16px;
+    padding: 8px 12px;
+    justify-content: center;
+    text-align: center;
+  }
+  .neo-brutalist-page .ticker-left {
+    justify-content: center;
+    gap: 6px 8px;
   }
   .neo-brutalist-page .nav-bar {
-    padding: 12px 16px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .neo-brutalist-page .brand-stamp {
+    font-size: 1.05rem;
+    padding: 4px 10px;
+  }
+  .neo-brutalist-page .nav-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .neo-brutalist-page .btn-nav-login {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+  .neo-brutalist-page .btn-nav-cta {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+  }
+  .neo-brutalist-page .container {
+    padding: 16px 14px 0;
   }
   .neo-brutalist-page .hero-actions-row {
     flex-direction: column;
@@ -1370,26 +1407,71 @@
   .neo-brutalist-page .btn-hero-secondary {
     justify-content: center;
     text-align: center;
+    width: 100%;
+  }
+  .neo-brutalist-page .ticket-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .neo-brutalist-page .ticket-row .stamp-action-btn {
+    align-self: flex-start;
   }
   .neo-brutalist-page .telemetry-row {
     flex-direction: column;
     align-items: flex-start;
   }
+  .neo-brutalist-page .incident-audit-card {
+    padding: 20px 14px;
+    margin-bottom: 36px;
+  }
+  .neo-brutalist-page .incident-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
   .neo-brutalist-page .incident-total-strip {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .neo-brutalist-page .pricing-card {
+    padding: 24px 16px;
+  }
+  .neo-brutalist-page .founding-urgent-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 14px 14px;
+  }
+  .neo-brutalist-page .founding-urgent-left {
+    justify-content: center;
+  }
+  .neo-brutalist-page .founding-urgent-count {
+    text-align: center;
+  }
+  .neo-brutalist-page .referral-showcase {
+    padding: 22px 14px;
+  }
+  .neo-brutalist-page .ref-main-title .badge-storage,
+  .neo-brutalist-page .ref-main-title .badge-slots {
+    white-space: normal !important;
   }
   .neo-brutalist-page .ref-bottom-bar {
     flex-direction: column;
     align-items: stretch;
   }
   .neo-brutalist-page .btn-claim-referral {
+    white-space: normal;
+    width: 100%;
     justify-content: center;
     text-align: center;
+    padding: 14px 18px;
   }
   .neo-brutalist-page .neo-footer {
     flex-direction: column;
     align-items: flex-start;
+    padding: 20px 14px;
   }
 }
 

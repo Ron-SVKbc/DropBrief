@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Settings
 } from 'lucide-react';
+import '../styles/navbar-brutalist.css';
 
 export default function Navbar({ onOpenCreateModal }) {
   const { 
@@ -100,74 +101,26 @@ export default function Navbar({ onOpenCreateModal }) {
   };
 
   return (
-    <header style={{
-      borderBottom: '2.5px solid #111111',
-      background: '#F5F1E8',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-      boxShadow: '0 2px 0 #111111'
-    }}>
-      <div className="container" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: '10px',
-        paddingBottom: '10px',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
+    <header className="db-navbar-header">
+      <div className="container db-navbar-container">
         
         {/* ── Brand Stamp (Matching Landing Page) ───────────── */}
         <button 
           type="button"
           onClick={openDashboard}
           aria-label="DropBrief - Go to main dashboard"
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px', 
-            cursor: 'pointer',
-            userSelect: 'none',
-            flexShrink: 0,
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            textAlign: 'left',
-            color: 'inherit',
-            font: 'inherit'
-          }} 
+          className="db-nav-brand-btn"
           title="Go to main dashboard"
         >
           {/* Logo stamp */}
-          <div style={{
-            background: 'var(--yellow, #FFE500)',
-            color: '#111111',
-            border: '2px solid #111111',
-            boxShadow: '2px 2px 0 #111111',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            fontFamily: 'var(--font-mono, monospace)',
-            fontWeight: 900,
-            fontSize: '0.92rem',
-            letterSpacing: '0.04em',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
+          <div className="db-nav-logo-stamp">
             <FolderSync size={16} aria-hidden="true" />
             <span>DROPBRIEF ⚡</span>
           </div>
 
-          <div>
+          <div className="db-nav-brand-text">
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <span style={{ 
-                fontFamily: 'var(--font-mono, monospace)',
-                fontSize: '0.72rem', 
-                fontWeight: 800, 
-                letterSpacing: '0.04em', 
-                color: '#111111'
-              }}>
+              <span className="db-nav-brand-kicker">
                 STUDIO DISPATCH
               </span>
               {isLiveDb ? (
@@ -204,34 +157,19 @@ export default function Navbar({ onOpenCreateModal }) {
         </button>
 
         {/* ── View Switcher ──────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }} role="navigation" aria-label="View switcher">
+        <div className="db-nav-switcher" role="navigation" aria-label="View switcher">
           <button
             id="nav-dashboard-tab"
             type="button"
             onClick={handleDashboardClick}
-            style={{ 
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              padding: '6px 14px',
-              border: '2px solid #111111',
-              borderRadius: '4px',
-              background: (currentView === 'dashboard' || currentView === 'project-detail') ? '#111111' : '#FFFFFF',
-              color: (currentView === 'dashboard' || currentView === 'project-detail') ? '#FFFFFF' : '#111111',
-              boxShadow: (currentView === 'dashboard' || currentView === 'project-detail') ? '2px 2px 0 var(--yellow, #FFE500)' : '2px 2px 0 #111111',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.15s'
-            }}
+            className={`db-nav-tab ${(currentView === 'dashboard' || currentView === 'project-detail') ? 'is-active' : ''}`}
           >
             <LayoutDashboard size={13} aria-hidden="true" />
             <span>{currentFreelancer ? (currentView === 'project-detail' ? 'DASHBOARD / BACK' : 'DASHBOARD') : 'FOR FREELANCERS'}</span>
           </button>
 
           {currentFreelancer ? (
-            <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <div style={{ position: 'relative', flex: 1 }} ref={dropdownRef}>
               <button
                 id="nav-client-portal-tab"
                 type="button"
@@ -239,29 +177,17 @@ export default function Navbar({ onOpenCreateModal }) {
                 aria-expanded={isClientDropdownOpen}
                 aria-haspopup="true"
                 aria-label="Select project for client preview"
-                style={{ 
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  padding: '6px 12px',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  background: currentView === 'client-portal' ? '#111111' : '#FFFFFF',
-                  color: currentView === 'client-portal' ? '#FFFFFF' : '#111111',
-                  boxShadow: currentView === 'client-portal' ? '2px 2px 0 var(--yellow, #FFE500)' : '2px 2px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s'
-                }}
+                className={`db-nav-tab ${currentView === 'client-portal' ? 'is-active' : ''}`}
+                style={{ width: '100%', justifyContent: 'space-between' }}
                 title="Click to select a project for client preview"
               >
-                <Eye size={13} aria-hidden="true" />
-                <span>
-                  {currentView === 'client-portal' && currentPortalProject 
-                    ? `PREVIEW: ${currentPortalProject.title.length > 14 ? currentPortalProject.title.slice(0, 13) + '...' : currentPortalProject.title}` 
-                    : 'CLIENT VIEW'}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Eye size={13} aria-hidden="true" />
+                  <span>
+                    {currentView === 'client-portal' && currentPortalProject 
+                      ? `PREVIEW: ${currentPortalProject.title.length > 14 ? currentPortalProject.title.slice(0, 13) + '...' : currentPortalProject.title}` 
+                      : 'CLIENT VIEW'}
+                  </span>
                 </span>
                 <ChevronDown 
                   size={12} 
@@ -279,19 +205,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 <div 
                   role="menu"
                   aria-label="List of projects for client preview"
-                  style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 8px)',
-                    right: 0,
-                    width: '320px',
-                    maxWidth: '90vw',
-                    background: '#ffffff',
-                    border: '2.5px solid #111111',
-                    borderRadius: '6px',
-                    boxShadow: '5px 5px 0 #111111',
-                    zIndex: 100,
-                    overflow: 'hidden'
-                  }}
+                  className="db-nav-dropdown-menu"
                 >
                   {/* Dropdown Header */}
                   <div style={{
@@ -419,21 +333,7 @@ export default function Navbar({ onOpenCreateModal }) {
               id="nav-client-portal-tab"
               type="button"
               onClick={() => openClientPortal('demo-preview')}
-              style={{ 
-                fontFamily: 'var(--font-mono, monospace)',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                padding: '6px 12px',
-                border: '2px solid #111111',
-                borderRadius: '4px',
-                background: currentView === 'client-portal' ? '#111111' : '#FFFFFF',
-                color: currentView === 'client-portal' ? '#FFFFFF' : '#111111',
-                boxShadow: '2px 2px 0 #111111',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+              className={`db-nav-tab ${currentView === 'client-portal' ? 'is-active' : ''}`}
               title="Experience what your client sees — live interactive test (no password or registration required)"
             >
               <Eye size={13} aria-hidden="true" />
@@ -443,27 +343,13 @@ export default function Navbar({ onOpenCreateModal }) {
         </div>
 
         {/* ── Right Actions ──────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="db-nav-actions">
           
           <button
             id="btn-security-info"
             onClick={() => openLegalModal('overview')}
             aria-label="Data security and GDPR information"
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '0.76rem',
-              fontWeight: 800,
-              padding: '6px 10px',
-              border: '2px solid #111111',
-              borderRadius: '4px',
-              background: '#FFFFFF',
-              color: '#111111',
-              boxShadow: '2px 2px 0 #111111',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}
+            className="db-nav-gdpr-btn"
             title="Data security & GDPR information"
           >
             <ShieldCheck size={14} color="#10B981" aria-hidden="true" />
@@ -476,19 +362,7 @@ export default function Navbar({ onOpenCreateModal }) {
               {/* User profile pill */}
               <div 
                 id="btn-nav-account-settings"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: '#FFFFFF',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  padding: '4px 10px 4px 6px',
-                  fontSize: '0.8rem',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  cursor: 'pointer',
-                  boxShadow: '2px 2px 0 #111111'
-                }}
+                className="db-nav-user-pill"
                 onClick={openAccountModal}
                 title="User profile and account settings"
                 role="button"
@@ -607,25 +481,10 @@ export default function Navbar({ onOpenCreateModal }) {
                 id="btn-nav-new-project"
                 type="button"
                 onClick={onOpenCreateModal}
-                style={{
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.8rem',
-                  fontWeight: 900,
-                  padding: '7px 14px',
-                  background: 'var(--yellow, #FFE500)',
-                  color: '#111111',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  boxShadow: '3px 3px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'transform 0.15s, box-shadow 0.15s'
-                }}
+                className="db-nav-new-btn"
               >
                 <Plus size={15} aria-hidden="true" />
-                <span>NEW DOCKET</span>
+                <span className="db-nav-new-text">NEW DOCKET</span>
               </button>
 
               {/* Logout */}
@@ -634,17 +493,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 type="button"
                 onClick={logoutFreelancer}
                 aria-label="Log out of account"
-                style={{
-                  padding: '7px 9px',
-                  background: '#FFFFFF',
-                  color: '#111111',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  boxShadow: '2px 2px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center'
-                }}
+                className="db-nav-logout-btn"
                 title="Log out"
               >
                 <LogOut size={14} aria-hidden="true" />
@@ -657,21 +506,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 id="btn-nav-login"
                 type="button"
                 onClick={() => openAuthModal('login')}
-                style={{
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  padding: '7px 14px',
-                  background: '#FFFFFF',
-                  color: '#111111',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  boxShadow: '2px 2px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
+                className="db-nav-tab"
               >
                 <KeyRound size={13} aria-hidden="true" />
                 <span>LOG IN</span>
@@ -681,21 +516,7 @@ export default function Navbar({ onOpenCreateModal }) {
                 id="btn-nav-register"
                 type="button"
                 onClick={() => openAuthModal('register')}
-                style={{
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontSize: '0.8rem',
-                  fontWeight: 900,
-                  padding: '7px 14px',
-                  background: 'var(--yellow, #FFE500)',
-                  color: '#111111',
-                  border: '2px solid #111111',
-                  borderRadius: '4px',
-                  boxShadow: '3px 3px 0 #111111',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
+                className="db-nav-new-btn"
               >
                 <Plus size={14} aria-hidden="true" />
                 <span>START FREE</span>

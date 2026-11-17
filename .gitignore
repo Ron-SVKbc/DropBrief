@@ -31,3 +31,7 @@ dist-ssr
 # Agent/IDE scratch
 .agents/*
 !.agents/rules/
+
+# Test / UI Drafts
+TESTUI/
+

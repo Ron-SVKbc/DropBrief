@@ -223,7 +223,7 @@ export default function EmailPreviewModal() {
           flexDirection: 'column',
           gap: '10px'
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
             <div>
               <strong>Sender:</strong> DropBrief Notifications
             </div>
@@ -510,7 +510,7 @@ export default function EmailPreviewModal() {
             {sendSuccess ? 'Done, close' : 'Close'}
           </button>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => {

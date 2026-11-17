@@ -1031,10 +1031,38 @@
   .nb-dashboard-page .docket-action-footer {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
   .nb-dashboard-page .docket-footer-left,
   .nb-dashboard-page .docket-footer-right {
     justify-content: space-between;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .nb-dashboard-page .dash-segmented-filters {
+    gap: 6px;
+    width: 100%;
+  }
+  .nb-dashboard-page .dash-filter-btn {
+    padding: 6px 10px;
+    font-size: 0.74rem;
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    justify-content: center;
+  }
+  .nb-dashboard-page .docket-footer-left,
+  .nb-dashboard-page .docket-footer-right {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .nb-dashboard-page .docket-footer-left > button,
+  .nb-dashboard-page .docket-footer-right > button,
+  .nb-dashboard-page .docket-footer-right > a {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -1961,6 +1989,41 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .create-docket-header {
+    padding: 14px 16px;
+  }
+  .create-docket-body {
+    padding: 16px 14px;
+  }
+  .create-step-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .create-specs-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .create-docket-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .create-footer-btns {
+    width: 100%;
+  }
+  .create-footer-btns button {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+  }
+  .create-footer-note {
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 /* Limit reached view inside modal */

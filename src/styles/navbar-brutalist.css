@@ -1,0 +1,330 @@
+/* ============================================================
+   DropBrief — Dedicated Studio Navbar Styles
+   Maintains 100% desktop fidelity while making mobile/tablet
+   navigation sleek, tactile, and zero-overflow.
+   ============================================================ */
+
+.db-navbar-header {
+  border-bottom: 2.5px solid #111111;
+  background: #F5F1E8;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 0 #111111;
+  width: 100%;
+}
+
+.db-navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── Brand Logo ─────────────────────────────────────────────── */
+.db-nav-brand-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  order: 1;
+}
+
+.db-nav-logo-stamp {
+  background: var(--yellow, #FFE500);
+  color: #111111;
+  border: 2px solid #111111;
+  box-shadow: 2px 2px 0 #111111;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 900;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.12s ease;
+}
+
+.db-nav-brand-btn:hover .db-nav-logo-stamp {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #111111;
+}
+
+.db-nav-brand-text {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.db-nav-brand-kicker {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #111111;
+}
+
+/* ── View Switcher ──────────────────────────────────────────── */
+.db-nav-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  order: 2;
+}
+
+.db-nav-tab {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  background: #FFFFFF;
+  color: #111111;
+  box-shadow: 2px 2px 0 #111111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  user-select: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.db-nav-tab:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #111111;
+}
+
+.db-nav-tab.is-active {
+  background: #111111;
+  color: #FFFFFF;
+  box-shadow: 2px 2px 0 var(--yellow, #FFE500);
+}
+
+.db-nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: 90vw;
+  background: #ffffff;
+  border: 2.5px solid #111111;
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 #111111;
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* ── Right Action Controls ──────────────────────────────────── */
+.db-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  order: 3;
+}
+
+.db-nav-gdpr-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 6px 10px;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  background: #FFFFFF;
+  color: #111111;
+  box-shadow: 2px 2px 0 #111111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.12s ease;
+}
+
+.db-nav-gdpr-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #111111;
+}
+
+.db-nav-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  padding: 4px 10px 4px 6px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #111111;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.db-nav-user-pill:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #111111;
+}
+
+.db-nav-new-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 7px 14px;
+  background: var(--yellow, #FFE500);
+  color: #111111;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 #111111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
+}
+
+.db-nav-new-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #111111;
+}
+
+.db-nav-logout-btn {
+  padding: 7px 9px;
+  background: #FFFFFF;
+  color: #111111;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 #111111;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+}
+
+.db-nav-logout-btn:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #DC2626;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #DC2626;
+}
+
+/* ── Mobile & Tablet Responsiveness ─────────────────────────── */
+@media (max-width: 768px) {
+  .db-navbar-container {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  .db-nav-brand-btn {
+    order: 1;
+  }
+
+  .db-nav-actions {
+    order: 2;
+    gap: 6px;
+  }
+
+  .db-nav-switcher {
+    order: 3;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .db-nav-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 10px;
+    font-size: 0.75rem;
+  }
+
+  .db-nav-new-btn {
+    padding: 6px 10px;
+    font-size: 0.74rem;
+  }
+
+  .db-nav-user-pill {
+    padding: 4px 8px 4px 6px;
+    font-size: 0.76rem;
+  }
+
+  .db-nav-dropdown-menu {
+    position: fixed;
+    top: 96px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    box-shadow: 6px 6px 0 #111111;
+  }
+}
+
+@media (max-width: 480px) {
+  .db-nav-brand-kicker {
+    display: none;
+  }
+
+  .db-nav-new-text {
+    display: none;
+  }
+
+  .db-nav-new-btn {
+    padding: 7px 9px;
+  }
+
+  .db-nav-tab {
+    font-size: 0.72rem;
+    padding: 6px 6px;
+  }
+
+  .db-nav-gdpr-btn span {
+    display: none;
+  }
+
+  .db-nav-gdpr-btn {
+    padding: 6px 8px;
+  }
+
+  .db-nav-user-pill strong {
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 380px) {
+  .db-nav-logo-stamp {
+    font-size: 0.82rem;
+    padding: 3px 6px;
+    gap: 4px;
+  }
+  .db-nav-user-pill strong {
+    max-width: 55px;
+  }
+  .db-nav-tab {
+    font-size: 0.68rem;
+    padding: 5px 4px;
+    gap: 4px;
+  }
+}
